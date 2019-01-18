@@ -50,21 +50,22 @@ h1, h2 {
   text-decoration: none;
 }
 
-#top, #bottom {
+#top {
   position: fixed;
   left: 30.2%;
   right: 0;
-  height: 50%;
-}
-
-#top {
   top: 35px;
-  background-color: orange;
+  /* background-color: orange; */
+  height: calc(50% + 18px);
 }
 
 #bottom {
+  position: fixed;
+  left: 30.2%;
+  right: 0;
   bottom: 0;
-  background-color: green;
+  /* background-color: green; */
+  height: calc(50% - 18px);
 }
 
 button {
@@ -462,17 +463,18 @@ a.addnlightbg:active {
   height: 100vh;
   float: left;
   /* text-align: center; */
-  border-bottom: 2px solid rgb(30, 218, 208);
+  border-bottom: 2px solid #333;
 }
 
 #left {
   width: 29.8%;
-  background-color: blue;
+  /* background-color: blue; */
+  border-right: 2px solid #333;
 }
 
 #right {
   width: 89.8%;
-  border-left: 2px solid rgb(30, 218, 208);
+  border-left: 2px solid #333;
   /* // background:yellow; */
 }
 
@@ -480,11 +482,11 @@ a.addnlightbg:active {
   width: 100%;
   overflow: hidden;
   text-align: center;
-  border-top: 2px solid rgb(30, 218, 208);
+  border-top: 2px solid #333;
 }
 
 #container2>div {
-  height: 35vh;
+  height: calc(40vh - 18px);
   float: left;
 }
 
@@ -495,25 +497,36 @@ a.addnlightbg:active {
 }
 
 #container2a>div {
-  height: 15vh;
+  height: 10vh;
+  float: left;
+}
+
+#container2top {
+  width: 100%;
+  overflow: hidden;
+  text-align: center;
+}
+
+#container2top>div {
+  height: calc(40vh - 18px);
   float: left;
 }
 
 #left2 {
   width: 33%;
-  background-color: gray;
+  /* background-color: gray; */
 }
 
 #middle2 {
   width: 33%;
-  border-left: 2px solid rgb(30, 218, 208);
-  background-color: purple;
+  border-left: 2px solid #333;
+  /* background-color: purple; */
 }
 
 #right2 {
   width: 33%;
-  border-left: 2px solid rgb(30, 218, 208);
-  background-color: red;
+  border-left: 2px solid #333;
+  /* background-color: red; */
 }
 
 /* #container3 {

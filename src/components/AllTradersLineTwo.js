@@ -18,13 +18,13 @@ export class AllTradersLineTwo extends Component {
 
         <div id="container2a">
           <div id="left2">
-             - blockChain part
+             blockChain part
           </div>
           <div id="middle2">
-             - blockChain part
+             blockChain part
           </div>
           <div id="right2">
-             - blockChain part
+             blockChain part
           </div>
         </div>
 

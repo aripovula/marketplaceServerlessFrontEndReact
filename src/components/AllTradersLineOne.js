@@ -4,12 +4,12 @@ export class AllTradersLineOne extends Component {
   render() {
     return (
       <div id="top">
-        <div id="container2">
+        <div id="container2top">
           <div id="left2">
             UPPER-LEFT - Assembler Inc.
           </div>
           <div id="middle2">
-            UPPER-CENTER - Assemle Works Ltd.
+            UPPER-CENTER - Last Line Ltd.
           </div>
           <div id="right2">
             UPPER-RIGHT - Finisher Co.
@@ -18,13 +18,13 @@ export class AllTradersLineOne extends Component {
 
         <div id="container2a">
           <div id="left2">
-            Assembler Inc. - blockChain part
+            blockChain part
           </div>
           <div id="middle2">
-            Assemle Works Ltd. - blockChain part
+            blockChain part
           </div>
           <div id="right2">
-            Finisher Co. - blockChain part
+            blockChain part
           </div>
         </div>
 

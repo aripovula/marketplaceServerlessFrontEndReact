@@ -7,7 +7,6 @@ export class AllTrader extends Component {
   render() {
     return (
       <div class="margintop" id="container">
-        All traders
           <div id="left">
             {/*2nd*/}
             <div>

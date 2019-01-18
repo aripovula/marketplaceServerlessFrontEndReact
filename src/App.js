@@ -10,7 +10,6 @@ class App extends Component {
         <header>
           <AppRouter/>
         </header>
-        content
       </div>
     );
   }
