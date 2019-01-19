@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { PartsProducer } from './PartsProducer';
 
 export class AllTradersLineTwo extends Component {
   render() {
@@ -6,13 +7,14 @@ export class AllTradersLineTwo extends Component {
       <div id="bottom">
         <div id="container2">
           <div id="left2">
-            BOTTOM-LEFT
+            <span className="responsiveFSize">Components Ltd. - products offered:</span><br/>
+            <PartsProducer/>
           </div>
           <div id="middle2">
-            BOTTOM-CENTER
+            Fittings Co.
           </div>
           <div id="right2">
-            BOTTOM-RIGHT
+            Parts LLC
           </div>
         </div>
 

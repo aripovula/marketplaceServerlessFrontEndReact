@@ -68,6 +68,15 @@ h1, h2 {
   height: calc(50% - 18px);
 }
 
+table {
+  border-collapse: collapse;
+  margin-left: 10px;
+}
+
+table, th, td, tr {
+  border: 1px solid gray;
+}
+
 button {
   cursor: pointer;
 }
@@ -265,9 +274,19 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
   font-size: 14px
 }
 
-.postLineList {
+.smalltable {
   color: green;
-  font-size: 14px
+  font-size: 1vw;
+}
+
+.responsiveFSize {
+  color: green;
+  font-size: 1.1vw;
+}
+
+.responsiveFSize2 {
+  color: lightslategray;
+  font-size: 1vw;
 }
 
 .plan {
@@ -306,26 +325,29 @@ a.addn:active {
 
 .addnlightbg, a.addnlightbg {
   color: lightslategray;
-  font-size: 14px;
+  font-size: 1.1vw;
 }
 
 a.addnlightbg:link {
   text-decoration: none;
+  font-size: 1.1vw;
 }
 
 a.addnlightbg:visited {
   text-decoration: none;
+  font-size: 1.1vw;
 }
 
 .addnlightbg:hover, a.addnlightbg:hover {
   color: deepskyblue;
-  transition-duration: 0.4s;
-  font-size: 14px;
+  /* transition-duration: 0.4s; */
+  font-size: 1.1vw;
   text-decoration: none;
 }
 
 a.addnlightbg:active {
   text-decoration: none;
+  font-size: 1.1vw;
 }
 
 .black {
@@ -451,7 +473,7 @@ a.addnlightbg:active {
 
 .notbold {
   font-weight: normal;
-  font-size: 14px;
+  /* font-size: 14px; */
 }
 
 ​ #container {

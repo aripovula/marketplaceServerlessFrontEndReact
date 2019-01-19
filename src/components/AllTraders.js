@@ -6,7 +6,7 @@ import AllTradersLineTwo from './AllTradersLineTwo';
 export class AllTrader extends Component {
   render() {
     return (
-      <div class="margintop" id="container">
+      <div className="margintop" id="container">
           <div id="left">
             {/*2nd*/}
             <div>
