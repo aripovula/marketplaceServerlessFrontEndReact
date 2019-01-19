@@ -7,7 +7,7 @@ export const Header = () => (
     <header className="header fixedElement">
         <div>
             <div className="header__content">
-                &nbsp; Niche marketplace
+                &nbsp; Niche marketplace - supply chain
         <span className="horIndent"></span><span className="horIndent"></span>
 
                 <NavLink
@@ -43,7 +43,7 @@ export const Header = () => (
                     to="#"
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
-                >Link to Github repo
+                >Link to source
         </NavLink>
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>

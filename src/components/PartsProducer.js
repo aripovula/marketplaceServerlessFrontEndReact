@@ -49,6 +49,7 @@ export class PartsProducer extends Component {
             />
 
             <table className="smalltable">
+                <tbody>
                 <tr>
                     <td>&nbsp;</td>
                     <td>Model #</td>
@@ -70,6 +71,7 @@ export class PartsProducer extends Component {
                     <td>4.4</td>
                     <td>500</td>
                 </tr>
+                </tbody>
             </table>
 
       </div>
