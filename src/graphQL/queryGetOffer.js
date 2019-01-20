@@ -1,16 +1,13 @@
 import gql from "graphql-tag";
 
 export default gql(`
-query {
-  listOffers(limit: 10) {
-    items {
+query($companyID: ID!, $offerID: String!) {
+  getOffer(companyID: $companyID, offerID: $offerID) {
       companyID
       offerID
       productID
       modelNo
       price
       available
-    }
   }
-}
-`);
+}`);

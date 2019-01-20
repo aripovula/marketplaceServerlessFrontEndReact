@@ -21,8 +21,10 @@ class DataRoom extends Component {
   async handleDeleteClick(offer, e) {
     e.preventDefault();
 
-    if (window.confirm(`Are you sure you want to delete offer ${offer.id}`)) {
+    if (window.confirm(`Are you sure you want to delete offer ${offer.offerID}`)) {
       const { deleteOffer } = this.props;
+      console.log('deleteOffer = ', this.props.deleteOffer);
+      
 
       await deleteOffer(offer);
     }
@@ -37,6 +39,7 @@ class DataRoom extends Component {
 
     this.setState({ busy: true });
 
+    console.log('client.query = ', client.query);
     await client.query({
       query,
       fetchPolicy: 'network-only',
@@ -46,21 +49,24 @@ class DataRoom extends Component {
   }
 
   renderOffer = (offer) => (
-    <Link to={`/offer/${offer.offerID}`} className="card" key={offer.offerID}>
-      <div className="">
-        <div className="">{offer.modelNo}</div>
-      </div>
-      <div className="">
-        <div className=""><i className=""></i>{offer.price}</div>
-      </div>
-      <div className="">
-        <i className=""></i> {offer.productID} comments
-            </div>
-      <button className="" onClick={this.handleDeleteClick.bind(this, offer)}>
-        <i className=""></i>
-        Delete
-            </button>
-    </Link>
+    <div className="margintop">
+      {console.log(offer.offerID)}
+      <Link to={`/offer/${offer.offerID}`} className="card" key={offer.offerID}>
+        <div className="">
+          <div className="">{offer.modelNo}</div>
+        </div>
+        <div className="">
+          <div className=""><i className=""></i>{offer.price}</div>
+        </div>
+        <div className="">
+          <i className=""></i> {offer.productID} comments
+              </div>
+        <button className="" onClick={this.handleDeleteClick.bind(this, offer)}>
+          <i className=""></i>
+          Delete
+              </button>
+      </Link>
+    </div>
   );
 
   render() {
@@ -74,15 +80,16 @@ class DataRoom extends Component {
           <button className="button1" onClick={this.handleSync} disabled={busy}>
             <i aria-hidden="true" className={`refresh icon ${busy && "loading"}`}></i>
             Sync with Server
-                    </button>
+          </button>
         </div>
         <div className="">
           <div className="">
-            <Link to="/newOffer" className="">
+            <Link to="/newoffer" className="">
               <i className=""></i>
               <p>Create new offer</p>
             </Link>
           </div>
+          {console.log('droom ren-', offers)}
           {[].concat(offers).sort((a, b) => a.modelNo.localeCompare(b.modelNo)).map(this.renderOffer)}
         </div>
       </div>
@@ -98,7 +105,8 @@ export default withApollo(compose(
       options: {
         fetchPolicy: 'cache-first',
       },
-      props: ({ data: { listOffers = { items: [] } } }) => ({
+      props: ({ data: { listOffers = { items: [] } }
+      }) => ({
         offers: listOffers.items
       })
     }
@@ -119,10 +127,10 @@ export default withApollo(compose(
       props: (props) => ({
         deleteOffer: (offer) => {
           return props.mutate({
-            variables: { id: offer.id },
+            variables: { companyID: offer.companyID, offerID: offer.offerID },
             optimisticResponse: () => ({
               deleteOffer: {
-                ...offer, __typename: 'Offer', comments: { __typename: 'CommentConnection', items: [] }
+                ...offer, __typename: 'Offer'
               }
             }),
           });

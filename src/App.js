@@ -12,11 +12,12 @@ import AllTraders from './components/AllTraders';
 import OneTrader from './components/OneTrader';
 import { Header } from './components/Header';
 import { LoginPage } from './components/LoginPage';
+import NewOffer from './components/NewOffer';
 
 
 const Home = () => (
   <div className="ui container">
-    <DataRoom />
+    <DataRoom client={client}/>
     {console.log('client = ', client)
     }
   </div>
@@ -30,6 +31,7 @@ const App = () => (
       <Route path="/multitrader" component={AllTraders} />
       <Route path="/onetrader" component={OneTrader} />
       <Route path="/dataroom" component={DataRoom} />
+      <Route path="/newoffer" component={NewOffer} />
       <Route path="/login" component={LoginPage} />
 
     </div>
@@ -51,8 +53,10 @@ const client = new AWSAppSyncClient({
         const { __typename: typename } = obj;
         switch (typename) {
           case 'Offer':
-            return `${typename}:${obj.companyID}`;
+            console.log('in OFFER type');
+            return `${typename}:${obj.offerID}`;
           default:
+            console.log('in default type');
             return id;
         }
       }
