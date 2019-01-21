@@ -13,6 +13,8 @@ import OneTrader from './components/OneTrader';
 import { Header } from './components/Header';
 import { LoginPage } from './components/LoginPage';
 import NewOffer from './components/NewOffer';
+import ViewOffer from './components/ViewOffer';
+
 
 
 const Home = () => (
@@ -32,6 +34,7 @@ const App = () => (
       <Route path="/onetrader" component={OneTrader} />
       <Route path="/dataroom" component={DataRoom} />
       <Route path="/newoffer" component={NewOffer} />
+      <Route path="/offer/:id" component={ViewOffer} />
       <Route path="/login" component={LoginPage} />
 
     </div>

@@ -1,0 +1,37 @@
+mutation AddCo {
+  createCompany(input: {
+    name: "Parts Co",
+    yearsOfOperation: 20,
+    creditRating: AAA,
+    status: ACTIVE
+  }) {
+    id
+    name
+  }
+}
+
+query ListWithFilter {
+  listOffers(limit: 3, filter: {
+    companyID: {
+      eq: "bb1"
+    }
+  }) {
+    items {
+      offerID
+    }
+  }
+}
+
+query ListOffers {
+  listOffers(limit: 2, nextToken: "") {
+    items {
+      companyID
+      offerID
+      productID
+      modelNo
+      price
+      available
+    }
+    nextToken
+  }
+}

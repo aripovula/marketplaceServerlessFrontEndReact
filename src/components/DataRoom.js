@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 
 import { graphql, compose, withApollo } from "react-apollo";
 import QueryAllOffers from "../graphQL/queryAllOffers";
+import QueryCompanyOffers from "../graphQL/queryCompanyOffers";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
-
-import moment from "moment";
 
 class DataRoom extends Component {
 
@@ -24,7 +23,7 @@ class DataRoom extends Component {
     if (window.confirm(`Are you sure you want to delete offer ${offer.offerID}`)) {
       const { deleteOffer } = this.props;
       console.log('deleteOffer = ', this.props.deleteOffer);
-      
+
 
       await deleteOffer(offer);
     }
@@ -49,7 +48,7 @@ class DataRoom extends Component {
   }
 
   renderOffer = (offer) => (
-    <div className="margintop">
+    <div className="margintop" key={offer.offerID}>
       {console.log(offer.offerID)}
       <Link to={`/offer/${offer.offerID}`} className="card" key={offer.offerID}>
         <div className="">

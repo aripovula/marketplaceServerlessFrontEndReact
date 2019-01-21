@@ -1,0 +1,487 @@
+enum BestOfferEnum {
+	LEAST_PRICE
+	BEST_PRODUCT_RATING
+}
+
+enum BlockchainBlockStatus {
+	INITIATED
+	CONFIRMED
+	REJECTED
+}
+
+type Company implements Member {
+	id: ID!
+	name: String!
+	creditRating: CreditRating!
+	yearsOfOperation: Int!
+	status: MemberStatus!
+	orders(limit: Int, nextToken: String): OrderConnection
+	offers(limit: Int, nextToken: String): OfferConnection
+	creditSaleLimitForAAA: Int
+	creditSaleLimitForAA: Int
+	creditSaleLimitForA: Int
+	creditSaleLimitForBBB: Int
+	creditSaleLimitForBB: Int
+	creditSaleLimitForB: Int
+}
+
+type CompanyConnection {
+	items: [Company]
+	nextToken: String
+}
+
+input CreateCompanyInput {
+	name: String!
+	yearsOfOperation: Int!
+	creditSaleLimitForAAA: Int
+	creditSaleLimitForAA: Int
+	creditSaleLimitForA: Int
+	creditSaleLimitForBBB: Int
+	creditSaleLimitForBB: Int
+	creditSaleLimitForB: Int
+}
+
+input CreateOfferInput {
+	companyID: ID!
+	offerID: String!
+	productID: String!
+	price: Float!
+	available: Int!
+}
+
+input CreateOrderInput {
+	companyID: ID!
+	orderID: String!
+	producerID: String!
+	productID: String!
+	orderTime: Int!
+	price: Float!
+	quantity: Int!
+	orderedProductRating: Float
+	minProductRating: Float
+}
+
+input CreateProductInput {
+	name: String!
+	modelNo: String!
+	specificationURL: String!
+}
+
+input CreateS3ObjectInput {
+	bucket: String!
+	region: String!
+	key: String!
+}
+
+enum CreditRating {
+	AAA
+	AA
+	A
+	BBB
+	BB
+	B
+}
+
+input DeleteCompanyInput {
+	id: ID!
+}
+
+input DeleteOfferInput {
+	companyID: ID!
+	offerID: String!
+}
+
+input DeleteOrderInput {
+	companyID: ID!
+	orderID: String!
+}
+
+input DeleteProductInput {
+	id: ID!
+}
+
+input DeleteS3ObjectInput {
+	id: ID!
+}
+
+interface Member {
+	id: ID!
+	name: String!
+	creditRating: CreditRating!
+	yearsOfOperation: Int!
+	status: MemberStatus!
+}
+
+enum MemberStatus {
+	ACTIVE
+	SUSPENDED
+	REJECTED
+}
+
+type Mutation {
+	createOffer(input: CreateOfferInput!): Offer
+	updateOffer(input: UpdateOfferInput!): Offer
+	deleteOffer(input: DeleteOfferInput!): Offer
+	createOrder(input: CreateOrderInput!): Order
+	updateOrder(input: UpdateOrderInput!): Order
+	deleteOrder(input: DeleteOrderInput!): Order
+	createS3Object(input: CreateS3ObjectInput!): S3Object
+	updateS3Object(input: UpdateS3ObjectInput!): S3Object
+	deleteS3Object(input: DeleteS3ObjectInput!): S3Object
+	createProduct(input: CreateProductInput!): Product
+	updateProduct(input: UpdateProductInput!): Product
+	deleteProduct(input: DeleteProductInput!): Product
+	createCompany(input: CreateCompanyInput!): Company
+	updateCompany(input: UpdateCompanyInput!): Company
+	deleteCompany(input: DeleteCompanyInput!): Company
+}
+
+type Offer {
+	companyID: ID!
+	offerID: String!
+	productID: String!
+	price: Float!
+	available: Int!
+}
+
+type OfferConnection {
+	items: [Offer]
+	nextToken: String
+}
+
+enum OfferStatus {
+	EFFECTIVE
+	ON_HOLD_30SEC
+}
+
+type Order {
+	companyID: ID!
+	orderID: String!
+	producerID: String!
+	productID: String!
+	orderTime: Int!
+	status: OrderStatus!
+	price: Float!
+	quantity: Int!
+	orderedProductRating: Float
+	bestOfferType: BestOfferEnum!
+	minProductRating: Float
+}
+
+type OrderConnection {
+	items: [Order]
+	nextToken: String
+}
+
+enum OrderStatus {
+	INFO_REQUESTED
+	PURCHASE_APPROVAL_PENDING
+	CONFIRMING_DEAL_BLOCK
+	CONFIRMED
+	REJECTED
+}
+
+type Product {
+	id: ID!
+	name: String!
+	modelNo: String!
+	productImage: S3Object
+	specificationURL: String!
+}
+
+type ProductConnection {
+	items: [Product]
+	nextToken: String
+}
+
+type Query {
+	getOffer(companyID: ID!, offerID: String!): Offer
+	listOffers(filter: TableOfferFilterInput, limit: Int, nextToken: String): OfferConnection
+	getOrder(companyID: ID!, orderID: String!): Order
+	listOrders(filter: TableOrderFilterInput, limit: Int, nextToken: String): OrderConnection
+	getS3Object(id: ID!): S3Object
+	listS3Objects(filter: TableS3ObjectFilterInput, limit: Int, nextToken: String): S3ObjectConnection
+	getProduct(id: ID!): Product
+	listProducts(filter: TableProductFilterInput, limit: Int, nextToken: String): ProductConnection
+	getCompany(id: ID!): Company
+	listCompanies(filter: TableCompanyFilterInput, limit: Int, nextToken: String): CompanyConnection
+}
+
+type S3Object {
+	id: ID!
+	bucket: String!
+	region: String!
+	key: String!
+}
+
+type S3ObjectConnection {
+	items: [S3Object]
+	nextToken: String
+}
+
+type Subscription {
+	onCreateOffer(
+		companyID: ID,
+		offerID: String,
+		productID: String,
+		price: Float
+	): Offer
+		@aws_subscribe(mutations: ["createOffer"])
+	onUpdateOffer(
+		companyID: ID,
+		offerID: String,
+		productID: String,
+		price: Float
+	): Offer
+		@aws_subscribe(mutations: ["updateOffer"])
+	onDeleteOffer(
+		companyID: ID,
+		offerID: String,
+		productID: String,
+		price: Float
+	): Offer
+		@aws_subscribe(mutations: ["deleteOffer"])
+	onCreateOrder(
+		companyID: ID,
+		orderID: String,
+		producerID: String,
+		productID: String,
+		orderTime: Int
+	): Order
+		@aws_subscribe(mutations: ["createOrder"])
+	onUpdateOrder(
+		companyID: ID,
+		orderID: String,
+		producerID: String,
+		productID: String,
+		orderTime: Int
+	): Order
+		@aws_subscribe(mutations: ["updateOrder"])
+	onDeleteOrder(
+		companyID: ID,
+		orderID: String,
+		producerID: String,
+		productID: String,
+		orderTime: Int
+	): Order
+		@aws_subscribe(mutations: ["deleteOrder"])
+	onCreateS3Object(
+		id: ID,
+		bucket: String,
+		region: String,
+		key: String
+	): S3Object
+		@aws_subscribe(mutations: ["createS3Object"])
+	onUpdateS3Object(
+		id: ID,
+		bucket: String,
+		region: String,
+		key: String
+	): S3Object
+		@aws_subscribe(mutations: ["updateS3Object"])
+	onDeleteS3Object(
+		id: ID,
+		bucket: String,
+		region: String,
+		key: String
+	): S3Object
+		@aws_subscribe(mutations: ["deleteS3Object"])
+	onCreateProduct(
+		id: ID,
+		name: String,
+		modelNo: String,
+		specificationURL: String
+	): Product
+		@aws_subscribe(mutations: ["createProduct"])
+	onUpdateProduct(
+		id: ID,
+		name: String,
+		modelNo: String,
+		specificationURL: String
+	): Product
+		@aws_subscribe(mutations: ["updateProduct"])
+	onDeleteProduct(
+		id: ID,
+		name: String,
+		modelNo: String,
+		specificationURL: String
+	): Product
+		@aws_subscribe(mutations: ["deleteProduct"])
+	onCreateCompany(
+		id: ID,
+		name: String,
+		yearsOfOperation: Int,
+		creditSaleLimitForAAA: Int,
+		creditSaleLimitForAA: Int
+	): Company
+		@aws_subscribe(mutations: ["createCompany"])
+	onUpdateCompany(
+		id: ID,
+		name: String,
+		yearsOfOperation: Int,
+		creditSaleLimitForAAA: Int,
+		creditSaleLimitForAA: Int
+	): Company
+		@aws_subscribe(mutations: ["updateCompany"])
+	onDeleteCompany(
+		id: ID,
+		name: String,
+		yearsOfOperation: Int,
+		creditSaleLimitForAAA: Int,
+		creditSaleLimitForAA: Int
+	): Company
+		@aws_subscribe(mutations: ["deleteCompany"])
+}
+
+input TableBooleanFilterInput {
+	ne: Boolean
+	eq: Boolean
+}
+
+input TableCompanyFilterInput {
+	id: TableIDFilterInput
+	name: TableStringFilterInput
+	yearsOfOperation: TableIntFilterInput
+	creditSaleLimitForAAA: TableIntFilterInput
+	creditSaleLimitForAA: TableIntFilterInput
+	creditSaleLimitForA: TableIntFilterInput
+	creditSaleLimitForBBB: TableIntFilterInput
+	creditSaleLimitForBB: TableIntFilterInput
+	creditSaleLimitForB: TableIntFilterInput
+}
+
+input TableFloatFilterInput {
+	ne: Float
+	eq: Float
+	le: Float
+	lt: Float
+	ge: Float
+	gt: Float
+	contains: Float
+	notContains: Float
+	between: [Float]
+}
+
+input TableIDFilterInput {
+	ne: ID
+	eq: ID
+	le: ID
+	lt: ID
+	ge: ID
+	gt: ID
+	contains: ID
+	notContains: ID
+	between: [ID]
+	beginsWith: ID
+}
+
+input TableIntFilterInput {
+	ne: Int
+	eq: Int
+	le: Int
+	lt: Int
+	ge: Int
+	gt: Int
+	contains: Int
+	notContains: Int
+	between: [Int]
+}
+
+input TableOfferFilterInput {
+	companyID: TableIDFilterInput
+	offerID: TableStringFilterInput
+	productID: TableStringFilterInput
+	price: TableFloatFilterInput
+	available: TableIntFilterInput
+}
+
+input TableOrderFilterInput {
+	companyID: TableIDFilterInput
+	orderID: TableStringFilterInput
+	producerID: TableStringFilterInput
+	productID: TableStringFilterInput
+	orderTime: TableIntFilterInput
+	price: TableFloatFilterInput
+	quantity: TableIntFilterInput
+	orderedProductRating: TableFloatFilterInput
+	minProductRating: TableFloatFilterInput
+}
+
+input TableProductFilterInput {
+	id: TableIDFilterInput
+	name: TableStringFilterInput
+	modelNo: TableStringFilterInput
+	specificationURL: TableStringFilterInput
+}
+
+input TableS3ObjectFilterInput {
+	id: TableIDFilterInput
+	bucket: TableStringFilterInput
+	region: TableStringFilterInput
+	key: TableStringFilterInput
+}
+
+input TableStringFilterInput {
+	ne: String
+	eq: String
+	le: String
+	lt: String
+	ge: String
+	gt: String
+	contains: String
+	notContains: String
+	between: [String]
+	beginsWith: String
+}
+
+input UpdateCompanyInput {
+	id: ID!
+	name: String
+	yearsOfOperation: Int
+	creditSaleLimitForAAA: Int
+	creditSaleLimitForAA: Int
+	creditSaleLimitForA: Int
+	creditSaleLimitForBBB: Int
+	creditSaleLimitForBB: Int
+	creditSaleLimitForB: Int
+}
+
+input UpdateOfferInput {
+	companyID: ID!
+	offerID: String!
+	productID: String
+	price: Float
+	available: Int
+}
+
+input UpdateOrderInput {
+	companyID: ID!
+	orderID: String!
+	producerID: String
+	productID: String
+	orderTime: Int
+	price: Float
+	quantity: Int
+	orderedProductRating: Float
+	minProductRating: Float
+}
+
+input UpdateProductInput {
+	id: ID!
+	name: String
+	modelNo: String
+	specificationURL: String
+}
+
+input UpdateS3ObjectInput {
+	id: ID!
+	bucket: String
+	region: String
+	key: String
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+	subscription: Subscription
+}

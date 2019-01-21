@@ -1,0 +1,116 @@
+    type S3Object {
+      bucket: String!
+      region: String!
+      key: String!
+    }
+
+    type BlockchainBlock {
+        id: ID!
+        orderID: String!
+        marketplaceSignatureOnDeal: String!
+        previousHashOnDeal: String!
+        hashOnDeal: String!
+        nonce: Int!
+        blockchainBlockStatus: BlockchainBlockStatus
+    }
+
+    type Product {
+        id: ID!
+        name: String!
+        modelNo: String!
+        productImage: S3Object
+        specificationURL: String!
+    }
+
+    type Deal {
+        dealID: ID!
+        orderID: String!
+        dealStatus: OfferStatus
+        blockchainBlockStatus: BlockchainBlockStatus
+    }
+
+    interface Member {
+        id: ID!
+        name: String!
+        creditRating: CreditRating!,
+        yearsOfOperation: Int!,
+        status: MemberStatus!
+    }
+
+    type Company implements Member {
+        id: ID!
+        name: String!
+        creditRating: CreditRating!
+        yearsOfOperation: Int!
+        status: MemberStatus!
+        orders(limit: Int, nextToken: String): OrdersConnection
+	    offers(limit: Int, nextToken: String): OffersConnection
+        creditSaleLimitForAAA: Int
+        creditSaleLimitForAA: Int
+        creditSaleLimitForA: Int
+        creditSaleLimitForBBB: Int
+        creditSaleLimitForBB: Int
+        creditSaleLimitForB: Int
+
+    }
+
+    type Offer {
+        companyId: ID!
+        offerId: String!
+        productID: String!
+        available: Int!
+        price: Int!
+    }
+
+    type Order {
+        companyID: ID!
+        orderID: String!
+        producerID: String!
+        productID: String!
+        orderTime: Int!
+        status: OrderStatus!
+        price: Float!
+        quantity: Int!
+        orderedProductRating: Float
+        bestOfferType: BestOfferEnum!
+        minProductRating: Float
+    }
+
+    enum CreditRating {
+      AAA
+      AA
+      A
+      BBB
+      BB
+      B
+    }
+
+    enum OfferStatus {
+      EFFECTIVE
+      ON_HOLD_30SEC
+    }
+
+    enum MemberStatus {
+        ACTIVE
+        SUSPENDED
+        REJECTED
+    }
+
+    enum BlockchainBlockStatus {
+      INITIATED
+      CONFIRMED
+      REJECTED
+    }
+
+    enum OrderStatus {
+        INFO_REQUESTED
+        PURCHASE_APPROVAL_PENDING
+        CONFIRMING_DEAL_BLOCK
+        CONFIRMED
+        REJECTED
+    }
+
+  enum BestOfferEnum {
+    LEAST_PRICE
+    BEST_PRODUCT_RATING
+  }
