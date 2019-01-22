@@ -6,7 +6,6 @@ mutation($companyID: ID!, $offerID: String!) {
     companyID
 	offerID
 	productID
-	modelNo
 	price
 	available
   }

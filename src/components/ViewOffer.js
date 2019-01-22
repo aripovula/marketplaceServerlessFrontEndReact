@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { graphql } from "react-apollo";
 import { Link } from "react-router-dom";
 
-import moment from 'moment';
+// import moment from 'moment';
 
 import QueryGetCompany from "../graphQL/queryGetCompany";
 import CompanyOffers from "./CompanyOffers";

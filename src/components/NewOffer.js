@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 
-import { v4 as uuid } from "uuid";
+// import { v4 as uuid } from "uuid";
 import { graphql } from "react-apollo";
 import QueryAllOffers from "../graphQL/queryAllOffers";
 import QueryGetOffer from "../graphQL/queryGetOffer";
@@ -96,7 +96,6 @@ export default graphql(
                 return props.mutate({
                     update: (proxy, { data: { createOffer } }) => {
                         console.log('point L2 proxy - ', proxy);
-                        console.log('point L2 data 1 - ', data);
                         // Update QueryAllOffers
                         const query = QueryAllOffers;
                         const data = proxy.readQuery({ query });

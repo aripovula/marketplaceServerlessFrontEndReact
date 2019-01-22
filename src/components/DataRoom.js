@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { graphql, compose, withApollo } from "react-apollo";
 import QueryAllOffers from "../graphQL/queryAllOffers";
-import QueryCompanyOffers from "../graphQL/queryCompanyOffers";
+
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
 
 class DataRoom extends Component {
@@ -89,7 +89,7 @@ class DataRoom extends Component {
             </Link>
           </div>
           {console.log('droom ren-', offers)}
-          {[].concat(offers).sort((a, b) => a.modelNo.localeCompare(b.modelNo)).map(this.renderOffer)}
+          {[].concat(offers).sort((a, b) => a.offerID.localeCompare(b.offerID)).map(this.renderOffer)}
         </div>
       </div>
     );

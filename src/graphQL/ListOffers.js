@@ -1,8 +1,8 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag';
 
-export default gql(`
-query {
-  listOffers(limit: 10) {
+export default gql`
+query ListOffers {
+  listOffers {
     items {
       companyID
       offerID
@@ -11,5 +11,4 @@ query {
       available
     }
   }
-}
-`);
+}`

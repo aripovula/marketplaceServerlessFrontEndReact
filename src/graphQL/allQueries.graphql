@@ -1,3 +1,56 @@
+subscription onCreateOffer {
+  onCreateOffer(companyID: "19dea330-e003-451a-b3f3-77db9cbbe46e") {
+    offerID
+  }
+}
+
+subscription onUpdateOffer {
+  onCreateOffer(companyID: "19dea330-e003-451a-b3f3-77db9cbbe46e") {
+    offerID
+  }
+}
+
+query ListWithFilter {
+  listOffers(limit: 3, filter: {
+    companyID: {
+      eq: "bb1"
+    }
+  }) {
+    items {
+      offerID
+    }
+  }
+}
+
+query ListOffers {
+  listOffers(limit: 20) {
+    items {
+      companyID
+      offerID
+      productID
+      price
+      available
+    }
+    nextToken
+  }
+}
+
+mutation NewOffer {
+  createOffer(input: {
+    companyID: "bb1",
+    offerID: "o18",
+    productID: "p1",
+    price: 11,
+    available: 1200
+  }) {
+    companyID
+    offerID
+    productID
+    price
+    available
+  }
+}
+
 mutation AddCo {
   createCompany(input: {
     name: "Parts Co",

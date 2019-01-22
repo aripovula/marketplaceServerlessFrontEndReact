@@ -1,10 +1,9 @@
 import React, { Component } from "react";
 import { graphql } from "react-apollo";
 
-import moment from 'moment';
+// import moment from 'moment';
 
 import QueryGetCompany from "../graphQL/queryGetCompany";
-import QueryCompanyOffers from "../graphQL/queryCompanyOffers";
 import SubsriptionCompanyOffers from "../graphQL/subsriptionCompanyOffers";
 
 import NewOffer from "./NewOffer";
@@ -15,6 +14,7 @@ class CompanyOffers extends Component {
 
     componentDidMount() {
         this.subscription = this.props.subscribeToOffers();
+        console.log('this.subscription = ', this.subscription);
     }
 
     componentWillUnmount() {
@@ -22,6 +22,8 @@ class CompanyOffers extends Component {
     }
 
     renderOffer = (offer) => {
+        console.log('offer in renderOffer-', offer);
+        
         return (
             <div className="offer" key={offer.offerID}>
                 <div className="content">
@@ -36,7 +38,9 @@ class CompanyOffers extends Component {
 
     render() {
         const { offers: { items }, companyID } = this.props;
-
+        console.log('render props', this.props);
+        if (this.props.data) console.log('ba=', this.props.data.getCompany ? this.props.data.getCompany.offers : { items: [] });
+        
         return (
             <div className="margintop">
                 <div className="item">
@@ -46,6 +50,7 @@ class CompanyOffers extends Component {
                         {console.log('items=', items)}
                         {[].concat(items).sort((a, b) => a.offerID.localeCompare(b.offerID)).map(this.renderOffer)}
                         <NewOffer companyID={companyID} />
+                        {/* */}
                     </div>
                 </div>
             </div>
@@ -67,17 +72,17 @@ const CompanyOffersWithData = graphql(
                 variables: {
                     companyID: props.ownProps.companyID,
                 },
-                updateQuery: (prev, { subscriptionData: { data: { subscribeToCompanyOffers } } }) => {
+                updateQuery: (prev, { subscriptionData: { data: { onCreateOffer } } }) => {
                     const res = {
                         ...prev,
                         getCompany: {
                             ...prev.getCompany,
                             offers: {
-                                __typename: 'OfferConnections',
+                                __typename: 'OfferConnection',
                                 ...prev.getCompany.offers,
                                 items: [
-                                    ...prev.getCompany.offers.items.filter(c => c.offerID !== subscribeToCompanyOffers.offerID),
-                                    subscribeToCompanyOffers,
+                                    ...prev.getCompany.offers.items.filter(c => c.offerID !== onCreateOffer.offerID),
+                                    onCreateOffer,
                                 ]
                             }
                         }

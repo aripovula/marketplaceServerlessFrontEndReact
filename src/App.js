@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 import appSyncConfig from "./aws-exports";
@@ -14,6 +14,7 @@ import { Header } from './components/Header';
 import { LoginPage } from './components/LoginPage';
 import NewOffer from './components/NewOffer';
 import ViewOffer from './components/ViewOffer';
+import Offers from './components/Offers';
 
 
 
@@ -34,6 +35,7 @@ const App = () => (
       <Route path="/onetrader" component={OneTrader} />
       <Route path="/dataroom" component={DataRoom} />
       <Route path="/newoffer" component={NewOffer} />
+      <Route path="/offers" component={Offers} />
       <Route path="/offer/:id" component={ViewOffer} />
       <Route path="/login" component={LoginPage} />
 

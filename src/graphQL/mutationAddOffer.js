@@ -5,7 +5,6 @@ mutation (
     $companyID: ID!
     $offerID: String!
     $productID: String!
-    $modelNo: String!
     $price: Float!
     $available: Int!
   ) {
@@ -14,7 +13,6 @@ mutation (
         companyID: $companyID
         offerID: $offerID
         productID: $productID
-        modelNo: $modelNo
         price: $price
         available: $available
       }
@@ -22,7 +20,6 @@ mutation (
       companyID
       offerID
       productID
-      modelNo
       price
       available
   }

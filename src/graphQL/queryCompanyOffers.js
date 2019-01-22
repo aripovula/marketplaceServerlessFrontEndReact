@@ -14,7 +14,6 @@ query (
     items {
       offerID
       productID
-      modelNo
       price
       available
     }
