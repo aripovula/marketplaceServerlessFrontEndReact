@@ -1,4 +1,97 @@
 
+query GetCo2 {
+  getCompany(id: "bb1") {
+    id
+    name
+    creditRating
+    status
+    offers {
+      items {
+        offerID
+        productID
+        price
+        available
+        product {
+          id,
+          name
+          modelNo
+          productImages {
+            items {
+              
+              bucket
+              key
+              region
+            }
+          }
+          specificationURL
+        }
+      }
+    }
+  }
+}
+
+mutation AddOffer {
+  createOffer(input: {
+    companyID: "bb1",
+    offerID: "o2",
+    productID: "a9ab3b64-8fa5-442d-b93d-beed7e8c5f63",
+    price: 12,
+    available: 1100
+  }) {
+    offerID
+    productID
+  }
+}
+
+mutation AddProduct {
+  createProduct(input: {
+	name: "Lever2",
+	modelNo: "L232",
+	specificationURL: "/42",
+	productImages: [
+    {
+    productID: "bb1",
+    s3imageID: "o18"
+    bucket: "abc1",
+    region: "us-east-1",
+    key: "abc1"
+    },
+    {
+    productID: "bb1",
+    s3imageID: "o19"
+    bucket: "abc2",
+    region: "us-east-2",
+    key: "abc2"
+  }
+  ]
+  }) {
+    id
+    productImages {
+      items {
+        bucket
+      }
+    }
+  }
+}
+
+query ListProducts {
+  listProducts{
+    items {
+      id
+      name
+      productImages {
+        items {
+          region
+          bucket
+          key
+        }
+      }
+    }
+  }
+  
+}
+
+
 query GetOffer {
   getOffer(companyID: "bb1", offerID: "o22") {
     offerID
@@ -49,6 +142,7 @@ query GetCo {
     }
   }
 }
+
 
 
 subscription onCreateOffer {

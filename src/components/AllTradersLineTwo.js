@@ -13,7 +13,6 @@ export class AllTradersLineTwo extends Component {
             <PartsProducer/>
           </div>
           <div id="middle2">
-            Fittings Co.
             <CompanyOffersTable id='bb1'/>
           </div>
           <div id="right2">

@@ -33,6 +33,8 @@ type CompanyConnection {
 input CreateCompanyInput {
 	name: String!
 	yearsOfOperation: Int!
+	creditRating: CreditRating!
+	status: MemberStatus!
 	creditSaleLimitForAAA: Int
 	creditSaleLimitForAA: Int
 	creditSaleLimitForA: Int
@@ -65,9 +67,12 @@ input CreateProductInput {
 	name: String!
 	modelNo: String!
 	specificationURL: String!
+	productImages: [CreateS3ImageInput]
 }
 
-input CreateS3ObjectInput {
+input CreateS3ImageInput {
+	productID: ID!
+	s3imageID: String!
 	bucket: String!
 	region: String!
 	key: String!
@@ -100,8 +105,9 @@ input DeleteProductInput {
 	id: ID!
 }
 
-input DeleteS3ObjectInput {
-	id: ID!
+input DeleteS3ImageInput {
+	productID: ID!
+	s3imageID: String!
 }
 
 interface Member {
@@ -125,21 +131,22 @@ type Mutation {
 	createOrder(input: CreateOrderInput!): Order
 	updateOrder(input: UpdateOrderInput!): Order
 	deleteOrder(input: DeleteOrderInput!): Order
-	createS3Object(input: CreateS3ObjectInput!): S3Object
-	updateS3Object(input: UpdateS3ObjectInput!): S3Object
-	deleteS3Object(input: DeleteS3ObjectInput!): S3Object
 	createProduct(input: CreateProductInput!): Product
 	updateProduct(input: UpdateProductInput!): Product
 	deleteProduct(input: DeleteProductInput!): Product
 	createCompany(input: CreateCompanyInput!): Company
 	updateCompany(input: UpdateCompanyInput!): Company
 	deleteCompany(input: DeleteCompanyInput!): Company
+	createS3Image(input: CreateS3ImageInput!): S3Image
+	updateS3Image(input: UpdateS3ImageInput!): S3Image
+	deleteS3Image(input: DeleteS3ImageInput!): S3Image
 }
 
 type Offer {
 	companyID: ID!
 	offerID: String!
 	productID: String!
+	product: Product!
 	price: Float!
 	available: Int!
 }
@@ -181,11 +188,11 @@ enum OrderStatus {
 	REJECTED
 }
 
-type Product {
+type Product implements TradedItems {
 	id: ID!
 	name: String!
 	modelNo: String!
-	productImage: S3Object
+	productImages: S3ImageConnection
 	specificationURL: String!
 }
 
@@ -199,33 +206,29 @@ type Query {
 	listOffers(filter: TableOfferFilterInput, limit: Int, nextToken: String): OfferConnection
 	getOrder(companyID: ID!, orderID: String!): Order
 	listOrders(filter: TableOrderFilterInput, limit: Int, nextToken: String): OrderConnection
-	getS3Object(id: ID!): S3Object
-	listS3Objects(filter: TableS3ObjectFilterInput, limit: Int, nextToken: String): S3ObjectConnection
 	getProduct(id: ID!): Product
 	listProducts(filter: TableProductFilterInput, limit: Int, nextToken: String): ProductConnection
 	getCompany(id: ID!): Company
 	listCompanies(filter: TableCompanyFilterInput, limit: Int, nextToken: String): CompanyConnection
+	getS3Image(productID: ID!, s3imageID: String!): S3Image
+	listS3Images(filter: TableS3ImageFilterInput, limit: Int, nextToken: String): S3ImageConnection
 }
 
-type S3Object {
-	id: ID!
+type S3Image {
+	productID: ID!
+	s3imageID: String!
 	bucket: String!
 	region: String!
 	key: String!
 }
 
-type S3ObjectConnection {
-	items: [S3Object]
+type S3ImageConnection {
+	items: [S3Image]
 	nextToken: String
 }
 
 type Subscription {
-	onCreateOffer(
-		companyID: ID,
-		offerID: String,
-		productID: String,
-		price: Float
-	): Offer
+	onCreateOffer(companyID: ID): Offer
 		@aws_subscribe(mutations: ["createOffer"])
 	onUpdateOffer(
 		companyID: ID,
@@ -265,27 +268,6 @@ type Subscription {
 		orderTime: Int
 	): Order
 		@aws_subscribe(mutations: ["deleteOrder"])
-	onCreateS3Object(
-		id: ID,
-		bucket: String,
-		region: String,
-		key: String
-	): S3Object
-		@aws_subscribe(mutations: ["createS3Object"])
-	onUpdateS3Object(
-		id: ID,
-		bucket: String,
-		region: String,
-		key: String
-	): S3Object
-		@aws_subscribe(mutations: ["updateS3Object"])
-	onDeleteS3Object(
-		id: ID,
-		bucket: String,
-		region: String,
-		key: String
-	): S3Object
-		@aws_subscribe(mutations: ["deleteS3Object"])
 	onCreateProduct(
 		id: ID,
 		name: String,
@@ -331,6 +313,30 @@ type Subscription {
 		creditSaleLimitForAA: Int
 	): Company
 		@aws_subscribe(mutations: ["deleteCompany"])
+	onCreateS3Image(
+		productID: ID,
+		s3imageID: String,
+		bucket: String,
+		region: String,
+		key: String
+	): S3Image
+		@aws_subscribe(mutations: ["createS3Image"])
+	onUpdateS3Image(
+		productID: ID,
+		s3imageID: String,
+		bucket: String,
+		region: String,
+		key: String
+	): S3Image
+		@aws_subscribe(mutations: ["updateS3Image"])
+	onDeleteS3Image(
+		productID: ID,
+		s3imageID: String,
+		bucket: String,
+		region: String,
+		key: String
+	): S3Image
+		@aws_subscribe(mutations: ["deleteS3Image"])
 }
 
 input TableBooleanFilterInput {
@@ -414,8 +420,9 @@ input TableProductFilterInput {
 	specificationURL: TableStringFilterInput
 }
 
-input TableS3ObjectFilterInput {
-	id: TableIDFilterInput
+input TableS3ImageFilterInput {
+	productID: TableIDFilterInput
+	s3imageID: TableStringFilterInput
 	bucket: TableStringFilterInput
 	region: TableStringFilterInput
 	key: TableStringFilterInput
@@ -432,6 +439,12 @@ input TableStringFilterInput {
 	notContains: String
 	between: [String]
 	beginsWith: String
+}
+
+interface TradedItems {
+	id: ID!
+	name: String!
+	specificationURL: String!
 }
 
 input UpdateCompanyInput {
@@ -473,8 +486,9 @@ input UpdateProductInput {
 	specificationURL: String
 }
 
-input UpdateS3ObjectInput {
-	id: ID!
+input UpdateS3ImageInput {
+	productID: ID!
+	s3imageID: String!
 	bucket: String
 	region: String
 	key: String
