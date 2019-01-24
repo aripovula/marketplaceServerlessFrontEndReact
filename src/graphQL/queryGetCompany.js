@@ -13,7 +13,20 @@ query ($id: ID!) {
         productID
         price
         available
+        product {
+          id,
+          name
+          modelNo
+          productImage {
+            id
+            bucket
+            key
+            region
+          }
+          specificationURL
+        }
       }
     }
   }
-}`);
+}
+`);

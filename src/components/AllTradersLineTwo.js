@@ -1,5 +1,7 @@
 import React, { Component } from 'react'
 import { PartsProducer } from './PartsProducer';
+import CompanyOffersTable from './CompanyOffersTable';
+// import { ViewCompanyOffers } from './ViewCompanyWithData';
 
 export class AllTradersLineTwo extends Component {
   render() {
@@ -12,6 +14,7 @@ export class AllTradersLineTwo extends Component {
           </div>
           <div id="middle2">
             Fittings Co.
+            <CompanyOffersTable id='bb1'/>
           </div>
           <div id="right2">
             Parts LLC

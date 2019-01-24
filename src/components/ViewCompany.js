@@ -11,7 +11,7 @@ class ViewCompany extends Component {
 
     render() {
         const { company, loading } = this.props;
-
+        console.log('this.props.location.query - ', this.props);
         return (
             <div className={`ui container raised very padded segment ${loading ? 'loading' : ''}`}>
                 <Link to="/" className="ui button">Back to companies</Link>

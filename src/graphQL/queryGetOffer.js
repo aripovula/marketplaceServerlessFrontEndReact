@@ -8,5 +8,17 @@ query($companyID: ID!, $offerID: String!) {
       productID
       price
       available
+      product {
+        id,
+        name
+        modelNo
+        productImage {
+          id
+          bucket
+          key
+          region
+        }
+        specificationURL
+      }
   }
 }`);

@@ -13,7 +13,7 @@ import OneTrader from './components/OneTrader';
 import { Header } from './components/Header';
 import { LoginPage } from './components/LoginPage';
 import NewOffer from './components/NewOffer';
-import ViewOffer from './components/ViewOffer';
+import ViewCompanyOffers from './components/ViewCompany';
 import Offers from './components/Offers';
 
 
@@ -36,7 +36,7 @@ const App = () => (
       <Route path="/dataroom" component={DataRoom} />
       <Route path="/newoffer" component={NewOffer} />
       <Route path="/offers" component={Offers} />
-      <Route path="/offer/:id" component={ViewOffer} />
+      <Route path="/offer/:id" component={ViewCompanyOffers} />
       <Route path="/login" component={LoginPage} />
 
     </div>

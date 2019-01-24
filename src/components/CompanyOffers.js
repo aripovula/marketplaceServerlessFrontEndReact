@@ -13,12 +13,12 @@ class CompanyOffers extends Component {
     subscription;
 
     componentDidMount() {
-        this.subscription = this.props.subscribeToOffers();
-        console.log('this.subscription = ', this.subscription);
+        // this.subscription = this.props.subscribeToOffers();
+        // console.log('this.subscription = ', this.subscription);
     }
 
     componentWillUnmount() {
-        this.subscription();
+        // this.subscription();
     }
 
     renderOffer = (offer) => {
@@ -38,7 +38,7 @@ class CompanyOffers extends Component {
 
     render() {
         const { offers: { items }, companyID } = this.props;
-        console.log('render props', this.props);
+        console.log('render COffers props', this.props);
         if (this.props.data) console.log('ba=', this.props.data.getCompany ? this.props.data.getCompany.offers : { items: [] });
         
         return (

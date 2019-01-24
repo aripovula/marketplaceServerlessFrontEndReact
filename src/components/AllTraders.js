@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import AllTradersLineOne from './AllTradersLineOne';
 import AllTradersLineTwo from './AllTradersLineTwo';
 import DataRoom from './DataRoom';
+import Offers from './Offers';
 
 
 export class AllTrader extends Component {
@@ -12,7 +13,7 @@ export class AllTrader extends Component {
             {/*2nd*/}
             <div>
               LeftColumn - market info
-              <DataRoom/>
+              <Offers/>
             </div>
           </div>
   
