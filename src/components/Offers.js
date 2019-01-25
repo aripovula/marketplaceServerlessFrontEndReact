@@ -5,13 +5,13 @@ import { graphql, compose } from 'react-apollo'
 import ListOffers from '../graphQL/ListOffers'
 import NewOfferSubscription from '../graphQL/NewOfferSubscription'
 
-class Recipes extends React.Component {
+class Offers extends React.Component {
     componentWillMount() {
         this.props.subscribeToNewOffers();
     }
     render() {
         return (
-            <div className="margintop">
+            <div className="">
                 <h3>Offers</h3>
                 {
                     this.props.offers.map((r, i) => (
@@ -72,4 +72,4 @@ export default compose(
             }
         })
     })
-)(Recipes)
+)(Offers)

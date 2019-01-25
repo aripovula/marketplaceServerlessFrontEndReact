@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Link } from "react-router-dom";
+import Modal from 'react-modal';
 
 // import { v4 as uuid } from "uuid";
 import { graphql } from "react-apollo";
@@ -7,21 +7,57 @@ import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryGetProduct from "../graphQL/queryGetProduct";
 import MutationCreateProduct from "../graphQL/mutationAddProduct";
 
-class NewProduct extends Component {
+class ModalProduct extends Component {
+
+    customStyles = {
+        content: {
+            top: '30%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            width: '40%',
+            padding: '1%',
+            margin: '4%'
+        }
+    };
+
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            mainText: this.props.mainText,
+            shortText: this.props.shortText,
+            product: {
+                name: "",
+                modelNo: "",
+                specificationURL: "",
+                productImages: {}
+            }
+
+        };
+        // this.handleModalCancelOptionSelected = this.handleModalCancelOptionSelected.bind(this);
+        // this.handleModalYesOptionSelected = this.handleModalYesOptionSelected.bind(this);
+    }
+
+    componentWillMount() {
+        Modal.setAppElement('body');
+    }
 
     static defaultProps = {
         createProduct: () => null,
     }
 
-    state = {
-        product: {
-            name: "",
-            modelNo: "",
-            specificationURL: "",
-            productImages: {}
-        }
-    };
-
+    // state = {
+    //     product: {
+    //         name: "",
+    //         modelNo: "",
+    //         specificationURL: "",
+    //         productImages: {}
+    //     }
+    // };
+    
     handleChange(field, { target: { value } }) {
         const { product } = this.state;
         product[field] = value;
@@ -32,42 +68,55 @@ class NewProduct extends Component {
         e.stopPropagation();
         e.preventDefault();
 
-        const { createProduct, history } = this.props;
+        const { createProduct } = this.props;
         const { product } = this.state;
         console.log('createProduct -', this.props.createProduct);
         console.log('product b4 save -', this.state.product);
 
         await createProduct({ ...product });
-
-        history.push('/newproduct');
+        
+        this.props.handleModalCloseOptionSelected();
+        // history.push('/newproduct');
     }
 
+        
     render() {
+
+        console.log('props modaL', this.props);
         const { product } = this.state;
         console.log('point U1');
         return (
             <div className="margintop">
-                {console.log('point U2')}
-                <h3 className="">Create a product</h3>
-                <div className="">
-                    <div className="">
-                        <label htmlFor="name">product name</label>
-                        <input type="text" id="name" value={product.name} onChange={this.handleChange.bind(this, 'name')} />
-                    </div>
-                    <div className="">
-                        <label htmlFor="modelNo">model #</label>
-                        <input type="text" id="modelNo" value={product.modelNo} onChange={this.handleChange.bind(this, 'modelNo')} />
-                    </div>
-                    <div className="">
-                        <label htmlFor="specificationURL">specification URL</label>
-                        <input type="text" id="specificationURL" value={product.specificationURL} onChange={this.handleChange.bind(this, 'specificationURL')} />
-                    </div>
+                <Modal
+                    isOpen={!!this.props.mainText}
+                    onRequestClose={this.props.handleClearSelectedOption}
 
-                    <div className="">
-                        <button className="button1" onClick={this.handleSave}>Save</button>
-                        <Link to="/multitrader" className="">Cancel</Link>
+                    style={this.customStyles}
+                >
+                    <div className="card-4" >
+                        <div className="bggreen">
+                            <p>{this.props.shortText}</p>
+                        </div>
+                        <div className="">
+                            <label htmlFor="name">product name</label>
+                            <input type="text" id="name" value={product.name} onChange={this.handleChange.bind(this, 'name')} />
+                        </div>
+                        <div className="">
+                            <label htmlFor="modelNo">model #</label>
+                            <input type="text" id="modelNo" value={product.modelNo} onChange={this.handleChange.bind(this, 'modelNo')} />
+                        </div>
+                        <div className="">
+                            <label htmlFor="specificationURL">specification URL</label>
+                            <input type="text" id="specificationURL" value={product.specificationURL} onChange={this.handleChange.bind(this, 'specificationURL')} />
+                        </div>
+
+                        <div className="">
+                            <button className="button1" onClick={this.handleSave}>Save</button>
+                            <button className="button button1" onClick={this.props.handleModalCloseOptionSelected}>Cancel</button>
+                        </div>
                     </div>
-                </div>
+                </Modal >
+
             </div>
         );
     }
@@ -118,4 +167,4 @@ export default graphql(
             }
         })
     }
-)(NewProduct);
+)(ModalProduct);

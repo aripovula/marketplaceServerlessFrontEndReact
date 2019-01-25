@@ -5,6 +5,7 @@ import Modal from 'react-modal';
 
 import OfferModal from './OfferModal';
 import QueryGetCompany from "../graphQL/queryGetCompany";
+import ModalOffer from "./ModalOffer";
 
 class CompanyOffersTable extends Component {
 
@@ -15,21 +16,15 @@ class CompanyOffersTable extends Component {
             mainText: undefined,
             shortText: undefined
         };
-        this.handleModalCancelOptionSelected = this.handleModalCancelOptionSelected.bind(this);
-        this.handleModalYesOptionSelected = this.handleModalYesOptionSelected.bind(this);
+        this.handleModalCloseOptionSelected = this.handleModalCloseOptionSelected.bind(this);
     }
 
     componentWillMount() {
         Modal.setAppElement('body');
     }
 
-    handleModalCancelOptionSelected = () => {
+    handleModalCloseOptionSelected = () => {
         this.setState(() => ({ mainText: undefined }));
-    }
-
-    handleModalYesOptionSelected = (id) => {
-        this.setState(() => ({ mainText: undefined }));
-        // this.props.dispatch(startRemovePosting({ id }));
     }
 
     render() {
@@ -56,12 +51,11 @@ class CompanyOffersTable extends Component {
                         &nbsp;&nbsp;
                         <span className="responsiveFSize2">to update click product name</span>
 
-                        <OfferModal
+                        <ModalOffer
                             // lid={id}
                             mainText={this.state.mainText}
                             shortText={this.state.shortText}
-                            handleModalYesOptionSelected={this.handleModalYesOptionSelected}
-                            handleModalCancelOptionSelected={this.handleModalCancelOptionSelected}
+                            handleModalCloseOptionSelected={this.handleModalCloseOptionSelected}
                         />
 
                         <table className="smalltable">

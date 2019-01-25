@@ -10,16 +10,21 @@ import NewOffer from "./NewOffer";
 
 class CompanyOffers extends Component {
 
-    subscription;
+    constructor(props) {
+        super(props);
 
-    componentDidMount() {
-        // this.subscription = this.props.subscribeToOffers();
-        // console.log('this.subscription = ', this.subscription);
+        this.state = {
+            mainText: undefined,
+            shortText: undefined
+        };
+        this.handleModalCloseOptionSelected = this.handleModalCloseOptionSelected.bind(this);
     }
 
-    componentWillUnmount() {
-        // this.subscription();
+    handleModalCloseOptionSelected = () => {
+        this.setState(() => ({ mainText: undefined }));
+        console.log('HHHHHHH mainText ', this.state.mainText);
     }
+
 
     renderOffer = (offer) => {
         console.log('offer in renderOffer-', offer);
