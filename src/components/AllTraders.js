@@ -23,6 +23,7 @@ export class AllTrader extends Component {
   }
 
   render() {
+    console.log('props in AllT -', this.props);
     return (
       <div className="margintop" id="container">
           <div id="left">
@@ -55,8 +56,8 @@ export class AllTrader extends Component {
           </div>
   
           <div id="right">
-            <AllTradersLineOne />
-            <AllTradersLineTwo />
+            <AllTradersLineOne client={this.props.client}/>
+            <AllTradersLineTwo client={this.props.client}/>
 
           </div>
           </div>

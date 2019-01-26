@@ -6,9 +6,17 @@ import ListOffers from '../graphQL/ListOffers'
 import NewOfferSubscription from '../graphQL/NewOfferSubscription'
 
 class Offers extends React.Component {
+    
+    subscription;
+    
     componentWillMount() {
-        this.props.subscribeToNewOffers();
+        this.subscription = this.props.subscribeToNewOffers();
     }
+
+    componentWillUnmount() {
+        this.subscription();
+    }
+
     render() {
         return (
             <div className="">
@@ -16,8 +24,7 @@ class Offers extends React.Component {
                 {
                     this.props.offers.map((r, i) => (
                         <div key={i}>
-                            <p>Offer id: {r.offerID}</p>
-                            <p>Offer id: {r.price} USD</p>
+                            <p>CoId: {r.companyID} Oid: {r.offerID} ${r.price} Av: {r.available} USD</p>
                         </div>
                     ))
                 }

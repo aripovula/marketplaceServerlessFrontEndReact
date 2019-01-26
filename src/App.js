@@ -22,9 +22,11 @@ import NewProduct from './components/NewProduct';
 const Home = () => (
   <div className="ui container">
     <DataRoom client={client}/>
-    {console.log('client = ', client)
-    }
   </div>
+);
+
+const AllTradersWithClient = () => (
+    <AllTraders client={client}/>
 );
 
 const App = () => (
@@ -32,7 +34,7 @@ const App = () => (
     <div>
       <Header/>
       <Route exact={true} path="/" component={Home} />
-      <Route path="/multitrader" component={AllTraders} />
+      <Route path="/multitrader" component={AllTradersWithClient} />
       <Route path="/onetrader" component={OneTrader} />
       <Route path="/dataroom" component={DataRoom} />
       <Route path="/newoffer" component={NewOffer} />
@@ -59,11 +61,17 @@ const client = new AWSAppSyncClient({
       if (!id) {
         const { __typename: typename } = obj;
         switch (typename) {
+          case 'Company':
+            const cos = `${typename}:${obj.id}`;
+            console.log('in COMPANIES S -', cos);
+            return `${typename}:${obj.id}`;
           case 'Offer':
-            console.log('in OFFER type');
+            const offers = `${typename}:${obj.price}`;
+            console.log('in OFFER S -',  offers);
             return `${typename}:${obj.offerID}`;
           case 'Product':
-            console.log('in PRODUCT type');
+            const products = `${typename}:${obj.name}`;;
+            console.log('in PRODUCT S - ', products);
             return `${typename}:${obj.id}`;
           default:
             console.log('in default type');

@@ -9,6 +9,11 @@ import ModalOffer from "./ModalOffer";
 
 class CompanyOffersTable extends Component {
 
+    static defaultProps = {
+        company: null,
+        getCompany: () => null,
+    }
+
     constructor(props) {
         super(props);
 
@@ -21,16 +26,35 @@ class CompanyOffersTable extends Component {
 
     componentWillMount() {
         Modal.setAppElement('body');
+        this.handleSync();
     }
 
     handleModalCloseOptionSelected = () => {
         this.setState(() => ({ mainText: undefined }));
     }
 
+    handleSync = async () => {
+        const { client } = this.props;
+        console.log('props = ', this.props);
+        console.log('client in OFFER TABLE = ', client);
+
+        const query = QueryGetCompany;
+
+        this.setState({ busy: true });
+
+        console.log('client.query = ', client.query);
+        await client.query({
+            query,
+            fetchPolicy: 'network-only',
+        });
+
+        this.setState({ busy: false });
+    }
+
     render() {
         console.log('this.props COT - ', this.props);
         console.log('QueryGetCompany = ', QueryGetCompany);
-        
+
         const { company, loading } = this.props;
         if (this.props.company) {
             const { company: { offers: { items } } } = this.props;
@@ -52,7 +76,7 @@ class CompanyOffersTable extends Component {
                         <span className="responsiveFSize2">to update click product name</span>
 
                         <ModalOffer
-                            // lid={id}
+                            companyID={company.id}
                             mainText={this.state.mainText}
                             shortText={this.state.shortText}
                             handleModalCloseOptionSelected={this.handleModalCloseOptionSelected}
@@ -97,6 +121,21 @@ export default graphql(
         options: ({ id }) => ({
             variables: { id },
             fetchPolicy: 'cache-and-network',
+            // update: (proxy, { data: { createTodo } }) => {
+            //     const data = proxy.readQuery({ query });
+            //     data.todos.push(createTodo);
+            //     proxy.writeQuery({ query, data });
+            // },
+            update: (proxy, { data: { getCompany } }) => {
+                const query = QueryGetCompany;
+                const data = proxy.readQuery({ query });
+                console.log('data in Table b4', data);
+                data.getCompany = data.getCompany.filter(co => co.id !== getCompany.id);
+                console.log('data in Table after', data);
+                
+                proxy.writeQuery({ query, data });
+            }
+
         }),
         props: ({ data: { getCompany: company, loading } }) => ({
             company,

@@ -5,6 +5,8 @@ import CompanyOffersTable from './CompanyOffersTable';
 
 export class AllTradersLineTwo extends Component {
   render() {
+    console.log('props in TWO2 -', this.props);
+    
     return (
       <div id="bottom">
         <div id="container2">
@@ -13,7 +15,7 @@ export class AllTradersLineTwo extends Component {
             <PartsProducer/>
           </div>
           <div id="middle2">
-            <CompanyOffersTable id='bb1'/>
+            <CompanyOffersTable id='bb1' client={this.props.client}/>
           </div>
           <div id="right2">
             Parts LLC

@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import Modal from 'react-modal';
-
-// import { v4 as uuid } from "uuid";
+import { v4 as uuid } from "uuid";
 import { graphql } from "react-apollo";
 import QueryAllOffers from "../graphQL/queryAllOffers";
 import QueryGetOffer from "../graphQL/queryGetOffer";
@@ -23,6 +22,15 @@ class ModalOffer extends Component {
         }
     };
 
+    selectedProduct = null;
+    selectedModelNo = null;
+    products = [
+        { id: 0, productID: 'p1', name: 'Caster', modelNo: 'C120' },
+        { id: 1, productID: 'p2', name: 'Caster', modelNo: 'C140' },
+        { id: 2, productID: 'p3', name: 'Gauge', modelNo: '12CF' },
+        { id: 3, productID: 'p4', name: 'Valve', modelNo: 'VF12' },
+        { id: 4, productID: 'p5', name: 'Lever', modelNo: 'L15G' }
+    ];
     constructor(props) {
         super(props);
 
@@ -30,8 +38,8 @@ class ModalOffer extends Component {
             mainText: this.props.mainText,
             shortText: this.props.shortText,
             offer: {
-                companyID: '', // to add - get Co ID when Co is defined
-                offerID: '',
+                companyID: this.props.companyID, // to add - get Co ID when Co is defined
+                offerID: uuid(),
                 productID: '', // to add - get product ID when product is defined
                 modelNo: '',
                 price: 0,
@@ -99,22 +107,26 @@ class ModalOffer extends Component {
                         <div className="bggreen">
                             <p>{this.props.shortText}</p>
                         </div>
-                        <div className="">
-                            <label htmlFor="companyID">companyID</label>
-                            <input type="text" id="companyID" value={offer.companyID} onChange={this.handleChange.bind(this, 'companyID')} />
-                        </div>
-                        <div className="">
-                            <label htmlFor="offerID">offerID</label>
-                            <input type="text" id="offerID" value={offer.offerID} onChange={this.handleChange.bind(this, 'offerID')} />
-                        </div>
-                        <div className="">
-                            <label htmlFor="productID">productID</label>
-                            <input type="text" id="productID" value={offer.productID} onChange={this.handleChange.bind(this, 'productID')} />
-                        </div>
-                        <div className="">
-                            <label htmlFor="modelNo">model #</label>
-                            <input type="text" id="modelNo" value={offer.modelNo} onChange={this.handleChange.bind(this, 'modelNo')} />
-                        </div>
+                        <span>product </span>
+                        <select
+                            // value={this.props.filters.filterBy}
+                            onChange={(e) => {
+                                const selected = e.target.value;
+                                this.setState(prevState => ({
+                                    offer: {
+                                        ...prevState.offer,
+                                        productID: this.products[selected].productID,
+                                        modelNo: this.products[selected].modelNo
+                                    }
+                                }))
+                                console.log('selected - ', e.target.value);
+                            }}
+                        >
+                        {this.products.map((aProduct) =>
+                                <option key={aProduct.id} value={aProduct.id}>{aProduct.name + ' - ' + aProduct.modelNo}</option>
+                        )}
+                        </select>
+
                         <div className="">
                             <label htmlFor="price">price</label>
                             <input type="text" id="price" value={offer.price} onChange={this.handleChange.bind(this, 'price')} />

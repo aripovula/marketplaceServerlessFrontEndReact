@@ -17,6 +17,10 @@ class DataRoom extends Component {
     deleteOffer: () => null,
   }
 
+  componentWillMount() {
+    // this.handleSync();
+  }
+
   async handleDeleteClick(offer, e) {
     e.preventDefault();
 
@@ -52,13 +56,11 @@ class DataRoom extends Component {
       {console.log(offer.offerID)}
       <Link to={`/offer/${offer.offerID}`} className="card" key={offer.offerID}>
         <div className="">
-          <div className="">{offer.modelNo}</div>
-        </div>
-        <div className="">
-          <div className=""><i className=""></i>{offer.price}</div>
-        </div>
-        <div className="">
-          <i className=""></i> {offer.productID} comments
+          companyID <span className="">{offer.companyID}</span> -
+          offerID <span className="">{offer.offerID}</span> -
+          modelNo <span className="">{offer.modelNo}</span> -
+          price <span className=""><i className=""></i>{offer.price}</span>
+          prodID <i className=""></i> {offer.productID}
               </div>
         <button className="" onClick={this.handleDeleteClick.bind(this, offer)}>
           <i className=""></i>

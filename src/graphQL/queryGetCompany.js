@@ -17,11 +17,14 @@ query ($id: ID!) {
           id,
           name
           modelNo
-          productImage {
-            id
-            bucket
-            key
-            region
+          productImages {
+            items {
+              productID
+              s3imageID
+              bucket
+              key
+              region
+            }
           }
           specificationURL
         }
