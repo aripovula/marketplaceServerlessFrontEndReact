@@ -222,6 +222,11 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
   cursor: pointer;
 }
 
+.button:disabled {
+  cursor: default;
+  background-color: rgb(151, 169, 175);
+}
+
 .button1 {
   background-color: rgb(48, 190, 238);
   color: white;

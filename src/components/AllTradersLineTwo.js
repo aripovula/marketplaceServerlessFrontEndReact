@@ -15,7 +15,7 @@ export class AllTradersLineTwo extends Component {
             <PartsProducer/>
           </div>
           <div id="middle2">
-            <CompanyOffersTable id='bb1' client={this.props.client}/>
+            <CompanyOffersTable id='653fbaef-9655-4ec6-a1e4-f0073cd78c8b' client={this.props.client}/>
           </div>
           <div id="right2">
             Parts LLC

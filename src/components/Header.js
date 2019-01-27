@@ -20,7 +20,7 @@ export const Header = () => (
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>
 
-                <NavLink
+             {/*    <NavLink
                     to="/onetrader"
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
@@ -35,10 +35,10 @@ export const Header = () => (
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                 >Data room
-        </NavLink>
+        </NavLink> 
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>
-
+*/}
                 <NavLink
                     to="#"
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}

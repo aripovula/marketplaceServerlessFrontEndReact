@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 import { graphql } from "react-apollo";
 import QueryAllOffers from "../graphQL/queryAllOffers";
 import QueryGetOffer from "../graphQL/queryGetOffer";
+import QueryGetCompany from "../graphQL/queryGetCompany";
 import MutationCreateOffer from "../graphQL/mutationAddOffer";
 
 class ModalOffer extends Component {
@@ -22,14 +23,13 @@ class ModalOffer extends Component {
         }
     };
 
-    selectedProduct = null;
-    selectedModelNo = null;
+    isSubmitValid = false;
     products = [
-        { id: 0, productID: 'p1', name: 'Caster', modelNo: 'C120' },
-        { id: 1, productID: 'p2', name: 'Caster', modelNo: 'C140' },
-        { id: 2, productID: 'p3', name: 'Gauge', modelNo: '12CF' },
-        { id: 3, productID: 'p4', name: 'Valve', modelNo: 'VF12' },
-        { id: 4, productID: 'p5', name: 'Lever', modelNo: 'L15G' }
+        { id: 0, productID: '823b25f8-c7f1-4277-befa-f8b123a98921', name: 'Caster', modelNo: 'C120' },
+        { id: 1, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Caster', modelNo: 'C140' },
+        { id: 2, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Gauge', modelNo: '12CF' },
+        { id: 3, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Valve', modelNo: 'VF12' },
+        { id: 4, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Lever', modelNo: 'L15G' }
     ];
     constructor(props) {
         super(props);
@@ -42,6 +42,7 @@ class ModalOffer extends Component {
                 offerID: uuid(),
                 productID: '', // to add - get product ID when product is defined
                 modelNo: '',
+                product: null,
                 price: 0,
                 available: 0
             }
@@ -84,7 +85,7 @@ class ModalOffer extends Component {
         console.log('offer b4 save -', this.state.offer);
 
         await createOffer({ ...offer });
-        
+        console.log('offer after save -', this.state.offer);
         this.props.handleModalCloseOptionSelected();
         // history.push('/newoffer');
     }
@@ -120,8 +121,10 @@ class ModalOffer extends Component {
                                     }
                                 }))
                                 console.log('selected - ', e.target.value);
+                                this.isSubmitValid = true;
                             }}
                         >
+                        <option value='null'>( please select a product )</option>
                         {this.products.map((aProduct) =>
                                 <option key={aProduct.id} value={aProduct.id}>{aProduct.name + ' - ' + aProduct.modelNo}</option>
                         )}
@@ -137,7 +140,7 @@ class ModalOffer extends Component {
                         </div>
 
                         <div className="">
-                            <button className="button1" onClick={this.handleSave}>Save</button>
+                            <button className="button button1" onClick={this.handleSave} disabled={!this.isSubmitValid}>Save</button>
                             <button className="button button1" onClick={this.props.handleModalCloseOptionSelected}>Cancel</button>
                         </div>
                     </div>
@@ -165,11 +168,14 @@ export default graphql(
                         console.log('data.listOffers.items after read = ', data.listOffers.items);
                         console.log('createOffer = ', createOffer);
 
-                        data.listOffers.items = [...data.listOffers.items.filter(e => {
+                        data.listOffers.items = [
+                            ...data.listOffers.items.filter(e => {
                             console.log('e = ', e);
                             console.log('e.offerID = ', e.offerID);
                             return e.offerID !== createOffer.offerID
-                        }), createOffer];
+                        }), 
+                        createOffer];
+                        
                         console.log('data after filter = ', data);
                         console.log('data.listOffers.items after filter = ', data.listOffers.items);
                         proxy.writeQuery({ query, data });
@@ -181,6 +187,16 @@ export default graphql(
                         console.log('point L3 data2 = ', data2);
                         proxy.writeQuery({ query: query2, variables, data: data2 });
                         console.log('point L4 query2 = ', query2);
+                        console.log('this.props.companyID -', props.ownProps.companyID);
+
+                        // Update cache on getCompany
+                        // const query3 = QueryGetCompany;
+                        // const variables2 = { id: props.ownProps.companyID };
+                        // const data3 = proxy.readQuery({ query: query3, variables: { variables2} });
+                        // const data3 = { getOffer: { ...createOffer } };
+                        // console.log('point L5 data3 = ', data3);
+                        // proxy.writeQuery({ query: query3, variables2, data: data2 });
+
                     },
                     variables: offer,
                     optimisticResponse: () => (
@@ -194,3 +210,4 @@ export default graphql(
         })
     }
 )(ModalOffer);
+

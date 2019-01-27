@@ -3,7 +3,6 @@ import { graphql } from "react-apollo";
 import { Link } from "react-router-dom";
 import Modal from 'react-modal';
 
-import OfferModal from './OfferModal';
 import QueryGetCompany from "../graphQL/queryGetCompany";
 import ModalOffer from "./ModalOffer";
 
@@ -31,11 +30,12 @@ class CompanyOffersTable extends Component {
 
     handleModalCloseOptionSelected = () => {
         this.setState(() => ({ mainText: undefined }));
+        this.handleSync();
     }
 
     handleSync = async () => {
         const { client } = this.props;
-        console.log('props = ', this.props);
+        console.log('props COT HS = ', this.props);
         console.log('client in OFFER TABLE = ', client);
 
         const query = QueryGetCompany;
@@ -43,10 +43,16 @@ class CompanyOffersTable extends Component {
         this.setState({ busy: true });
 
         console.log('client.query = ', client.query);
+        const coId = this.props.company.id;
+        console.log('coId - ', coId);
+        
         await client.query({
             query,
+            variables: { id: coId },
             fetchPolicy: 'network-only',
         });
+
+        // await result = client.query({ query: YOUR_QUERY, variables: {});
 
         this.setState({ busy: false });
     }
@@ -73,10 +79,19 @@ class CompanyOffersTable extends Component {
                                 }));
                             }}>add offer</span>
                         &nbsp;&nbsp;
+                        <span
+                            className="addnlightbg notbold cursorpointer"
+                            data-tip="permanently deletes entry. You will be prompted to confirm"
+                            onClick={() => {
+                                this.handleSync();
+                            }}>sync offers</span>
+                        &nbsp;&nbsp;
+
                         <span className="responsiveFSize2">to update click product name</span>
 
                         <ModalOffer
                             companyID={company.id}
+                            offers={company.offers}
                             mainText={this.state.mainText}
                             shortText={this.state.shortText}
                             handleModalCloseOptionSelected={this.handleModalCloseOptionSelected}
@@ -121,11 +136,6 @@ export default graphql(
         options: ({ id }) => ({
             variables: { id },
             fetchPolicy: 'cache-and-network',
-            // update: (proxy, { data: { createTodo } }) => {
-            //     const data = proxy.readQuery({ query });
-            //     data.todos.push(createTodo);
-            //     proxy.writeQuery({ query, data });
-            // },
             update: (proxy, { data: { getCompany } }) => {
                 const query = QueryGetCompany;
                 const data = proxy.readQuery({ query });
