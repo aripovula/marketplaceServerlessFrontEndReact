@@ -25,7 +25,7 @@ class CompanyOffersTable extends Component {
 
     componentWillMount() {
         Modal.setAppElement('body');
-        this.handleSync();
+        // this.handleSync();
     }
 
     handleModalCloseOptionSelected = () => {
@@ -133,23 +133,17 @@ class CompanyOffersTable extends Component {
 export default graphql(
     QueryGetCompany,
     {
-        options: ({ id }) => ({
+        options: function({ id }) {
+            console.log('in BBB1');
+            return ({
             variables: { id },
             fetchPolicy: 'cache-and-network',
-            update: (proxy, { data: { getCompany } }) => {
-                const query = QueryGetCompany;
-                const data = proxy.readQuery({ query });
-                console.log('data in Table b4', data);
-                data.getCompany = data.getCompany.filter(co => co.id !== getCompany.id);
-                console.log('data in Table after', data);
-                
-                proxy.writeQuery({ query, data });
-            }
-
-        }),
-        props: ({ data: { getCompany: company, loading } }) => ({
+        })},
+        props: ({ data: { getCompany: company, loading } }) => {
+            console.log('in BBB2 data -', company, loading);
+            return ({
             company,
             loading,
-        }),
+        })},
     },
 )(CompanyOffersTable);
