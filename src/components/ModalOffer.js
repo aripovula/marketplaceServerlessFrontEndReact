@@ -1,11 +1,10 @@
 import React, { Component } from "react";
 import Modal from 'react-modal';
 import { v4 as uuid } from "uuid";
-import { graphql, compose, withApollo } from "react-apollo";
+import { graphql } from "react-apollo";
 import QueryAllOffers from "../graphQL/queryAllOffers";
-import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryGetOffer from "../graphQL/queryGetOffer";
-// import QueryGetCompany from "../graphQL/queryGetCompany";
+import QueryGetCompany from "../graphQL/queryGetCompany";
 import MutationCreateOffer from "../graphQL/mutationAddOffer";
 
 class ModalOffer extends Component {
@@ -156,8 +155,7 @@ class ModalOffer extends Component {
     }
 }
 
-export default withApollo(compose(
-graphql(
+export default graphql(
     MutationCreateOffer,
     {
         props: (props) => ({
@@ -212,18 +210,5 @@ graphql(
             }
         })
     }
-),
-    graphql(
-        QueryAllProducts,
-        {
-            options: {
-                fetchPolicy: 'cache-first',
-            },
-            props: ({ data: { listProducts = { items: [] }, loading } }) => ({
-                products: listProducts.items,
-                loading
-            })
-        },
-    )
-)(ModalOffer));
+)(ModalOffer);
 

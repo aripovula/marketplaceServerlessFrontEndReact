@@ -3,7 +3,7 @@ import { graphql } from "react-apollo";
 import { Link } from "react-router-dom";
 import Modal from 'react-modal';
 
-import QueryGetCompany from "../graphQL/queryGetCompany";
+import QueryGetCompany from "../graphQL/queryGetCompanyAndProducts";
 import ModalOffer from "./ModalOffer";
 
 class CompanyOffersTable extends Component {
@@ -139,10 +139,11 @@ export default graphql(
             variables: { id },
             fetchPolicy: 'cache-and-network',
         })},
-        props: ({ data: { getCompany: company, loading } }) => {
-            console.log('in BBB2 data -', company, loading);
+        props: ({ data: { getCompany: company, listProducts = { items: []}, loading } }) => {
+            console.log('in BBB2 data -', company, listProducts, loading);
             return ({
             company,
+            products: listProducts.items,
             loading,
         })},
     },
