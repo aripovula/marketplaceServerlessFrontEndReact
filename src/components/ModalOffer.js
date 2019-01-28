@@ -22,14 +22,13 @@ class ModalOffer extends Component {
             margin: '4%'
         }
     };
-
-    products = [
-        { id: 0, productID: '823b25f8-c7f1-4277-befa-f8b123a98921', name: 'Caster', modelNo: 'C120' },
-        { id: 1, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Caster', modelNo: 'C140' },
-        { id: 2, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Gauge', modelNo: '12CF' },
-        { id: 3, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Valve', modelNo: 'VF12' },
-        { id: 4, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Lever', modelNo: 'L15G' }
-    ];
+    // products = [
+    //     { id: 0, productID: '823b25f8-c7f1-4277-befa-f8b123a98921', name: 'Caster', modelNo: 'C120' },
+    //     { id: 1, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Caster', modelNo: 'C140' },
+    //     { id: 2, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Gauge', modelNo: '12CF' },
+    //     { id: 3, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Valve', modelNo: 'VF12' },
+    //     { id: 4, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Lever', modelNo: 'L15G' }
+    // ];
     constructor(props) {
         super(props);
 
@@ -37,6 +36,7 @@ class ModalOffer extends Component {
             mainText: this.props.mainText,
             shortText: this.props.shortText,
             offer: this.newOffer(),
+            products: this.allProducts(),
             isSubmitValid: false
         };
     }
@@ -58,6 +58,26 @@ class ModalOffer extends Component {
             product: null,
             price: 0,
             available: 0
+        }
+    }
+
+    allProducts() {
+        console.log('this.props.products - ', this.props.products);
+        
+        if (this.props.products) {
+            const l = this.props.products.length;
+            let indexedProducts = [];
+            for (let x = 0; x < l; x++) {
+                indexedProducts.push({ seqNumb: x, details: this.props.products[x]})
+                console.log('indexedProducts - ', x, indexedProducts);
+                console.log('indexedProducts[x] - ', this.props.products[x]);
+                
+            }
+            console.log('indexedProducts - ', indexedProducts);
+            
+            return indexedProducts;
+        } else {
+            return [];
         }
     }
 
@@ -89,7 +109,7 @@ class ModalOffer extends Component {
 
         await createOffer({ ...offer });
         console.log('offer after save -', this.state.offer);
-        this.setState( { offer: this.newOffer(), isSubmitValid: false })
+        this.setState( { offer: this.newOffer(), isSubmitValid: false });
         this.props.handleModalCloseOptionSelected();
         // history.push('/newoffer');
     }
@@ -120,8 +140,8 @@ class ModalOffer extends Component {
                                 this.setState(prevState => ({
                                     offer: {
                                         ...prevState.offer,
-                                        productID: this.products[selected].productID,
-                                        modelNo: this.products[selected].modelNo
+                                        productID: this.state.products[selected].details.id,
+                                        modelNo: this.state.products[selected].details.modelNo
                                     },
                                     isSubmitValid: true
                                 }))
@@ -129,8 +149,8 @@ class ModalOffer extends Component {
                             }}
                         >
                         <option value='null'>( please select a product )</option>
-                        {this.products.map((aProduct) =>
-                                <option key={aProduct.id} value={aProduct.id}>{aProduct.name + ' - ' + aProduct.modelNo}</option>
+                        {this.state.products.map((aProduct) =>
+                                <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
                         )}
                         </select>
 

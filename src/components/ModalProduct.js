@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Modal from 'react-modal';
 
-// import { v4 as uuid } from "uuid";
+import { v4 as uuid } from "uuid";
 import { graphql } from "react-apollo";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryGetProduct from "../graphQL/queryGetProduct";
@@ -69,6 +69,13 @@ class ModalProduct extends Component {
         e.preventDefault();
 
         const { createProduct } = this.props;
+        this.setState(prevState => ({
+            product: {
+                ...prevState.product,
+                id: uuid()
+            }
+        }))
+
         const { product } = this.state;
         console.log('createProduct -', this.props.createProduct);
         console.log('product b4 save -', this.state.product);
@@ -141,8 +148,8 @@ export default graphql(
 
                         data.listProducts.items = [...data.listProducts.items.filter(e => {
                             console.log('e = ', e);
-                            console.log('e.productID = ', e.productID);
-                            return e.productID !== createProduct.productID
+                            console.log('e.id = ', e.id);
+                            return e.id !== createProduct.id
                         }), createProduct];
                         console.log('data after filter = ', data);
                         console.log('data.listProducts.items after filter = ', data.listProducts.items);

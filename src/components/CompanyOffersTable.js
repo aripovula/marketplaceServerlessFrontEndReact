@@ -59,6 +59,7 @@ class CompanyOffersTable extends Component {
 
     render() {
         console.log('this.props COT - ', this.props);
+        // console.log('modelNo', this.props.products[0].modelNo);
         console.log('QueryGetCompany = ', QueryGetCompany);
 
         const { company, loading } = this.props;
@@ -91,6 +92,7 @@ class CompanyOffersTable extends Component {
 
                         <ModalOffer
                             companyID={company.id}
+                            products={this.props.products}
                             offers={company.offers}
                             mainText={this.state.mainText}
                             shortText={this.state.shortText}

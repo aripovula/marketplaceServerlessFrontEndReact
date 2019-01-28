@@ -14,7 +14,7 @@ query ($id: ID!) {
         price
         available
         product {
-          id,
+          id
           name
           modelNo
           productImages {
@@ -35,6 +35,7 @@ query ($id: ID!) {
     items {
       id
       name
+      modelNo
       specificationURL
       productImages {
         items {

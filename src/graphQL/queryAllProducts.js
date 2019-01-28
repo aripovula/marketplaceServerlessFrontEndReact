@@ -6,6 +6,7 @@ query ListProducts {
     items {
       id
       name
+      modelNo
       specificationURL
       productImages {
         items {
