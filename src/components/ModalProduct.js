@@ -17,7 +17,7 @@ class ModalProduct extends Component {
             bottom: 'auto',
             marginRight: '-50%',
             transform: 'translate(-50%, -50%)',
-            width: '40%',
+            width: '600px',
             padding: '1%',
             margin: '4%'
         }
@@ -29,16 +29,11 @@ class ModalProduct extends Component {
         this.state = {
             mainText: this.props.mainText,
             shortText: this.props.shortText,
-            product: {
-                name: "",
-                modelNo: "",
-                specificationURL: "",
-                productImages: {}
-            }
+            product: this.newProduct(),
+            isExistingProduct: false
 
         };
-        // this.handleModalCancelOptionSelected = this.handleModalCancelOptionSelected.bind(this);
-        // this.handleModalYesOptionSelected = this.handleModalYesOptionSelected.bind(this);
+        this.handleModalCloseOptionSelected = this.handleModalCloseOptionSelected.bind(this);
     }
 
     componentWillMount() {
@@ -49,14 +44,19 @@ class ModalProduct extends Component {
         createProduct: () => null,
     }
 
-    // state = {
-    //     product: {
-    //         name: "",
-    //         modelNo: "",
-    //         specificationURL: "",
-    //         productImages: {}
-    //     }
-    // };
+    newProduct() {
+        return {
+            name: "",
+            modelNo: "",
+            specificationURL: "",
+            productImages: {}
+        };
+    }
+
+    handleModalCloseOptionSelected() {
+        this.setState({ isExistingProduct: false, product: this.newProduct() });
+        this.props.handleModalCloseOptionSelected();
+    }
     
     handleChange(field, { target: { value } }) {
         const { product } = this.state;
@@ -65,25 +65,46 @@ class ModalProduct extends Component {
     }
 
     handleSave = async (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-
-        const { createProduct } = this.props;
-        this.setState(prevState => ({
-            product: {
-                ...prevState.product,
-                id: uuid()
-            }
-        }))
-
+        let isExisting = false;
+        const { client } = this.props;
         const { product } = this.state;
-        console.log('createProduct -', this.props.createProduct);
-        console.log('product b4 save -', this.state.product);
-
-        await createProduct({ ...product });
+        const productsInStore = client.readQuery({
+            query: QueryAllProducts
+        });
+        console.log('productsInStore', productsInStore);
         
-        this.props.handleModalCloseOptionSelected();
-        // history.push('/newproduct');
+        productsInStore.listProducts.items.map((aProduct) => {
+            console.log('aProduct.name model - ', aProduct.name, aProduct.modelNo);
+            
+            if (aProduct.name === product.name && aProduct.modelNo === product.modelNo) {
+                isExisting = true;
+            }
+        });
+
+        if (isExisting) {
+            this.setState({ isExistingProduct: true})
+        } else {
+            e.stopPropagation();
+            e.preventDefault();
+            this.setState({ isExistingProduct: false })
+    
+            const { createProduct } = this.props;
+            this.setState(prevState => ({
+                product: {
+                    ...prevState.product,
+                    id: uuid()
+                }
+            }))
+    
+            
+            console.log('createProduct -', this.props.createProduct);
+            console.log('product b4 save -', this.state.product);
+    
+            await createProduct({ ...product });
+            
+            this.props.handleModalCloseOptionSelected();
+            // history.push('/newproduct');
+        }
     }
 
         
@@ -104,22 +125,32 @@ class ModalProduct extends Component {
                         <div className="bggreen">
                             <p>{this.props.shortText}</p>
                         </div>
+                        <div className="padding15">
                         <div className="">
-                            <label htmlFor="name">product name</label>
-                            <input type="text" id="name" value={product.name} onChange={this.handleChange.bind(this, 'name')} />
+                        <label htmlFor="name">product name (max. 14 characters)</label>
+                        <input type="text" id="name" value={product.name} onChange={this.handleChange.bind(this, 'name')} />
                         </div>
                         <div className="">
-                            <label htmlFor="modelNo">model #</label>
-                            <input type="text" id="modelNo" value={product.modelNo} onChange={this.handleChange.bind(this, 'modelNo')} />
+                        <label htmlFor="modelNo">model #  (max. 10 characters)</label>
+                        <input type="text" id="modelNo" value={product.modelNo} onChange={this.handleChange.bind(this, 'modelNo')} />
                         </div>
                         <div className="">
-                            <label htmlFor="specificationURL">specification URL</label>
-                            <input type="text" id="specificationURL" value={product.specificationURL} onChange={this.handleChange.bind(this, 'specificationURL')} />
-                        </div>
+                        <label htmlFor="specificationURL">specification URL (type any value *)</label>
+                        <input type="text" id="specificationURL" value={product.specificationURL} onChange={this.handleChange.bind(this, 'specificationURL')} />
+                        <br/><label className="text14black">* assume there is a webpage that defines product standards</label>
+                                {!this.state.isExistingProduct &&
+                                    <p className="text14black">only registered products can be traded in this marketplace. All traded items must meet exact same design and quality standards agreed between market members. Request adding new product</p>
+                                }
+                                {this.state.isExistingProduct &&
+                                    <p className="warning2"><i>product with this name and model exists !</i></p>
+                                }
+                        <br/>
+                            </div>
 
-                        <div className="">
-                            <button className="button1" onClick={this.handleSave}>Save</button>
-                            <button className="button button1" onClick={this.props.handleModalCloseOptionSelected}>Cancel</button>
+                            <div className="">
+                                <button className="button button1" onClick={this.handleSave}>Save</button>
+                                <button className="button button1" onClick={this.handleModalCloseOptionSelected}>Cancel</button>
+                            </div>
                         </div>
                     </div>
                 </Modal >

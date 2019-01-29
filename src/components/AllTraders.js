@@ -46,6 +46,7 @@ export class AllTrader extends Component {
               // selectedOption = {this.state.selectedOption}
 
               // companyID={id}
+              client={this.props.client}
               mainText={this.state.mainText}
               shortText={this.state.shortText}
               handleModalCloseOptionSelected={this.handleModalCloseOptionSelected}

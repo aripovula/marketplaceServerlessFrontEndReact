@@ -201,11 +201,20 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
   opacity: 0.85;
 }
 
+.padding15{
+  padding: 15px;
+}
+
+.floatRight {
+  float: right;
+}
+
 /* BUTTONS */
 
 .btn {
   border-radius: 0px;
 }
+
 
 .button {
   /* //border:  rgb(48, 190, 238) solid 1px;  */
@@ -277,6 +286,11 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
 .warning {
   color: red;
   font-size: 14px
+}
+
+.warning2 {
+  color: red;
+  font-size: 16px
 }
 
 .smalltable {

@@ -71,7 +71,6 @@ input CreateProductInput {
 }
 
 input CreateS3ImageInput {
-	productID: ID!
 	s3imageID: String!
 	bucket: String!
 	region: String!

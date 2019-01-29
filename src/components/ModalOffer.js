@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 import { graphql } from "react-apollo";
 import QueryAllOffers from "../graphQL/queryAllOffers";
 import QueryGetOffer from "../graphQL/queryGetOffer";
-import QueryGetCompany from "../graphQL/queryGetCompany";
+// import QueryGetCompany from "../graphQL/queryGetCompany";
 import MutationCreateOffer from "../graphQL/mutationAddOffer";
 
 class ModalOffer extends Component {
@@ -17,7 +17,7 @@ class ModalOffer extends Component {
             bottom: 'auto',
             marginRight: '-50%',
             transform: 'translate(-50%, -50%)',
-            width: '40%',
+            width: '650px',
             padding: '1%',
             margin: '4%'
         }
@@ -32,13 +32,18 @@ class ModalOffer extends Component {
     constructor(props) {
         super(props);
 
+        const noOfferProducts = this.noOfferProducts();
         this.state = {
             mainText: this.props.mainText,
             shortText: this.props.shortText,
             offer: this.newOffer(),
-            products: this.allProducts(),
-            isSubmitValid: false
+            products: noOfferProducts,
+            productsAll: this.allProducts(),
+            productsNoOffer: noOfferProducts,
+            isSubmitValid: false,
+            isUpdate: false
         };
+        this.handleModalCloseOptionSelected = this.handleModalCloseOptionSelected.bind(this);
     }
 
     componentWillMount() {
@@ -66,32 +71,108 @@ class ModalOffer extends Component {
         
         if (this.props.products) {
             const l = this.props.products.length;
-            let indexedProducts = [];
+            let indexedProductsAll = [];
             for (let x = 0; x < l; x++) {
-                indexedProducts.push({ seqNumb: x, details: this.props.products[x]})
-                console.log('indexedProducts - ', x, indexedProducts);
+                indexedProductsAll.push({ seqNumb: x, details: this.props.products[x]})
+                console.log('indexedProducts - ', x, indexedProductsAll);
                 console.log('indexedProducts[x] - ', this.props.products[x]);
                 
             }
-            console.log('indexedProducts - ', indexedProducts);
+            console.log('indexedProducts - ', indexedProductsAll);
             
-            return indexedProducts;
+            return indexedProductsAll;
         } else {
             return [];
         }
     }
 
-    // state = {
-    //     offer: {
-    //         companyID: '', // to add - get Co ID when Co is defined
-    //         offerID: '',
-    //         productID: '', // to add - get product ID when product is defined
-    //         modelNo: '',
-    //         price: 0,
-    //         available: 0
-    //     }
-    // };
-    
+    noOfferProducts(){
+        
+        if (this.props.products) {
+            let coOffers;
+            this.props.offers.items.map((item) => { coOffers = coOffers + item.productID + ';;'});
+            console.log('tsNoOf coOffers - ', coOffers);
+            const l = this.props.products.length;
+            let indexedProductsNoOffer = [];
+            let count = 0;
+            for (let x = 0; x < l; x++) {
+                if (!coOffers.includes(this.props.products[x].id)) {
+                    indexedProductsNoOffer.push({
+                        seqNumb: count++,
+                        details: this.props.products[x]
+                    })
+                    console.log('indexedProductsNoOf - ', x, indexedProductsNoOffer);
+                    console.log('indexedProductsNoOf[x] - ', this.props.products[x]);
+                }
+            }
+            console.log('indexedProductsNoOf - ', indexedProductsNoOffer);
+            return indexedProductsNoOffer;
+        } else {
+            return [];
+        }        
+    }
+
+    handleModalCloseOptionSelected() {
+        this.setState(prevState => ({
+            products: prevState.productsNoOffer,
+            isSubmitValid: false,
+            offer: this.newOffer()
+        }));
+
+        this.setState({ isSubmitValid: false, offer: this.newOffer(), products: this.state.productsNoOffer });
+        this.props.handleModalCloseOptionSelected();
+    }
+
+    updateProductOptions(e) {
+        console.log('e-', e.target.value);
+        
+        if (e.target.value === 'all') {
+            this.setState({
+                products: this.state.productsAll
+            }, () => this.handleSelectOptionChange(0));
+        } else {
+            this.setState({
+                products: this.state.productsNoOffer
+            }, () => this.handleSelectOptionChange(0));
+            
+        }
+    }
+
+    handleSelectOptionChange(selected) {
+        if (selected > -1) {
+            console.log(this.state.products[selected].details.name);
+            let isFound = false; let xF = -1;
+            for (let x = 0; x < this.props.offers.items.length; x++) {
+                if (this.props.offers.items[x].productID === this.state.products[selected].details.id) {
+                    isFound = true; xF = x;
+                }
+            }
+            console.log('prods, offers, isF, xF ', this.state.products, this.props.offers.items, isFound, xF);
+            
+            if (isFound) {
+                this.setState(prevState => ({
+                    offer: this.props.offers.items[xF],
+                    isSubmitValid: true,
+                    isUpdate: true
+                }))
+            } else {
+                const offerNew = this.newOffer();
+                this.setState(prevState => ({
+                    offer: {
+                        ...offerNew,
+                        productID: this.state.products[selected].details.id,
+                        modelNo: this.state.products[selected].details.modelNo
+                    },
+                    isSubmitValid: true,
+                    isUpdate: false
+                }))
+                console.log('selected - ', selected);
+            }
+        } else {
+            this.setState({isSubmitValid: false})
+        }
+    }
+
     handleChange(field, { target: { value } }) {
         const { offer } = this.state;
         offer[field] = value;
@@ -116,7 +197,6 @@ class ModalOffer extends Component {
 
         
     render() {
-
         console.log('props modaL', this.props);
         const { offer } = this.state;
         console.log('point U1');
@@ -130,42 +210,46 @@ class ModalOffer extends Component {
                 >
                     <div className="card-4" >
                         <div className="bggreen">
-                            <p>{this.props.shortText}</p>
+                            <p>{this.state.isUpdate ? 'Update an offer' : 'Add new offer'}</p>
                         </div>
-                        <span>product </span>
-                        <select
-                            // value={this.props.filters.filterBy}
-                            onChange={(e) => {
-                                const selected = e.target.value;
-                                this.setState(prevState => ({
-                                    offer: {
-                                        ...prevState.offer,
-                                        productID: this.state.products[selected].details.id,
-                                        modelNo: this.state.products[selected].details.modelNo
-                                    },
-                                    isSubmitValid: true
-                                }))
-                                console.log('selected - ', e.target.value);
-                            }}
-                        >
-                        <option value='null'>( please select a product )</option>
-                        {this.state.products.map((aProduct) =>
-                                <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
-                        )}
-                        </select>
+                        <div className="padding15">
+                            <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
+                                <label htmlFor="noOffers">products with no offer({this.state.productsNoOffer.length})&nbsp;</label>
+                                <input id="noOffers" type="radio" value="noOffers" name="prodtype" defaultChecked />
+                                <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
+                                <input id="all" type="radio" value="all" name="prodtype" />
+                            </div>
 
-                        <div className="">
-                            <label htmlFor="price">price</label>
-                            <input type="text" id="price" value={offer.price} onChange={this.handleChange.bind(this, 'price')} />
-                        </div>
-                        <div className="">
-                            <label htmlFor="available">available</label>
-                            <input type="text" id="available" value={offer.available} onChange={this.handleChange.bind(this, 'available')} />
-                        </div>
-
-                        <div className="">
-                            <button className="button button1" onClick={this.handleSave} disabled={!this.state.isSubmitValid}>Save</button>
-                            <button className="button button1" onClick={this.props.handleModalCloseOptionSelected}>Cancel</button>
+                            <div>
+                                <span>products </span>
+                                <select
+                                    // value={this.props.filters.filterBy}
+                                    onChange={(e) => {
+                                        const selected = e.target.value;
+                                        this.handleSelectOptionChange(selected);
+                                    }}
+                                >
+                                    <option value='null'>( please select a product )</option>
+                                    {this.state.products.map((aProduct) =>
+                                        <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
+                                    )}
+                                </select>
+                            </div>
+                            
+                            
+                            <div className="">
+                                <label htmlFor="price">price</label>
+                                <input type="text" id="price" value={offer.price} onChange={this.handleChange.bind(this, 'price')} />
+                            </div>
+                            <div className="">
+                                <label htmlFor="available">available</label>
+                                <input type="text" id="available" value={offer.available} onChange={this.handleChange.bind(this, 'available')} />
+                            </div>
+                            <br/>
+                            <div className="">
+                                <button className="button button1" onClick={this.handleSave} disabled={!this.state.isSubmitValid}>{this.state.isUpdate ? 'Update' : 'Add new'}</button>
+                                <button className="button button1" onClick={this.handleModalCloseOptionSelected}>Cancel</button>
+                            </div>
                         </div>
                     </div>
                 </Modal >

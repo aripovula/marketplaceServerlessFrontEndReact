@@ -1,4 +1,142 @@
 
+
+query CoPr {
+  getCompany(id: "653fbaef-9655-4ec6-a1e4-f0073cd78c8b") {
+    id
+    name
+  },
+  listProducts{
+    items {
+          id
+          name
+          modelNo
+          productImages {
+            items {
+              productID
+              s3imageID
+              bucket
+              key
+              region
+            }
+          }
+          specificationURL
+    }
+  }
+}
+
+query GetCo2 {
+  getCompany(id: "fef3f8e7-ef6f-4309-a80c-9781bb4ea7f0") {
+    id
+    name
+    creditRating
+    status
+    offers {
+      items {
+        offerID
+        productID
+        price
+        available
+        product {
+          id,
+          name
+          modelNo
+          productImages {
+            items {
+              
+              bucket
+              key
+              region
+            }
+          }
+          specificationURL
+        }
+      }
+    }
+  }
+}
+
+mutation AddCo {
+  createCompany(input: {
+    name: "Parts LLC",
+    creditRating: AA,
+    yearsOfOperation: 8,
+    status: ACTIVE
+  }) {
+    id
+  }
+}
+
+mutation AddOffer {
+  createOffer(input: {
+    companyID: "bb1",
+    offerID: "o2",
+    productID: "a9ab3b64-8fa5-442d-b93d-beed7e8c5f63",
+    price: 12,
+    available: 1100
+  }) {
+    offerID
+    productID
+  }
+}
+
+mutation AddProduct {
+  createProduct(input: {
+	name: "Lever2",
+	modelNo: "L232",
+	specificationURL: "/42",
+	productImages: [{
+    s3imageID: "o18"
+    bucket: "abc2",
+    region: "us-east-2",
+    key: "abc2"
+  }]
+  }) {
+    id
+    productImages {
+      items {
+        bucket
+      }
+    }
+  }
+}
+
+query ListProducts {
+  listProducts{
+    items {
+      id
+      name
+      specificationURL
+      productImages {
+        items {
+          productID
+          s3imageID
+          region
+          bucket
+          key
+        }
+      }
+    }
+  }
+}
+
+query QueryProduct {
+  getProduct(id: "f488bb4d-3cc6-4e14-b639-5b2b71c38767")
+  {
+      id
+      name
+      specificationURL
+      productImages {
+        items {
+          productID
+          s3imageID
+          region
+          bucket
+          key
+        }
+      }
+  }
+}
+
 query GetCo2 {
   getCompany(id: "bb1") {
     id
