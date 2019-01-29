@@ -1,9 +1,12 @@
 import React, { Component } from "react";
 import { graphql } from "react-apollo";
+import gql from "graphql-tag";
 import { Link } from "react-router-dom";
 import Modal from 'react-modal';
 
 import QueryGetCompany from "../graphQL/queryGetCompanyAndProducts";
+import QueryAllOffers from "../graphQL/queryAllOffers";
+// import QueryAllOffers from '../graphQL/ListOffers'
 import ModalOffer from "./ModalOffer";
 
 class CompanyOffersTable extends Component {
@@ -61,6 +64,21 @@ class CompanyOffersTable extends Component {
         console.log('this.props COT - ', this.props);
         // console.log('modelNo', this.props.products[0].modelNo);
         console.log('QueryGetCompany = ', QueryGetCompany);
+        // const { client } = this.props;
+        // const data22 = client.readQuery({
+        //     query: QueryAllOffers
+        // });
+        // console.log('all offers ? - ', data22);
+        // const data23 = client.readFragment({
+        //     id: '653fbaef-9655-4ec6-a1e4-f0073cd78c8b',
+        //     fragment: gql`
+        //         fragment aCo on QueryGetCompany {
+        //             id
+        //             name
+        //         }
+        //     `,
+        // });        
+        // console.log('a company ? - ', data23);
 
         const { company, loading } = this.props;
         if (this.props.company) {

@@ -2,7 +2,8 @@ import React from 'react'
 
 
 import { graphql, compose } from 'react-apollo'
-import ListOffers from '../graphQL/ListOffers'
+// import ListOffers from '../graphQL/ListOffers'
+import ListOffers from "../graphQL/queryAllOffers";
 import NewOfferSubscription from '../graphQL/NewOfferSubscription'
 
 class Offers extends React.Component {
@@ -67,11 +68,12 @@ export default compose(
                 props.data.subscribeToMore({
                     document: NewOfferSubscription,
                     updateQuery: (prev, { subscriptionData: { data: { onCreateOffer } } }) => {
+                        console.log('onCreateOffer - ', onCreateOffer);
                         return {
                             ...prev,
                             listOffers: {
                                 __typename: 'OfferConnection',
-                                items: [onCreateOffer, ...prev.listOffers.items.filter(offer => offer.offerID !== onCreateOffer.id)]
+                                items: [onCreateOffer, ...prev.listOffers.items.filter(offer => offer.offerID !== onCreateOffer.offerID)]
                             }
                         }
                     }

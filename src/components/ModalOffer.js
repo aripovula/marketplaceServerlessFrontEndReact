@@ -189,13 +189,14 @@ export default graphql(
                         const data = proxy.readQuery({ query });
                         console.log('query = ', query);
                         console.log('data after read = ', data);
+                        console.log('data.listOffers.items LEN after read = ', data.listOffers.items.length);
                         console.log('data.listOffers.items after read = ', data.listOffers.items);
                         console.log('createOffer = ', createOffer);
 
-                        // get latest offers from getCompany
-                        data.listOffers.items = [
-                        ...props.ownProps.offers.items, 
-                        createOffer];
+                        // // get latest offers from getCompany
+                        // data.listOffers.items = [
+                        // ...props.ownProps.offers.items, 
+                        // createOffer];
 
                         // filter out old one if it is an update
                         data.listOffers.items = [
