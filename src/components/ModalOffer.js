@@ -22,13 +22,7 @@ class ModalOffer extends Component {
             margin: '4%'
         }
     };
-    // products = [
-    //     { id: 0, productID: '823b25f8-c7f1-4277-befa-f8b123a98921', name: 'Caster', modelNo: 'C120' },
-    //     { id: 1, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Caster', modelNo: 'C140' },
-    //     { id: 2, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Gauge', modelNo: '12CF' },
-    //     { id: 3, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Valve', modelNo: 'VF12' },
-    //     { id: 4, productID: '1fce5fad-9fa7-4e14-aa6e-a98608fab80c', name: 'Lever', modelNo: 'L15G' }
-    // ];
+
     constructor(props) {
         super(props);
 
@@ -41,7 +35,8 @@ class ModalOffer extends Component {
             productsAll: this.allProducts(),
             productsNoOffer: noOfferProducts,
             isSubmitValid: false,
-            isUpdate: false
+            isUpdate: false,
+            selectedOption: -1
         };
         this.handleModalCloseOptionSelected = this.handleModalCloseOptionSelected.bind(this);
     }
@@ -55,14 +50,18 @@ class ModalOffer extends Component {
     }
 
     newOffer() {
-        return {
-            companyID: this.props.companyID, // to add - get Co ID when Co is defined
-            offerID: uuid(),
-            productID: '', // to add - get product ID when product is defined
-            modelNo: '',
-            product: null,
-            price: 0,
-            available: 0
+        if (this.props.offer2update === null) {
+            return {
+                companyID: this.props.companyID, 
+                offerID: uuid(),
+                productID: '',
+                modelNo: '',
+                product: null,
+                price: 0,
+                available: 0
+            }
+        } else {
+            return this.props.offer2update;
         }
     }
 
@@ -90,7 +89,7 @@ class ModalOffer extends Component {
         
         if (this.props.products) {
             let coOffers;
-            this.props.offers.items.map((item) => { coOffers = coOffers + item.productID + ';;'});
+            this.props.offers.items.forEach((item) => { coOffers = coOffers + item.productID + ';;'});
             console.log('tsNoOf coOffers - ', coOffers);
             const l = this.props.products.length;
             let indexedProductsNoOffer = [];
@@ -116,11 +115,9 @@ class ModalOffer extends Component {
         this.setState(prevState => ({
             products: prevState.productsNoOffer,
             isSubmitValid: false,
-            offer: this.newOffer()
-        }));
-
-        this.setState({ isSubmitValid: false, offer: this.newOffer(), products: this.state.productsNoOffer });
-        this.props.handleModalCloseOptionSelected();
+            offer: this.newOffer(),
+            offer2update: null
+        }), () => this.props.handleModalCloseOptionSelected());
     }
 
     updateProductOptions(e) {
@@ -128,19 +125,22 @@ class ModalOffer extends Component {
         
         if (e.target.value === 'all') {
             this.setState({
-                products: this.state.productsAll
+                products: this.state.productsAll,
+                selectedOption: -1
             }, () => this.handleSelectOptionChange(0));
         } else {
             this.setState({
-                products: this.state.productsNoOffer
-            }, () => this.handleSelectOptionChange(0));
-            
+                products: this.state.productsNoOffer,
+                selectedOption: -1
+            }, () => this.handleSelectOptionChange(0)); 
         }
     }
 
     handleSelectOptionChange(selected) {
+        console.log('selected - ', selected);
+        
         if (selected > -1) {
-            console.log(this.state.products[selected].details.name);
+            console.log('products[selected]', this.state.products[selected].details);
             let isFound = false; let xF = -1;
             for (let x = 0; x < this.props.offers.items.length; x++) {
                 if (this.props.offers.items[x].productID === this.state.products[selected].details.id) {
@@ -179,6 +179,10 @@ class ModalOffer extends Component {
         this.setState({ offer });
     }
 
+    handleDelete = async (e) => {
+
+    }
+
     handleSave = async (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -210,32 +214,40 @@ class ModalOffer extends Component {
                 >
                     <div className="card-4" >
                         <div className="bggreen">
-                            <p>{this.state.isUpdate ? 'Update an offer' : 'Add new offer'}</p>
+                            <p>{this.props.offer2update !== null ? 'Update an offer' : (this.state.isUpdate ? 'Update an offer' : 'Add new offer')}</p>
                         </div>
                         <div className="padding15">
-                            <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
-                                <label htmlFor="noOffers">products with no offer({this.state.productsNoOffer.length})&nbsp;</label>
-                                <input id="noOffers" type="radio" value="noOffers" name="prodtype" defaultChecked />
-                                <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
-                                <input id="all" type="radio" value="all" name="prodtype" />
-                            </div>
+                            {console.log('offer2update === ', this.props.offer2update)}
+                            {this.props.offer2update === null  && 
+                                <div>
+                                    <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
+                                        <label htmlFor="noOffers">products with no offer({this.state.productsNoOffer.length})&nbsp;</label>
+                                        <input id="noOffers" type="radio" value="noOffers" name="prodtype" defaultChecked />
+                                        &nbsp;&nbsp;
+                                        <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
+                                        <input id="all" type="radio" value="all" name="prodtype" />
+                                    </div>
 
-                            <div>
-                                <span>products </span>
-                                <select
-                                    // value={this.props.filters.filterBy}
-                                    onChange={(e) => {
-                                        const selected = e.target.value;
-                                        this.handleSelectOptionChange(selected);
-                                    }}
-                                >
-                                    <option value='null'>( please select a product )</option>
-                                    {this.state.products.map((aProduct) =>
-                                        <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
-                                    )}
-                                </select>
-                            </div>
-                            
+                                    <div>
+                                        <span>products </span>
+                                        <select
+                                            value={this.state.selectedOption}
+                                            onChange={(e) => {
+                                                console.log('e.target.value - ', e.target.value);
+                                                
+                                                this.setState({ selectedOption: e.target.value },
+                                                    () => this.handleSelectOptionChange(this.state.selectedOption));
+                                                
+                                            }}
+                                        >
+                                        <option key="-1" value='null'>( please select a product )</option>
+                                            {this.state.products.map((aProduct) =>
+                                                <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
+                                            )}
+                                        </select>
+                                    </div>
+                                </div>
+                            }                          
                             
                             <div className="">
                                 <label htmlFor="price">price</label>
@@ -247,8 +259,14 @@ class ModalOffer extends Component {
                             </div>
                             <br/>
                             <div className="">
-                                <button className="button button1" onClick={this.handleSave} disabled={!this.state.isSubmitValid}>{this.state.isUpdate ? 'Update' : 'Add new'}</button>
+                                <button className="button button1" onClick={this.handleSave} disabled={!this.state.isSubmitValid && !this.props.offer2update}>
+                                    {this.props.offer2update !== null ? 'Update' : (this.state.isUpdate ? 'Update' : 'Add new')}
+                                </button>
                                 <button className="button button1" onClick={this.handleModalCloseOptionSelected}>Cancel</button>
+                                <span className="horIndent"></span>
+                                {this.props.offer2update !== null &&
+                                    <button className="button button1 floatRight" onClick={this.handleDelete}> Delete </button>
+                                }
                             </div>
                         </div>
                     </div>

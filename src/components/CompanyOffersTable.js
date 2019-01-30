@@ -6,7 +6,7 @@ import Modal from 'react-modal';
 
 import QueryGetCompany from "../graphQL/queryGetCompanyAndProducts";
 import QueryAllOffers from "../graphQL/queryAllOffers";
-// import QueryAllOffers from '../graphQL/ListOffers'
+import QueryAllProducts from "../graphQL/queryAllProducts";
 import ModalOffer from "./ModalOffer";
 
 class CompanyOffersTable extends Component {
@@ -21,7 +21,9 @@ class CompanyOffersTable extends Component {
 
         this.state = {
             mainText: undefined,
-            shortText: undefined
+            shortText: 'offer details',
+            offer2update: null,
+            products: this.getLatestProductsList()
         };
         this.handleModalCloseOptionSelected = this.handleModalCloseOptionSelected.bind(this);
     }
@@ -29,6 +31,13 @@ class CompanyOffersTable extends Component {
     componentWillMount() {
         Modal.setAppElement('body');
         // this.handleSync();
+    }
+
+    getLatestProductsList(){
+        const { client } = this.props;
+        return client.readQuery({
+            query: QueryAllProducts
+        });
     }
 
     handleModalCloseOptionSelected = () => {
@@ -90,17 +99,12 @@ class CompanyOffersTable extends Component {
                         <div className="responsiveFSize">{company.name} - offered products:</div>
                         <span
                             className="addnlightbg notbold cursorpointer"
-                            data-tip="permanently deletes entry. You will be prompted to confirm"
                             onClick={() => {
-                                this.setState(() => ({
-                                    shortText: 'New offer',
-                                    mainText: "New offer details"
-                                }));
+                                this.setState(() => ({ mainText: "New offer details", offer2update: null }));
                             }}>add offer</span>
                         &nbsp;&nbsp;
                         <span
                             className="addnlightbg notbold cursorpointer"
-                            data-tip="permanently deletes entry. You will be prompted to confirm"
                             onClick={() => {
                                 this.handleSync();
                             }}>sync offers</span>
@@ -108,14 +112,15 @@ class CompanyOffersTable extends Component {
 
                         <span className="responsiveFSize2">to update click product name</span>
 
-                        <ModalOffer
+                        {this.state.mainText !== null && <ModalOffer
                             companyID={company.id}
                             products={this.props.products}
                             offers={company.offers}
+                            offer2update={this.state.offer2update}
                             mainText={this.state.mainText}
                             shortText={this.state.shortText}
                             handleModalCloseOptionSelected={this.handleModalCloseOptionSelected}
-                        />
+                        />}
 
                         <table className="smalltable">
                             <tbody>
@@ -129,7 +134,13 @@ class CompanyOffersTable extends Component {
 
                                 {[].concat(items).sort((a, b) => a.offerID.localeCompare(b.offerID)).map((offer) =>
                                     <tr key={offer.offerID}>
-                                        <td>&nbsp;{offer.product.name}&nbsp;</td>
+                                        <td> {console.log('offer.id - ', offer.offerID)}
+                                            <span className="addnlightbg notbold cursorpointer"
+                                                onClick={() => {
+                                                    this.setState(() => ({ offer2update: offer, mainText: "Update offer" }));
+                                                }}>&nbsp;{offer.product.name}</span>
+                                            &nbsp;
+                                        </td>
                                         <td>&nbsp;{offer.product.modelNo}&nbsp;</td>
                                         <td>&nbsp;{offer.price}&nbsp;</td>
                                         <td>4.4</td>

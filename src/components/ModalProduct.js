@@ -73,7 +73,7 @@ class ModalProduct extends Component {
         });
         console.log('productsInStore', productsInStore);
         
-        productsInStore.listProducts.items.map((aProduct) => {
+        productsInStore.listProducts.items.forEach((aProduct) => {
             console.log('aProduct.name model - ', aProduct.name, aProduct.modelNo);
             
             if (aProduct.name === product.name && aProduct.modelNo === product.modelNo) {
