@@ -1,12 +1,11 @@
 import React, { Component } from "react";
 import { graphql } from "react-apollo";
 import gql from "graphql-tag";
-import { Link } from "react-router-dom";
+// import { Link } from "react-router-dom";
 import Modal from 'react-modal';
 
 import QueryGetCompany from "../graphQL/queryGetCompanyAndProducts";
-import QueryAllOffers from "../graphQL/queryAllOffers";
-import QueryAllProducts from "../graphQL/queryAllProducts";
+// import QueryAllOffers from "../graphQL/queryAllOffers";
 import ModalOffer from "./ModalOffer";
 
 class CompanyOffersTable extends Component {
@@ -23,9 +22,9 @@ class CompanyOffersTable extends Component {
             mainText: undefined,
             shortText: 'offer details',
             offer2update: null,
-            products: this.getLatestProductsList()
+            // offer: this.newOffer(),
         };
-        this.handleModalCloseOptionSelected = this.handleModalCloseOptionSelected.bind(this);
+        this.handleModalClose = this.handleModalClose.bind(this);
     }
 
     componentWillMount() {
@@ -33,30 +32,19 @@ class CompanyOffersTable extends Component {
         // this.handleSync();
     }
 
-    getLatestProductsList(){
-        const { client } = this.props;
-        return client.readQuery({
-            query: QueryAllProducts
-        });
-    }
-
-    handleModalCloseOptionSelected = () => {
+    handleModalClose = () => {
         this.setState(() => ({ mainText: undefined }));
         this.handleSync();
     }
 
     handleSync = async () => {
         const { client } = this.props;
-        console.log('props COT HS = ', this.props);
-        console.log('client in OFFER TABLE = ', client);
-
         const query = QueryGetCompany;
 
         this.setState({ busy: true });
 
         console.log('client.query = ', client.query);
         const coId = this.props.company.id;
-        console.log('coId - ', coId);
         
         await client.query({
             query,
@@ -72,7 +60,7 @@ class CompanyOffersTable extends Component {
     render() {
         console.log('this.props COT - ', this.props);
         // console.log('modelNo', this.props.products[0].modelNo);
-        console.log('QueryGetCompany = ', QueryGetCompany);
+        // console.log('QueryGetCompany = ', QueryGetCompany);
         // const { client } = this.props;
         // const data22 = client.readQuery({
         //     query: QueryAllOffers
@@ -94,7 +82,6 @@ class CompanyOffersTable extends Component {
             const { company: { offers: { items } } } = this.props;
             return (
                 <div className={`${loading ? 'loading' : ''}`}>
-                    {console.log('company =', company)}
                     {company && <div className="">
                         <div className="responsiveFSize">{company.name} - offered products:</div>
                         <span
@@ -114,12 +101,13 @@ class CompanyOffersTable extends Component {
 
                         {this.state.mainText !== null && <ModalOffer
                             companyID={company.id}
-                            products={this.props.products}
+                            // products={this.props.products}
                             offers={company.offers}
                             offer2update={this.state.offer2update}
                             mainText={this.state.mainText}
                             shortText={this.state.shortText}
-                            handleModalCloseOptionSelected={this.handleModalCloseOptionSelected}
+                            handleModalClose={this.handleModalClose}
+                            client={this.props.client}
                         />}
 
                         <table className="smalltable">
@@ -134,7 +122,7 @@ class CompanyOffersTable extends Component {
 
                                 {[].concat(items).sort((a, b) => a.offerID.localeCompare(b.offerID)).map((offer) =>
                                     <tr key={offer.offerID}>
-                                        <td> {console.log('offer.id - ', offer.offerID)}
+                                        <td>
                                             <span className="addnlightbg notbold cursorpointer"
                                                 onClick={() => {
                                                     this.setState(() => ({ offer2update: offer, mainText: "Update offer" }));

@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 import { graphql } from "react-apollo";
 import QueryAllOffers from "../graphQL/queryAllOffers";
 import QueryGetOffer from "../graphQL/queryGetOffer";
+import QueryAllProducts from "../graphQL/queryAllProducts";
 // import QueryGetCompany from "../graphQL/queryGetCompany";
 import MutationCreateOffer from "../graphQL/mutationAddOffer";
 
@@ -25,20 +26,18 @@ class ModalOffer extends Component {
 
     constructor(props) {
         super(props);
-
-        const noOfferProducts = this.noOfferProducts();
+        const productsListFromStore = this.getLatestProductsList();
+        const noOfferProducts = this.noOfferProducts(productsListFromStore);
         this.state = {
-            mainText: this.props.mainText,
-            shortText: this.props.shortText,
             offer: this.newOffer(),
             products: noOfferProducts,
-            productsAll: this.allProducts(),
             productsNoOffer: noOfferProducts,
+            productsAll: this.allProducts(productsListFromStore),
             isSubmitValid: false,
             isUpdate: false,
-            selectedOption: -1
+            selectedOption: -1,
         };
-        this.handleModalCloseOptionSelected = this.handleModalCloseOptionSelected.bind(this);
+        this.handleModalClose = this.handleModalClose.bind(this);
     }
 
     componentWillMount() {
@@ -49,33 +48,44 @@ class ModalOffer extends Component {
         createOffer: () => null,
     }
 
+    handleModalClose() {
+        this.setState(prevState => ({
+            offer: this.newOffer(),
+            products: prevState.productsNoOffer,
+            isSubmitValid: false,
+            offer2update: null,
+            isUpdate: false,
+            selectedOption: -1,
+        }), () => this.props.handleModalClose());
+    }
+
     newOffer() {
-        if (this.props.offer2update === null) {
-            return {
-                companyID: this.props.companyID, 
-                offerID: uuid(),
-                productID: '',
-                modelNo: '',
-                product: null,
-                price: 0,
-                available: 0
-            }
-        } else {
-            return this.props.offer2update;
+        return {
+            companyID: this.props.companyID, 
+            offerID: uuid(),
+            productID: '',
+            modelNo: '',
+            product: null,
+            price: 0,
+            available: 0
         }
     }
 
-    allProducts() {
-        console.log('this.props.products - ', this.props.products);
-        
-        if (this.props.products) {
-            const l = this.props.products.length;
+    getLatestProductsList() {
+        const { client } = this.props;
+        return client.readQuery({
+            query: QueryAllProducts
+        });
+    }
+
+    allProducts(productsListFromStore) {
+        if (productsListFromStore) {
+            const l = productsListFromStore.length;
             let indexedProductsAll = [];
             for (let x = 0; x < l; x++) {
-                indexedProductsAll.push({ seqNumb: x, details: this.props.products[x]})
-                console.log('indexedProducts - ', x, indexedProductsAll);
-                console.log('indexedProducts[x] - ', this.props.products[x]);
-                
+                indexedProductsAll.push({ seqNumb: x, details: productsListFromStore[x]})
+                // console.log('indexedProducts - ', x, indexedProductsAll);
+                // console.log('indexedProducts[x] - ', productsListFromStore[x]);
             }
             console.log('indexedProducts - ', indexedProductsAll);
             
@@ -85,23 +95,23 @@ class ModalOffer extends Component {
         }
     }
 
-    noOfferProducts(){
+    noOfferProducts(productsListFromStore){
         
-        if (this.props.products) {
+        if (productsListFromStore) {
             let coOffers;
             this.props.offers.items.forEach((item) => { coOffers = coOffers + item.productID + ';;'});
-            console.log('tsNoOf coOffers - ', coOffers);
-            const l = this.props.products.length;
+            // console.log('tsNoOf coOffers - ', coOffers);
+            const l = productsListFromStore.length;
             let indexedProductsNoOffer = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
-                if (!coOffers.includes(this.props.products[x].id)) {
+                if (!coOffers.includes(productsListFromStore[x].id)) {
                     indexedProductsNoOffer.push({
                         seqNumb: count++,
-                        details: this.props.products[x]
+                        details: productsListFromStore[x]
                     })
-                    console.log('indexedProductsNoOf - ', x, indexedProductsNoOffer);
-                    console.log('indexedProductsNoOf[x] - ', this.props.products[x]);
+                    // console.log('indexedProductsNoOf - ', x, indexedProductsNoOffer);
+                    // console.log('indexedProductsNoOf[x] - ', productsListFromStore[x]);
                 }
             }
             console.log('indexedProductsNoOf - ', indexedProductsNoOffer);
@@ -111,17 +121,8 @@ class ModalOffer extends Component {
         }        
     }
 
-    handleModalCloseOptionSelected() {
-        this.setState(prevState => ({
-            products: prevState.productsNoOffer,
-            isSubmitValid: false,
-            offer: this.newOffer(),
-            offer2update: null
-        }), () => this.props.handleModalCloseOptionSelected());
-    }
-
     updateProductOptions(e) {
-        console.log('e-', e.target.value);
+        // console.log('e-', e.target.value);
         
         if (e.target.value === 'all') {
             this.setState({
@@ -166,7 +167,6 @@ class ModalOffer extends Component {
                     isSubmitValid: true,
                     isUpdate: false
                 }))
-                console.log('selected - ', selected);
             }
         } else {
             this.setState({isSubmitValid: false})
@@ -195,15 +195,15 @@ class ModalOffer extends Component {
         await createOffer({ ...offer });
         console.log('offer after save -', this.state.offer);
         this.setState( { offer: this.newOffer(), isSubmitValid: false });
-        this.props.handleModalCloseOptionSelected();
+        this.props.handleModalClose();
         // history.push('/newoffer');
     }
 
         
     render() {
+        // if (!this.state.isInitialStateAssignedAtReopen) this.setInitialStateAtRepeatOpen();
         console.log('props modaL', this.props);
         const { offer } = this.state;
-        console.log('point U1');
         return (
             <div className="">
                 <Modal
@@ -262,7 +262,7 @@ class ModalOffer extends Component {
                                 <button className="button button1" onClick={this.handleSave} disabled={!this.state.isSubmitValid && !this.props.offer2update}>
                                     {this.props.offer2update !== null ? 'Update' : (this.state.isUpdate ? 'Update' : 'Add new')}
                                 </button>
-                                <button className="button button1" onClick={this.handleModalCloseOptionSelected}>Cancel</button>
+                                <button className="button button1" onClick={this.handleModalClose}>Cancel</button>
                                 <span className="horIndent"></span>
                                 {this.props.offer2update !== null &&
                                     <button className="button button1 floatRight" onClick={this.handleDelete}> Delete </button>
