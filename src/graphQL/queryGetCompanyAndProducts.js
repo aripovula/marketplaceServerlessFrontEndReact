@@ -9,6 +9,7 @@ query ($id: ID!) {
     status
     offers {
       items {
+        companyID
         offerID
         productID
         price

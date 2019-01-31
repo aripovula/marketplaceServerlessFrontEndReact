@@ -1,13 +1,17 @@
 import React, { Component } from "react";
-import { graphql } from "react-apollo";
-import gql from "graphql-tag";
+import { graphql, compose } from 'react-apollo'
 import { v4 as uuid } from "uuid";
 import Modal from 'react-modal';
 
 import QueryGetCompany from "../graphQL/queryGetCompanyAndProducts";
 import QueryAllProducts from "../graphQL/queryAllProducts";
-// import QueryAllOffers from "../graphQL/queryAllOffers";
+import QueryAllOffers from "../graphQL/queryAllOffers";
+import QueryGetOffer from "../graphQL/queryGetOffer";
+import MutationCreateOffer from "../graphQL/mutationAddOffer";
+import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
+import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
 
+// style for modal
 const customStyles = {
     content: {
         top: '30%',
@@ -27,6 +31,7 @@ class PartsCompany extends Component {
     static defaultProps = {
         company: null,
         createOffer: () => null,
+        updateOffer: () => null,
         getCompany: () => null,
     }
 
@@ -36,7 +41,6 @@ class PartsCompany extends Component {
         console.log('indexed prs from store', productsListFromStore);
         const noOfferProducts = this.noOfferProducts(productsListFromStore);
         this.state = {
-            shortText: 'offer details',
             modalIsOpen: false,
             offer: this.newOffer(),
             offers: this.props.company.offers.items,
@@ -47,7 +51,7 @@ class PartsCompany extends Component {
             isUpdate: false,
             isUpdateAtStart: false,
             selectedOption: -1,
-
+            loading: false
         };
 
         this.openModal = this.openModal.bind(this);
@@ -56,7 +60,6 @@ class PartsCompany extends Component {
 
     componentWillMount() {
         Modal.setAppElement('body');
-        // this.handleSync();
     }
 
     openModal() {
@@ -94,6 +97,7 @@ class PartsCompany extends Component {
         });
     }
 
+    // prepares array of all products recorded in store for options drop-down
     allProducts(productsListFromStore) {
         console.log('indexed prs from store in MET - ', productsListFromStore.listProducts.items.length, productsListFromStore);
         if (productsListFromStore.listProducts.items.length > 0) {
@@ -101,22 +105,18 @@ class PartsCompany extends Component {
             let indexedProductsAll = [];
             for (let x = 0; x < l; x++) {
                 indexedProductsAll.push({ seqNumb: x, details: productsListFromStore.listProducts.items[x] })
-                console.log('indexedProducts - ', x, indexedProductsAll);
-                // console.log('indexedProducts[x] - ', productsListFromStore[x]);
             }
-            console.log('indexedProducts - ', indexedProductsAll);
-
             return indexedProductsAll;
         } else {
             return [];
         }
     }
 
+    // prepares array of products (for which company did not make an offer) recorded in store for options drop-down
     noOfferProducts(productsListFromStore) {
         if (productsListFromStore.listProducts.items.length > 0) {
             let coOffers;
             this.props.company.offers.items.forEach((item) => { coOffers = coOffers + item.productID + ';;' });
-            // console.log('tsNoOf coOffers - ', coOffers);
             const l = productsListFromStore.listProducts.items.length;
             let indexedProductsNoOffer = [];
             let count = 0;
@@ -126,20 +126,16 @@ class PartsCompany extends Component {
                         seqNumb: count++,
                         details: productsListFromStore.listProducts.items[x]
                     })
-                    // console.log('indexedProductsNoOf - ', x, indexedProductsNoOffer);
-                    // console.log('indexedProductsNoOf[x] - ', productsListFromStore[x]);
                 }
             }
-            console.log('indexedProductsNoOf - ', indexedProductsNoOffer);
             return indexedProductsNoOffer;
         } else {
             return [];
         }
     }
 
+    // update array of products when 'all' or 'no-oder' radio buttons are selected
     updateProductOptions(e) {
-        // console.log('e-', e.target.value);
-
         if (e.target.value === 'all') {
             this.setState({
                 products: this.state.productsAll,
@@ -157,9 +153,9 @@ class PartsCompany extends Component {
         }
     }
 
+    // update modal UI when certain product is selected in drop-down
     handleSelectOptionChange(selected) {
         console.log('selected - ', selected);
-
         if (selected > -1) {
             console.log('products[selected]', this.state.products[selected].details);
             let isFound = false; let xF = -1;
@@ -197,17 +193,27 @@ class PartsCompany extends Component {
         }
     }
 
+    // handle user input change
     handleChange(field, { target: { value } }) {
         const { offer } = this.state;
         offer[field] = value;
         this.setState({ offer });
+        console.log('handleChange', this.state.offer);
     }
 
-    handleDelete = async (e) => {
+    handleDelete = async (offer, e) => {
+        e.preventDefault();
+        console.log('offer - ', offer);
+        if (window.confirm(`Are you sure you want to delete offer ${offer.offerID}`)) {
+            const { deleteOffer } = this.props;
+            console.log('deleteOffer = ', this.props.deleteOffer);
 
+            await deleteOffer(offer);
+            this.handleSync();
+        }
     }
 
-    handleSave = async (e) => {
+    handleSaveNew = async (e) => {
         e.stopPropagation();
         e.preventDefault();
 
@@ -218,16 +224,29 @@ class PartsCompany extends Component {
 
         await createOffer({ ...offer });
         console.log('offer after save -', this.state.offer);
-        this.setState({ offer: this.newOffer(), isSubmitValid: false });
-        this.props.handleModalClose();
-        // history.push('/newoffer');
+        this.handleSync();
+    }
+
+    handleSaveUpdate = async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        const { updateOffer } = this.props;
+                
+        const { offer } = this.state;
+        console.log('updateOffer -', this.props.updateOffer);
+        console.log('offer b4 save -', this.state.offer);
+
+        await updateOffer({ ...offer });
+        console.log('offer after save -', this.state.offer);
+        this.handleSync();
     }
 
     handleSync = async () => {
         const { client } = this.props;
         const query = QueryGetCompany;
 
-        this.setState({ busy: true });
+        this.setState({ loading: true });
 
         console.log('client.query = ', client.query);
         const coId = this.props.company.id;
@@ -238,31 +257,26 @@ class PartsCompany extends Component {
             fetchPolicy: 'network-only',
         });
 
-        // await result = client.query({ query: YOUR_QUERY, variables: {});
-
-        this.setState({ busy: false });
+        const productsListFromStore = this.getLatestProductsList();
+        console.log('indexed prs from store', productsListFromStore);
+        const noOfferProducts = this.noOfferProducts(productsListFromStore);
+        this.setState({
+            modalIsOpen: false,
+            offer: this.newOffer(),
+            offers: this.props.company.offers.items,
+            products: noOfferProducts,
+            productsNoOffer: noOfferProducts,
+            productsAll: this.allProducts(productsListFromStore),
+            isSubmitValid: false,
+            isUpdate: false,
+            isUpdateAtStart: false,
+            selectedOption: -1,
+            loading: false
+        });
     }
 
     render() {
         console.log('this.props COT - ', this.props);
-        // console.log('modelNo', this.props.products[0].modelNo);
-        // console.log('QueryGetCompany = ', QueryGetCompany);
-        // const { client } = this.props;
-        // const data22 = client.readQuery({
-        //     query: QueryAllOffers
-        // });
-        // console.log('all offers ? - ', data22);
-        // const data23 = client.readFragment({
-        //     id: '653fbaef-9655-4ec6-a1e4-f0073cd78c8b',
-        //     fragment: gql`
-        //         fragment aCo on QueryGetCompany {
-        //             id
-        //             name
-        //         }
-        //     `,
-        // });        
-        // console.log('a company ? - ', data23);
-
         const { company, loading } = this.props;
         if (this.props.company) {
             const { company: { offers: { items } } } = this.props;
@@ -369,13 +383,23 @@ class PartsCompany extends Component {
                                     <br />
                                     <div className="">
                                         {console.log(this.state.isSubmitValid, this.state.isUpdateAtStart)}
-                                        <button className="button button1" onClick={this.handleSave} disabled={!this.state.isSubmitValid && !this.state.isUpdateAtStart}>
-                                            {this.state.isUpdateAtStart ? 'Update' : (this.state.isUpdate ? 'Update' : 'Add new')}
-                                        </button>
+                                        
+                                        {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
+                                            <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
+                                                Add new
+                                            </button>
+                                        }
+                                        
+                                        {(this.state.isUpdateAtStart || this.state.isUpdate) &&
+                                            <button className="button button1" onClick={this.handleSaveUpdate} disabled={!this.state.isSubmitValid && !this.state.isUpdateAtStart}>
+                                                Update
+                                            </button>
+                                        }
+                                        
                                         <button className="button button1" onClick={this.handleModalClose}>Cancel</button>
                                         <span className="horIndent"></span>
                                         {(this.state.isUpdateAtStart || this.state.isUpdate) &&
-                                            <button className="button button1 floatRight" onClick={this.handleDelete}> Delete </button>
+                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.offer)}> Delete </button>
                                         }
                                     </div>
                                 </div>
@@ -393,26 +417,162 @@ class PartsCompany extends Component {
             )
         }
     }
-
 }
 
-export default graphql(
-    QueryGetCompany,
-    {
-        options: function ({ id }) {
-            console.log('in BBB1');
-            return ({
-                variables: { id },
-                fetchPolicy: 'cache-and-network',
-            })
+export default compose (
+    graphql(
+        QueryGetCompany,
+        {
+            options: function ({ id }) {
+                console.log('in BBB1');
+                return ({
+                    variables: { id },
+                    fetchPolicy: 'cache-and-network',
+                })
+            },
+            props: ({ data: { getCompany: company, listProducts = { items: [] }, loading } }) => {
+                console.log('in BBB2 data -', company, listProducts, loading);
+                return ({
+                    company,
+                    products: listProducts.items,
+                    loading,
+                })
+            },
         },
-        props: ({ data: { getCompany: company, listProducts = { items: [] }, loading } }) => {
-            console.log('in BBB2 data -', company, listProducts, loading);
-            return ({
-                company,
-                products: listProducts.items,
-                loading,
+    ),
+    graphql(
+        MutationCreateOffer,
+        {
+            props: (props) => ({
+                createOffer: (offer) => {
+                    console.log('point L1 at createOffer = ', offer);
+                    return props.mutate({
+                        update: (proxy, { data: { createOffer } }) => {
+                            console.log('point L2 proxy - ', proxy);
+                            // Update QueryAllOffers
+                            const query = QueryAllOffers;
+                            const data = proxy.readQuery({ query });
+                            console.log('query = ', query);
+                            console.log('data after read = ', data);
+                            console.log('data.listOffers.items LEN after read = ', data.listOffers.items.length);
+                            console.log('data.listOffers.items after read = ', data.listOffers.items);
+                            console.log('createOffer = ', createOffer);
+
+                            // // get latest offers from getCompany
+                            // data.listOffers.items = [
+                            // ...props.ownProps.offers.items, 
+                            // createOffer];
+
+                            // filter out old one if it is an update
+                            data.listOffers.items = [
+                                ...data.listOffers.items.filter(e => {
+                                    console.log('e = ', e);
+                                    console.log('e.offerID = ', e.offerID);
+                                    return e.offerID !== createOffer.offerID
+                                })
+                                , createOffer];
+
+                            console.log('data after filter = ', data);
+                            console.log('data.listOffers.items after filter = ', data.listOffers.items);
+                            proxy.writeQuery({ query, data });
+
+                            // Create cache entry for QueryGetOffer
+                            const query2 = QueryGetOffer;
+                            const variables = { id: createOffer.id };
+                            const data2 = { getOffer: { ...createOffer } };
+                            console.log('point L3 data2 = ', data2);
+                            proxy.writeQuery({ query: query2, variables, data: data2 });
+                            console.log('point L4 query2 = ', query2);
+                            console.log('this.props GQL part -', props);
+                        },
+                        variables: offer,
+                        optimisticResponse: () => (
+                            {
+                                createOffer: {
+                                    ...offer, __typename: 'Offer'
+                                }
+                            }),
+                    })
+                }
             })
-        },
-    },
+        }
+    ),
+    graphql(
+        MutationUpdateOffer,
+        {
+            props: (props) => ({
+                updateOffer: (offer) => {
+                    console.log('point L1 at updateOffer = ', offer);
+                    return props.mutate({
+                        update: (proxy, { data: { updateOffer } }) => {
+                            console.log('point L2 proxy - ', proxy);
+                            // Update QueryAllOffers
+                            const query = QueryAllOffers;
+                            const data = proxy.readQuery({ query });
+                            console.log('query = ', query);
+                            console.log('data after read = ', data);
+                            console.log('data.listOffers.items LEN after read = ', data.listOffers.items.length);
+                            console.log('data.listOffers.items after read = ', data.listOffers.items);
+                            console.log('createOffer = ', updateOffer);
+
+                            // // get latest offers from getCompany
+                            // data.listOffers.items = [
+                            // ...props.ownProps.offers.items, 
+                            // createOffer];
+
+                            // filter out old one if it is an update
+                            data.listOffers.items = [
+                                ...data.listOffers.items.filter(e => {
+                                    console.log('e = ', e);
+                                    console.log('e.offerID = ', e.offerID);
+                                    return e.offerID !== updateOffer.offerID
+                                })
+                                , updateOffer];
+
+                            console.log('data after filter = ', data);
+                            console.log('data.listOffers.items after filter = ', data.listOffers.items);
+                            proxy.writeQuery({ query, data });
+
+                        },
+                        variables: offer,
+                        optimisticResponse: () => (
+                            {
+                                updateOffer: {
+                                    ...offer, __typename: 'Offer'
+                                }
+                            }),
+                    })
+                }
+            })
+        }
+    ),
+    graphql(
+        MutationDeleteOffer,
+        {
+            options: {
+                update: (proxy, { data: { deleteOffer } }) => {
+                    const query = QueryAllOffers;
+                    const data = proxy.readQuery({ query });
+
+                    data.listOffers.items = data.listOffers.items.filter(offer => offer.offerID !== deleteOffer.offerID);
+
+                    proxy.writeQuery({ query, data });
+                }
+            },
+            props: (props) => ({
+                deleteOffer: (offer) => {
+                    console.log('props.ownProps', props.ownProps)
+                    return props.mutate({
+                        variables: { companyID: props.ownProps.company.id, offerID: offer.offerID },
+                        optimisticResponse: () => ({
+                            deleteOffer: {
+                                ...offer, __typename: 'Offer'
+                            }
+                        }),
+                    });
+                }
+            })
+        }
+    )
+
 )(PartsCompany);

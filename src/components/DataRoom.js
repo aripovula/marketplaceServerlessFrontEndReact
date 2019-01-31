@@ -96,7 +96,6 @@ class DataRoom extends Component {
       </div>
     );
   }
-
 }
 
 export default withApollo(compose(
