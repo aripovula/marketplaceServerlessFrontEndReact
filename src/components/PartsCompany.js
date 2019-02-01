@@ -10,6 +10,16 @@ import QueryGetOffer from "../graphQL/queryGetOffer";
 import MutationCreateOffer from "../graphQL/mutationAddOffer";
 import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
+import Spinner from '../assets/loading2.gif';
+
+var sectionStyle = {
+    width: "100%",
+    height: "100%",
+    backgroundImage: `url(${Spinner})`,
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "cover"
+};
 
 // style for modal
 const customStyles = {
@@ -205,10 +215,11 @@ class PartsCompany extends Component {
         e.preventDefault();
         console.log('offer - ', offer);
         if (window.confirm(`Are you sure you want to delete offer ${offer.offerID}`)) {
+            this.setState({ loading: true, modalIsOpen: false });
             const { deleteOffer } = this.props;
             console.log('deleteOffer = ', this.props.deleteOffer);
-
             await deleteOffer(offer);
+            // this.setState({ loading: false });
             this.handleSync();
         }
     }
@@ -216,18 +227,20 @@ class PartsCompany extends Component {
     handleSaveNew = async (e) => {
         e.stopPropagation();
         e.preventDefault();
+        this.setState({ loading: true, modalIsOpen: false });
 
         const { createOffer } = this.props;
         const { offer } = this.state;
         console.log('createOffer -', this.props.createOffer);
         console.log('offer b4 save -', this.state.offer);
-
         await createOffer({ ...offer });
+        // this.setState({ loading: false });
         console.log('offer after save -', this.state.offer);
         this.handleSync();
     }
 
     handleSaveUpdate = async (e) => {
+        this.setState({ loading: true, modalIsOpen: false });
         e.stopPropagation();
         e.preventDefault();
 
@@ -238,6 +251,7 @@ class PartsCompany extends Component {
         console.log('offer b4 save -', this.state.offer);
 
         await updateOffer({ ...offer });
+        // this.setState({ loading: false });
         console.log('offer after save -', this.state.offer);
         this.handleSync();
     }
@@ -246,7 +260,7 @@ class PartsCompany extends Component {
         const { client } = this.props;
         const query = QueryGetCompany;
 
-        this.setState({ loading: true });
+        // this.setState({ loading: true });
 
         console.log('client.query = ', client.query);
         const coId = this.props.company.id;
@@ -261,7 +275,6 @@ class PartsCompany extends Component {
         console.log('indexed prs from store', productsListFromStore);
         const noOfferProducts = this.noOfferProducts(productsListFromStore);
         this.setState({
-            modalIsOpen: false,
             offer: this.newOffer(),
             offers: this.props.company.offers.items,
             products: noOfferProducts,
@@ -278,10 +291,12 @@ class PartsCompany extends Component {
     render() {
         console.log('this.props COT - ', this.props);
         const { company, loading } = this.props;
+        const loadingState = this.state.loading;
         if (this.props.company) {
             const { company: { offers: { items } } } = this.props;
             return (
-                <div className={`${loading ? 'loading' : ''}`}>
+                <div style={(loading || loadingState)  ? sectionStyle : null}>  
+                    {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
                     {company && <div className="">
                         <div className="responsiveFSize">{company.name} - offered products:</div>
                         <span
@@ -410,9 +425,6 @@ class PartsCompany extends Component {
                             </div>
                         </Modal>
                     </div>
-
-
-
                 </div>
             );
         } else {
