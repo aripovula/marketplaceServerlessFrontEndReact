@@ -35,8 +35,6 @@ class PartsCompany extends Component {
         getCompany: () => null,
     }
 
-    isJustCancelled = false;
-
     constructor(props) {
         super(props);
         const productsListFromStore = this.getLatestProductsList();
@@ -45,8 +43,7 @@ class PartsCompany extends Component {
         this.state = {
             modalIsOpen: false,
             offer: this.newOffer(),
-            company: this.props.company,
-            companyIfCancelled: null,
+            offers: this.props.company.offers.items,
             products: noOfferProducts,
             productsNoOffer: noOfferProducts,
             productsAll: this.allProducts(productsListFromStore),
@@ -70,27 +67,15 @@ class PartsCompany extends Component {
     }
 
     handleModalClose() {
-        let company2restore;
-        if (this.state.isUpdate || this.state.isUpdateAtStart) {
-            // this.handleSync()
-            company2restore = JSON.parse(this.state.companyIfCancelled);
-        } else {
-            company2restore = this.props.company;
-        }
-        console.log('offers2restore', company2restore);
-        console.log('b4 close reset', this.state)
-        this.isJustCancelled = true;
         this.setState(prevState => ({
             offer: this.newOffer(),
-            company: company2restore,
-            companyIfCancelled: null,
             products: prevState.productsNoOffer,
             isSubmitValid: false,
             isUpdateAtStart: false,
             isUpdate: false,
             selectedOption: -1,
             modalIsOpen: false
-        }), () => console.log('after close reset', this.state));
+        }));
     }
 
     newOffer() {
@@ -156,16 +141,14 @@ class PartsCompany extends Component {
                 products: this.state.productsAll,
                 selectedOption: -1,
                 isSubmitValid: false,
-                isUpdateAtStart: false,
-                companyIfCancelled: null,
+                isUpdateAtStart: false
             }, () => this.handleSelectOptionChange(-1));
         } else {
             this.setState({
                 products: this.state.productsNoOffer,
                 selectedOption: -1,
                 isSubmitValid: false,
-                isUpdateAtStart: false,
-                companyIfCancelled: null,
+                isUpdateAtStart: false
             }, () => this.handleSelectOptionChange(-1));
         }
     }
@@ -186,7 +169,6 @@ class PartsCompany extends Component {
             if (isFound) {
                 this.setState(prevState => ({
                     offer: this.props.company.offers.items[xF],
-                    companyIfCancelled: JSON.stringify(this.props.company),
                     isSubmitValid: true,
                     isUpdate: true
                 }))
@@ -198,7 +180,6 @@ class PartsCompany extends Component {
                         productID: this.state.products[selected].details.id,
                         modelNo: this.state.products[selected].details.modelNo
                     },
-                    companyIfCancelled: null,
                     isSubmitValid: true,
                     isUpdate: false
                 }))
@@ -206,7 +187,6 @@ class PartsCompany extends Component {
         } else {
             this.setState({
                 offer: this.newOffer(),
-                companyIfCancelled: null,
                 isSubmitValid: false,
                 isUpdate: false
             })
@@ -297,18 +277,9 @@ class PartsCompany extends Component {
 
     render() {
         console.log('this.props COT - ', this.props);
-        console.log('this.state COT - ', this.state);
         const { company, loading } = this.props;
-        let items = [];
         if (this.props.company) {
-            if (this.isJustCancelled) {
-                console.log('isJustCancelled COT', this.isJustCancelled, items);
-                items = this.state.company.offers.items;
-                this.isJustCancelled = false;
-            } else {
-                console.log('isJustCancelled COT', this.isJustCancelled, items);
-                items = this.props.company.offers.items;
-            }
+            const { company: { offers: { items } } } = this.props;
             return (
                 <div className={`${loading ? 'loading' : ''}`}>
                     {company && <div className="">
@@ -344,10 +315,9 @@ class PartsCompany extends Component {
                                             <span className="addnlightbg notbold cursorpointer"
                                                 onClick={() => {
                                                     this.setState(() => ({
-                                                        isUpdateAtStart: true, 
-                                                        offer,
-                                                        companyIfCancelled: JSON.stringify(this.props.company),
-                                                        modalIsOpen: true 
+                                                        isUpdateAtStart: true,
+                                                        offer: JSON.parse(JSON.stringify(offer)),
+                                                        modalIsOpen: true
                                                     }));
                                                 }}>&nbsp;{offer.product.name}</span>
                                             &nbsp;
