@@ -7,21 +7,17 @@ import AWSAppSyncClient, { defaultDataIdFromObject } from "aws-appsync";
 import { Rehydrated } from "aws-appsync-react";
 
 import './App.css';
-import DataRoom from './components/DataRoom';
+
 import AllTraders from './components/AllTraders';
 import OneTrader from './components/OneTrader';
 import { Header } from './components/Header';
 import { LoginPage } from './components/LoginPage';
-import NewOffer from './components/NewOffer';
-import ViewCompanyOffers from './components/ViewCompany';
 import Offers from './components/Offers';
-import NewProduct from './components/NewProduct';
-
 
 
 const Home = () => (
   <div className="ui container">
-    <DataRoom client={client}/>
+    <AllTraders client={client}/>
   </div>
 );
 
@@ -29,18 +25,20 @@ const AllTradersWithClient = () => (
     <AllTraders client={client}/>
 );
 
+const OneTraderWithClient = () => (
+  <OneTrader client={client} />
+);
+
+
 const App = () => (
   <Router>
     <div>
       <Header/>
       <Route exact={true} path="/" component={Home} />
       <Route path="/multitrader" component={AllTradersWithClient} />
-      <Route path="/onetrader" component={OneTrader} />
-      <Route path="/dataroom" component={DataRoom} />
-      <Route path="/newoffer" component={NewOffer} />
-      <Route path="/newproduct" component={NewProduct} />
+      <Route path="/onetrader" component={OneTraderWithClient} />
       <Route path="/offers" component={Offers} />
-      <Route path="/offer/:id" component={ViewCompanyOffers} />
+      {/*<Route path="/offer/:id" component={ViewCompanyOffers} />*/}
       <Route path="/login" component={LoginPage} />
 
     </div>

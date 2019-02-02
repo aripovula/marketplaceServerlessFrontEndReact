@@ -29,7 +29,8 @@ export class AllTrader extends Component {
           <div id="left">
             {/*2nd*/}
             <div>
-              Market info &nbsp;  &nbsp;
+              Deal prices &nbsp;
+              <span className="responsiveFSize2">( last 10 deals low/high ) &nbsp;</span>
               <span
               className="addnlightbg notbold cursorpointer"
               data-tip="permanently deletes entry. You will be prompted to confirm"
@@ -38,9 +39,10 @@ export class AllTrader extends Component {
                   shortText: 'New request',
                   mainText: "Request addition of new traded product"
                 }));
-              }}>request new product</span>
-            <br/>
-            <span className="responsiveFSize2">to obtain info click product name</span>
+              }}>new product</span>
+              &nbsp; &nbsp;
+
+            <Offers/>
 
             <ModalProduct
               // selectedOption = {this.state.selectedOption}
@@ -51,8 +53,6 @@ export class AllTrader extends Component {
               shortText={this.state.shortText}
               handleModalCloseOptionSelected={this.handleModalCloseOptionSelected}
             />
-              
-              <Offers/>
             </div>
           </div>
   

@@ -52,19 +52,21 @@ h1, h2 {
 
 #top {
   position: fixed;
-  left: 30.2%;
+  left: 25.2%;
   right: 0;
   top: 35px;
   /* background-color: orange; */
+  border-left: 2px solid #333;
   height: calc(50% + 18px);
 }
 
 #bottom {
   position: fixed;
-  left: 30.2%;
+  left: 25.2%;
   right: 0;
   bottom: 0;
   /* background-color: green; */
+  border-left: 2px solid #333;
   height: calc(50% - 18px);
 }
 
@@ -344,29 +346,29 @@ a.addn:active {
 
 .addnlightbg, a.addnlightbg {
   color: lightslategray;
-  font-size: 1.1vw;
+  font-size: 1vw;
 }
 
 a.addnlightbg:link {
   text-decoration: none;
-  font-size: 1.1vw;
+  font-size: 1vw;
 }
 
 a.addnlightbg:visited {
   text-decoration: none;
-  font-size: 1.1vw;
+  font-size: 1vw;
 }
 
 .addnlightbg:hover, a.addnlightbg:hover {
   color: deepskyblue;
   /* transition-duration: 0.4s; */
-  font-size: 1.1vw;
+  font-size: 1vw;
   text-decoration: none;
 }
 
 a.addnlightbg:active {
   text-decoration: none;
-  font-size: 1.1vw;
+  font-size: 1vw;
 }
 
 .black {
@@ -508,14 +510,13 @@ a.addnlightbg:active {
 }
 
 #left {
-  width: 29.8%;
+  width: 24.8%;
   /* background-color: blue; */
-  border-right: 2px solid #333;
+  /* border-right: 2px solid #333; */
 }
 
 #right {
-  width: 89.8%;
-  border-left: 2px solid #333;
+  /* border-left: 2px solid #333; */
   /* // background:yellow; */
 }
 

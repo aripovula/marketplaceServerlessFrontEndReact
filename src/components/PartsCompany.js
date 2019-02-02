@@ -11,6 +11,7 @@ import MutationCreateOffer from "../graphQL/mutationAddOffer";
 import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
 import Spinner from '../assets/loading2.gif';
+import ModalInfo from "./ModalInfo";
 
 var sectionStyle = {
     width: "100%",
@@ -53,7 +54,7 @@ class PartsCompany extends Component {
         this.state = {
             modalIsOpen: false,
             offer: this.newOffer(),
-            offers: this.props.company.offers.items,
+            offers: this.props.company ? this.props.company.offers.items : null,
             products: noOfferProducts,
             productsNoOffer: noOfferProducts,
             productsAll: this.allProducts(productsListFromStore),
@@ -61,11 +62,13 @@ class PartsCompany extends Component {
             isUpdate: false,
             isUpdateAtStart: false,
             selectedOption: -1,
-            loading: false
+            loading: false,
+            infoModalData: null
         };
 
         this.openModal = this.openModal.bind(this);
         this.handleModalClose = this.handleModalClose.bind(this);
+        this.handleInfoModalClose = this.handleInfoModalClose.bind(this);
     }
 
     componentWillMount() {
@@ -88,9 +91,13 @@ class PartsCompany extends Component {
         }));
     }
 
+    handleInfoModalClose() {
+        this.setState({ infoModalData: null });
+    }
+
     newOffer() {
         return {
-            companyID: this.props.company.id,
+            companyID: this.props.company ? this.props.company.id : null,
             offerID: uuid(),
             productID: '',
             modelNo: '',
@@ -124,7 +131,7 @@ class PartsCompany extends Component {
 
     // prepares array of products (for which company did not make an offer) recorded in store for options drop-down
     noOfferProducts(productsListFromStore) {
-        if (productsListFromStore.listProducts.items.length > 0) {
+        if (productsListFromStore.listProducts.items.length > 0 && this.props.company && this.props.company.offers.items.length > 0) {
             let coOffers;
             this.props.company.offers.items.forEach((item) => { coOffers = coOffers + item.productID + ';;' });
             const l = productsListFromStore.listProducts.items.length;
@@ -140,7 +147,7 @@ class PartsCompany extends Component {
             }
             return indexedProductsNoOffer;
         } else {
-            return [];
+            return this.allProducts(productsListFromStore);
         }
     }
 
@@ -305,14 +312,14 @@ class PartsCompany extends Component {
                                 this.setState(() => ({ modalIsOpen: true, isUpdateAtStart: false }));
                             }}>add offer</span>
                         &nbsp;&nbsp;
-                        <span
+                        {/*<span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
                                 this.handleSync();
                             }}>sync offers</span>
-                        &nbsp;&nbsp;
+                        &nbsp;&nbsp;*/}
 
-                        <span className="responsiveFSize2">to update click product name</span>
+                        <span className="responsiveFSize2">hover this text</span>
 
                         <table className="smalltable">
                             <tbody>
@@ -337,7 +344,19 @@ class PartsCompany extends Component {
                                                 }}>&nbsp;{offer.product.name}</span>
                                             &nbsp;
                                         </td>
-                                        <td>&nbsp;{offer.product.modelNo}&nbsp;</td>
+                                        <td>
+                                            <span className="addnlightbg notbold cursorpointer"
+                                                    onClick={() => {
+                                                        this.setState(() => ({
+                                                            infoModalData: {
+                                                                mainText: 'Product specification',
+                                                                shortText: 'Product specification',
+                                                                name: offer.product.name,
+                                                                model: offer.product.modelNo,
+                                                            }
+                                                        }));
+                                                    }}>&nbsp;{offer.product.modelNo}&nbsp;</span>
+                                        </td>
                                         <td>&nbsp;{offer.price}&nbsp;</td>
                                         <td>4.4</td>
                                         <td>&nbsp;{offer.available}&nbsp;</td>
@@ -424,6 +443,12 @@ class PartsCompany extends Component {
                                 </div>
                             </div>
                         </Modal>
+                        {this.state.infoModalData &&
+                            <ModalInfo
+                                data={this.state.infoModalData}
+                                handleInfoModalClose={this.handleInfoModalClose}
+                            />
+                        }
                     </div>
                 </div>
             );

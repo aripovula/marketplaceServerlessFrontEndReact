@@ -117,8 +117,6 @@ class ModalProduct extends Component {
             <div className="margintop">
                 <Modal
                     isOpen={!!this.props.mainText}
-                    onRequestClose={this.props.handleClearSelectedOption}
-
                     style={this.customStyles}
                 >
                     <div className="card-4" >
