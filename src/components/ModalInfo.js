@@ -6,7 +6,7 @@ class ModalInfo extends Component {
 
     customStyles = {
         content: {
-            top: '20%',
+            top: '30%',
             left: '45%',
             right: 'auto',
             bottom: 'auto',
@@ -33,13 +33,26 @@ class ModalInfo extends Component {
                             <p>{this.props.data.shortText}</p>
                         </div>
                         <div className="padding15">
-                        <div className="">
-                            <p>{data.name} - {data.model}</p>
-                            <p>Product image:</p>
-                            {/*<img alt="" src={require(data.specURL)} />*/}
-                            <p>Product specification: Lorem ipsum</p>
-
-                        </div>
+                            {data.type === 'prodSpec' &&
+                                <div className="">
+                                    <p>{data.name} - {data.model}</p>
+                                    <p>Product image:</p>
+                                    {/*<img alt="" src={require(data.specURL)} />*/}
+                                    <p>Product specification: Lorem ipsum</p>
+                                </div>
+                            }
+                            {data.type === 'newProds' &&
+                            <div>
+                            <p>{this.props.data.mainText}</p>
+                                {data.newProducts.map((item) => (
+                                    <ul key={item.id}>
+                                        <li key={item.id}>
+                                            <p>{item.name} - {item.modelNo}</p>
+                                        </li>
+                                    </ul>
+                                ))}
+                                </div>
+                    }
                             <div className="">
                                 <button className="button button1" onClick={this.props.handleInfoModalClose}>Ok</button>
                             </div>

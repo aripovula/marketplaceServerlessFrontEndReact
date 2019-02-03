@@ -178,6 +178,15 @@ class PartsCompany extends Component {
         }
     }
 
+    filterNewProducts(fromProps, fromState) {
+        let newProducts = JSON.parse(JSON.stringify(fromProps));
+        fromState.forEach((item) => {
+            newProducts = newProducts.filter(prod => prod.id !== item.details.id);
+        });
+        console.log('newProducts', newProducts);
+        return newProducts;
+    }
+
     // update modal UI when certain product is selected in drop-down
     handleSelectOptionChange(selected) {
         console.log('selected - ', selected);
@@ -313,20 +322,49 @@ class PartsCompany extends Component {
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
+                    {
+                        console.log('props p len', this.props.products.length)
+                    }
+                    {
+                        console.log('state p len', this.state.productsAll.length)
+                    }
                     {this.props.products.length !== this.state.productsAll.length &&
                         <div className="responsiveFSizeRed">
-                        {this.props.products.length - this.state.productsAll.length} new product(s) added&nbsp;&nbsp;
+                        {this.props.products.length !== 0 && this.state.productsAll.length !== 0 &&
+                            this.props.products.length - this.state.productsAll.length}&nbsp;
+                            new product(s) added&nbsp;&nbsp;
+                            <span className="addnlightbg notbold cursorpointer"
+                                onClick={() => {
+                                    const fromProps = JSON.parse(JSON.stringify(this.props.products));
+                                    const fromState = JSON.parse(JSON.stringify(this.state.productsAll));
+                                    const productsListFromStore = this.getLatestProductsList();
+                                    const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                    this.setState(() => ({
+                                        products: noOfferProducts,
+                                        productsNoOffer: noOfferProducts,
+                                        productsAll: this.allProducts(productsListFromStore),
+                                        infoModalData: {
+                                            type: 'newProds',
+                                            mainText: 'New product(s) with followings details were added:',
+                                            shortText: 'Summary',
+                                            newProducts: this.filterNewProducts(fromProps, fromState)
+                                        }
+                                    }));
+                            }}>&nbsp;details&nbsp;&nbsp;&nbsp;
+                            </span>
                             <span
-                            className="addnlightbg notbold cursorpointer"
-                            onClick={() => {
-                                const productsListFromStore = this.getLatestProductsList();
-                                const noOfferProducts = this.noOfferProducts(productsListFromStore);
-                                this.setState(() => ({
-                                    products: noOfferProducts,
-                                    productsNoOffer: noOfferProducts,
-                                    productsAll: this.allProducts(productsListFromStore),
-                                }));
-                            }}>dismiss</span>
+                                className="addnlightbg notbold cursorpointer"
+                                onClick={() => {
+                                    const productsListFromStore = this.getLatestProductsList();
+                                    const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                    this.setState(() => ({
+                                        products: noOfferProducts,
+                                        productsNoOffer: noOfferProducts,
+                                        productsAll: this.allProducts(productsListFromStore),
+                                    }));
+                                }}>dismiss
+                            </span>
+                            <hr/>
                         </div>
                     }
                     {company && <div className="">
@@ -383,6 +421,7 @@ class PartsCompany extends Component {
                                                     onClick={() => {
                                                         this.setState(() => ({
                                                             infoModalData: {
+                                                                type: 'prodSpec',
                                                                 mainText: 'Product specification',
                                                                 shortText: 'Product specification',
                                                                 name: offer.product.name,
