@@ -65,6 +65,7 @@ class ModalProduct extends Component {
     }
 
     handleSave = async (e) => {
+        this.props.handleModalCloseOptionSelected();
         let isExisting = false;
         const { client } = this.props;
         const { product } = this.state;
@@ -102,7 +103,7 @@ class ModalProduct extends Component {
     
             await createProduct({ ...product });
             
-            this.props.handleModalCloseOptionSelected();
+            this.handleModalCloseOptionSelected();
             // history.push('/newproduct');
         }
     }

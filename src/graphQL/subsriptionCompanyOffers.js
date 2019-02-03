@@ -1,12 +1,3 @@
-// import gql from "graphql-tag";
-
-// export default gql(`
-// subscription($companyID: String!) {
-//   onCreateOffer(companyID: $companyID) {
-//     offerID
-//   }
-// }`);
-
 import gql from 'graphql-tag'
 
 export default gql`

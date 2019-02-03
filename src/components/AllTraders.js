@@ -30,7 +30,8 @@ export class AllTrader extends Component {
             {/*2nd*/}
             <div>
               Deal prices &nbsp;
-              <span className="responsiveFSize2">( last 10 deals low/high ) &nbsp;</span>
+              <span className="responsiveFSize2">( last 10 deals lowest / highest price )</span>
+              <br/>
               <span
               className="addnlightbg notbold cursorpointer"
               data-tip="permanently deletes entry. You will be prompted to confirm"
@@ -39,11 +40,12 @@ export class AllTrader extends Component {
                   shortText: 'New request',
                   mainText: "Request addition of new traded product"
                 }));
-              }}>new product</span>
+              }}>request new product</span>
               &nbsp; &nbsp;
+              <span className="responsiveFSize2">hover for more info</span>
 
             <Offers/>
-
+            <span className="responsiveFSize2a">Communication between each company is an end-to-end communication (exclusively through AppSync based serverless back-end). None of companies exchange data locally.</span>
             <ModalProduct
               // selectedOption = {this.state.selectedOption}
 

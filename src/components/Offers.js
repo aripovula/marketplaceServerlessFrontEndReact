@@ -28,13 +28,13 @@ class Offers extends React.Component {
                     numberColumnWidth='90'
                     fontSize='12'
                 />
-                {
+                {/*
                     this.props.offers.map((r, i) => (
                         <div key={i}>
                             <p>CoId: {r.companyID} Oid: {r.offerID} ${r.price} Av: {r.available} USD</p>
                         </div>
                     ))
-                }
+                */}
             </div>
         )
     }

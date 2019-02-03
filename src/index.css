@@ -310,6 +310,16 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
   font-size: 1vw;
 }
 
+.responsiveFSize2a {
+  color: lightslategray;
+  font-size: 0.8vw;
+}
+
+.responsiveFSizeRed {
+  color: red;
+  font-size: 1vw;
+}
+
 .plan {
   color: rgb(43, 191, 250);
   font-size: 12px
@@ -506,7 +516,7 @@ a.addnlightbg:active {
   height: 100vh;
   float: left;
   /* text-align: center; */
-  border-bottom: 2px solid #333;
+  /* border-bottom: 2px solid #333; */
 }
 
 #left {

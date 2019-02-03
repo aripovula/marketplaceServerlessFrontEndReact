@@ -3,13 +3,14 @@ import { graphql, compose } from 'react-apollo'
 import { v4 as uuid } from "uuid";
 import Modal from 'react-modal';
 
-import QueryGetCompany from "../graphQL/queryGetCompanyAndProducts";
+import QueryGetCompany from "../graphQL/queryGetCompany";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryAllOffers from "../graphQL/queryAllOffers";
 import QueryGetOffer from "../graphQL/queryGetOffer";
 import MutationCreateOffer from "../graphQL/mutationAddOffer";
 import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
+import NewProductSubscription from '../graphQL/subsriptionProducts'
 import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
 
@@ -38,6 +39,8 @@ const customStyles = {
 };
 
 class PartsCompany extends Component {
+
+    productSubscription;
 
     static defaultProps = {
         company: null,
@@ -72,7 +75,12 @@ class PartsCompany extends Component {
     }
 
     componentWillMount() {
+        this.productSubscription = this.props.subscribeToNewProducts();
         Modal.setAppElement('body');
+    }
+
+    componentWillUnmount() {
+        this.productSubscription();
     }
 
     openModal() {
@@ -297,6 +305,7 @@ class PartsCompany extends Component {
 
     render() {
         console.log('this.props COT - ', this.props);
+        console.log('props.products', this.props.products);
         const { company, loading } = this.props;
         const loadingState = this.state.loading;
         if (this.props.company) {
@@ -304,12 +313,37 @@ class PartsCompany extends Component {
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
+                    {this.props.products.length !== this.state.productsAll.length &&
+                        <div className="responsiveFSizeRed">
+                        {this.props.products.length - this.state.productsAll.length} new product(s) added&nbsp;&nbsp;
+                            <span
+                            className="addnlightbg notbold cursorpointer"
+                            onClick={() => {
+                                const productsListFromStore = this.getLatestProductsList();
+                                const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                this.setState(() => ({
+                                    products: noOfferProducts,
+                                    productsNoOffer: noOfferProducts,
+                                    productsAll: this.allProducts(productsListFromStore),
+                                }));
+                            }}>dismiss</span>
+                        </div>
+                    }
                     {company && <div className="">
                         <div className="responsiveFSize">{company.name} - offered products:</div>
                         <span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
-                                this.setState(() => ({ modalIsOpen: true, isUpdateAtStart: false }));
+                                const productsListFromStore = this.getLatestProductsList();
+                                console.log('products in Store', productsListFromStore);
+                                const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                this.setState(() => ({
+                                    products: noOfferProducts,
+                                    productsNoOffer: noOfferProducts,
+                                    productsAll: this.allProducts(productsListFromStore),
+                                    modalIsOpen: true,
+                                    isUpdateAtStart: false
+                                }));
                             }}>add offer</span>
                         &nbsp;&nbsp;
                         {/*<span
@@ -614,6 +648,29 @@ export default compose (
                 }
             })
         }
-    )
+    ),
+    graphql(QueryAllProducts, {
+        options: {
+            fetchPolicy: 'cache-and-network'
+        },
+        props: props => ({
+            products: props.data.listProducts ? props.data.listProducts.items : [],
+            subscribeToNewProducts: params => {
+                props.data.subscribeToMore({
+                    document: NewProductSubscription,
+                    updateQuery: (prev, { subscriptionData: { data: { onCreateProduct } } }) => {
+                        console.log('onCreateProduct - ', onCreateProduct);
+                        return {
+                            ...prev,
+                            listProducts: {
+                                __typename: 'ProductConnection',
+                                items: [onCreateProduct, ...prev.listProducts.items.filter(product => product.id !== onCreateProduct.id)]
+                            }
+                        }
+                    }
+                })
+            }
+        })
+    })
 
 )(PartsCompany);

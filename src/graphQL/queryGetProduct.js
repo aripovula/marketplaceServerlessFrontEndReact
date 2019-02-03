@@ -6,6 +6,7 @@ query ($id: ID!) {
   {
       id
       name
+      modelNo
       specificationURL
       productImages {
         items {
