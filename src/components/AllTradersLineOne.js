@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import AssemblingCompany from './AssemblingCompany';
 
 export class AllTradersLineOne extends Component {
   render() {
@@ -6,7 +7,7 @@ export class AllTradersLineOne extends Component {
       <div id="top">
         <div id="container2top">
           <div id="left2">
-            UPPER-LEFT - Assembler Inc.
+            <AssemblingCompany id='d20cde2e-b0a4-441b-a8be-5a31e0eb09e8' client={this.props.client} />
           </div>
           <div id="middle2">
             UPPER-CENTER - Last Line Ltd.

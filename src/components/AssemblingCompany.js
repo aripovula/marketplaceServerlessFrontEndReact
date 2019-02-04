@@ -2,15 +2,16 @@ import React, { Component } from "react";
 import { graphql, compose } from 'react-apollo'
 import { v4 as uuid } from "uuid";
 import Modal from 'react-modal';
+import numeral from 'numeral';
 
-import QueryGetCompany from "../graphQL/queryGetCompany";
+import QueryGetCompany from "../graphQL/queryGetCompanyOrders";
 import QueryAllProducts from "../graphQL/queryAllProducts";
-import QueryAllOffers from "../graphQL/queryAllOffers";
-import QueryGetOffer from "../graphQL/queryGetOffer";
-import MutationCreateOffer from "../graphQL/mutationAddOffer";
-import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
-import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
-import NewProductSubscription from '../graphQL/subsriptionProducts'
+import QueryAllOrders from "../graphQL/queryAllOrders";
+import QueryGetOrder from "../graphQL/queryGetOrder";
+import MutationCreateOrder from "../graphQL/mutationAddOrder";
+import MutationUpdateOrder from "../graphQL/mutationUpdateOrder";
+import MutationDeleteOrder from "../graphQL/mutationDeleteOrder";
+import NewProductSubscription from '../graphQL/subsriptionProducts';
 import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
 
@@ -45,8 +46,8 @@ class PartsCompany extends Component {
 
     static defaultProps = {
         company: null,
-        createOffer: () => null,
-        updateOffer: () => null,
+        createOrder: () => null,
+        updateOrder: () => null,
         getCompany: () => null,
     }
 
@@ -54,18 +55,20 @@ class PartsCompany extends Component {
         super(props);
         const productsListFromStore = this.getLatestProductsList();
         console.log('indexed prs from store', productsListFromStore);
-        const noOfferProducts = this.noOfferProducts(productsListFromStore);
+        const noOrderProducts = this.noOrderProducts(productsListFromStore);
         this.state = {
             modalIsOpen: false,
-            offer: this.newOffer(),
-            offers: this.props.company ? this.props.company.offers.items : null,
-            products: noOfferProducts,
-            productsNoOffer: noOfferProducts,
+            order: this.newOrder(),
+            orders: this.props.company ? this.props.company.orders.items : null,
+            products: noOrderProducts,
+            productsNoOrder: noOrderProducts,
             productsAll: this.allProducts(productsListFromStore),
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
             selectedOption: -1,
+            
+            bestOfferType: 'optimal',
             loading: false,
             infoModalData: null
         };
@@ -90,8 +93,8 @@ class PartsCompany extends Component {
 
     handleModalClose() {
         this.setState(prevState => ({
-            offer: this.newOffer(),
-            products: prevState.productsNoOffer,
+            order: this.newOrder(),
+            products: prevState.productsNoOrder,
             isSubmitValid: false,
             isUpdateAtStart: false,
             isUpdate: false,
@@ -104,15 +107,16 @@ class PartsCompany extends Component {
         this.setState({ infoModalData: null });
     }
 
-    newOffer() {
+    newOrder() {
         return {
             companyID: this.props.company ? this.props.company.id : null,
-            offerID: uuid(),
+            orderID: uuid(),
             productID: '',
             modelNo: '',
             product: null,
-            price: 0,
-            available: 0
+            price: 1,
+            quantity: 100,
+            minRating: 4.5
         }
     }
 
@@ -138,23 +142,24 @@ class PartsCompany extends Component {
         }
     }
 
-    // prepares array of products (for which company did not make an offer) recorded in store for options drop-down
-    noOfferProducts(productsListFromStore) {
-        if (productsListFromStore.listProducts.items.length > 0 && this.props.company && this.props.company.offers.items.length > 0) {
-            let coOffers;
-            this.props.company.offers.items.forEach((item) => { coOffers = coOffers + item.productID + ';;' });
+    // prepares array of products (for which company did not make an order) recorded in store for options drop-down
+    noOrderProducts(productsListFromStore) {
+
+        if (productsListFromStore.listProducts.items.length > 0 && this.props.company && this.props.company.orders.items.length > 0) {
+            let coOrders;
+            this.props.company.orders.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
             const l = productsListFromStore.listProducts.items.length;
-            let indexedProductsNoOffer = [];
+            let indexedProductsNoOrder = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
-                if (!coOffers.includes(productsListFromStore.listProducts.items[x].id)) {
-                    indexedProductsNoOffer.push({
+                if (!coOrders.includes(productsListFromStore.listProducts.items[x].id)) {
+                    indexedProductsNoOrder.push({
                         seqNumb: count++,
                         details: productsListFromStore.listProducts.items[x]
                     })
                 }
             }
-            return indexedProductsNoOffer;
+            return indexedProductsNoOrder;
         } else {
             return this.allProducts(productsListFromStore);
         }
@@ -171,7 +176,7 @@ class PartsCompany extends Component {
             }, () => this.handleSelectOptionChange(-1));
         } else {
             this.setState({
-                products: this.state.productsNoOffer,
+                products: this.state.productsNoOrder,
                 selectedOption: -1,
                 isSubmitValid: false,
                 isUpdateAtStart: false
@@ -194,24 +199,24 @@ class PartsCompany extends Component {
         if (selected > -1) {
             console.log('products[selected]', this.state.products[selected].details);
             let isFound = false; let xF = -1;
-            for (let x = 0; x < this.props.company.offers.items.length; x++) {
-                if (this.props.company.offers.items[x].productID === this.state.products[selected].details.id) {
+            for (let x = 0; x < this.props.company.orders.items.length; x++) {
+                if (this.props.company.orders.items[x].productID === this.state.products[selected].details.id) {
                     isFound = true; xF = x;
                 }
             }
-            console.log('prods, offers, isF, xF ', this.state.products, this.props.company.offers.items, isFound, xF);
+            console.log('prods, orders, isF, xF ', this.state.products, this.props.company.orders.items, isFound, xF);
 
             if (isFound) {
                 this.setState(prevState => ({
-                    offer: this.props.company.offers.items[xF],
+                    order: this.props.company.orders.items[xF],
                     isSubmitValid: true,
                     isUpdate: true
                 }))
             } else {
-                const offerNew = this.newOffer();
+                const orderNew = this.newOrder();
                 this.setState(prevState => ({
-                    offer: {
-                        ...offerNew,
+                    order: {
+                        ...orderNew,
                         productID: prevState.products[selected].details.id,
                         modelNo: prevState.products[selected].details.modelNo
                     },
@@ -221,7 +226,7 @@ class PartsCompany extends Component {
             }
         } else {
             this.setState({
-                offer: this.newOffer(),
+                order: this.newOrder(),
                 isSubmitValid: false,
                 isUpdate: false
             })
@@ -230,20 +235,32 @@ class PartsCompany extends Component {
 
     // handle user input change
     handleChange(field, { target: { value } }) {
-        const { offer } = this.state;
-        offer[field] = value;
-        this.setState({ offer });
-        console.log('handleChange', this.state.offer);
+        const { order } = this.state;
+        order[field] = value;
+        this.setState({ order });
+        console.log('handleChange', this.state.order);
     }
 
-    handleDelete = async (offer, e) => {
+    handlePriceChange(factor) {
+        this.setState(prevState => ({ order: { ...prevState.order, price: prevState.order.price * factor } }))
+    }
+
+    handleQuantityChange(delta) {
+        this.setState(prevState => ({ order: { ...prevState.order, quantity: prevState.order.quantity + delta } }))
+    }
+
+    handleRatingChange(value, type) {
+        this.setState(prevState => ({ order: { ...prevState.order, minRating: type === 1 ? prevState.order.minRating + value : value } }))
+    }
+
+    handleDelete = async (order, e) => {
         e.preventDefault();
-        console.log('offer - ', offer);
-        if (window.confirm(`Are you sure you want to delete offer ${offer.offerID}`)) {
+        console.log('order - ', order);
+        if (window.confirm(`Are you sure you want to delete order ${order.orderID}`)) {
             this.setState({ loading: true, modalIsOpen: false });
-            const { deleteOffer } = this.props;
-            console.log('deleteOffer = ', this.props.deleteOffer);
-            await deleteOffer(offer);
+            const { deleteOrder } = this.props;
+            console.log('deleteOrder = ', this.props.deleteOrder);
+            await deleteOrder(order);
             // this.setState({ loading: false });
             this.handleSync();
         }
@@ -254,13 +271,13 @@ class PartsCompany extends Component {
         e.preventDefault();
         this.setState({ loading: true, modalIsOpen: false });
 
-        const { createOffer } = this.props;
-        const { offer } = this.state;
-        console.log('createOffer -', this.props.createOffer);
-        console.log('offer b4 save -', this.state.offer);
-        await createOffer({ ...offer });
+        const { createOrder } = this.props;
+        const { order } = this.state;
+        console.log('createOrder -', this.props.createOrder);
+        console.log('order b4 save -', this.state.order);
+        await createOrder({ ...order });
         // this.setState({ loading: false });
-        console.log('offer after save -', this.state.offer);
+        console.log('order after save -', this.state.order);
         this.handleSync();
     }
 
@@ -269,15 +286,15 @@ class PartsCompany extends Component {
         e.stopPropagation();
         e.preventDefault();
 
-        const { updateOffer } = this.props;
+        const { updateOrder } = this.props;
                 
-        const { offer } = this.state;
-        console.log('updateOffer -', this.props.updateOffer);
-        console.log('offer b4 save -', this.state.offer);
+        const { order } = this.state;
+        console.log('updateOrder -', this.props.updateOrder);
+        console.log('order b4 save -', this.state.order);
 
-        await updateOffer({ ...offer });
+        await updateOrder({ ...order });
         // this.setState({ loading: false });
-        console.log('offer after save -', this.state.offer);
+        console.log('order after save -', this.state.order);
         this.handleSync();
     }
 
@@ -298,12 +315,12 @@ class PartsCompany extends Component {
 
         const productsListFromStore = this.getLatestProductsList();
         console.log('indexed prs from store', productsListFromStore);
-        const noOfferProducts = this.noOfferProducts(productsListFromStore);
+        const noOrderProducts = this.noOrderProducts(productsListFromStore);
         this.setState({
-            offer: this.newOffer(),
-            offers: this.props.company.offers.items,
-            products: noOfferProducts,
-            productsNoOffer: noOfferProducts,
+            order: this.newOrder(),
+            orders: this.props.company.orders.items,
+            products: noOrderProducts,
+            productsNoOrder: noOrderProducts,
             productsAll: this.allProducts(productsListFromStore),
             isSubmitValid: false,
             isUpdate: false,
@@ -315,11 +332,12 @@ class PartsCompany extends Component {
 
     render() {
         console.log('this.props COT - ', this.props);
+        console.log('this.state COT - ', this.state);
         console.log('props.products', this.props.products);
         const { company, loading } = this.props;
         const loadingState = this.state.loading;
         if (this.props.company) {
-            const { company: { offers: { items } } } = this.props;
+            const { company: { orders: { items } } } = this.props;
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
@@ -340,10 +358,10 @@ class PartsCompany extends Component {
                                     const fromProps = JSON.parse(JSON.stringify(this.props.products));
                                     const fromState = JSON.parse(JSON.stringify(this.state.productsAll));
                                     const productsListFromStore = this.getLatestProductsList();
-                                    const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                    const noOrderProducts = this.noOrderProducts(productsListFromStore);
                                     this.setState(() => ({
-                                        products: noOfferProducts,
-                                        productsNoOffer: noOfferProducts,
+                                        products: noOrderProducts,
+                                        productsNoOrder: noOrderProducts,
                                         productsAll: this.allProducts(productsListFromStore),
                                         infoModalData: {
                                             type: 'newProds',
@@ -358,10 +376,10 @@ class PartsCompany extends Component {
                                 className="addnlightbg notbold cursorpointer"
                                 onClick={() => {
                                     const productsListFromStore = this.getLatestProductsList();
-                                    const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                    const noOrderProducts = this.noOrderProducts(productsListFromStore);
                                     this.setState(() => ({
-                                        products: noOfferProducts,
-                                        productsNoOffer: noOfferProducts,
+                                        products: noOrderProducts,
+                                        productsNoOrder: noOrderProducts,
                                         productsAll: this.allProducts(productsListFromStore),
                                     }));
                                 }}>dismiss
@@ -370,27 +388,27 @@ class PartsCompany extends Component {
                         </div>
                     }
                     {company && <div className="">
-                        <div className="responsiveFSize">{company.name} - offered products:</div>
+                        <div className="responsiveFSize">{company.name} - last 4 orders:</div>
                         <span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
                                 const productsListFromStore = this.getLatestProductsList();
                                 console.log('products in Store', productsListFromStore);
-                                const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                const noOrderProducts = this.noOrderProducts(productsListFromStore);
                                 this.setState(() => ({
-                                    products: noOfferProducts,
-                                    productsNoOffer: noOfferProducts,
+                                    products: noOrderProducts,
+                                    productsNoOrder: noOrderProducts,
                                     productsAll: this.allProducts(productsListFromStore),
                                     modalIsOpen: true,
                                     isUpdateAtStart: false
                                 }));
-                            }}>add offer</span>
+                            }}>add order</span>
                         &nbsp;&nbsp;
                         {/*<span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
                                 this.handleSync();
-                            }}>sync offers</span>
+                            }}>sync orders</span>
                         &nbsp;&nbsp;*/}
 
                         <span className="responsiveFSize2">hover this text</span>
@@ -402,20 +420,21 @@ class PartsCompany extends Component {
                                     <td>Model #</td>
                                     <td>Price</td>
                                     <td>Rating</td>
-                                    <td>Available</td>
+                                    <td>quantity</td>
+                                    <td>Status</td>
                                 </tr>
 
-                                {[].concat(items).sort((a, b) => a.offerID.localeCompare(b.offerID)).map((offer) =>
-                                    <tr key={offer.offerID}>
+                                {[].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
+                                    <tr key={order.orderID}>
                                         <td>
                                             <span className="addnlightbg notbold cursorpointer"
                                                 onClick={() => {
                                                     this.setState(() => ({
                                                         isUpdateAtStart: true,
-                                                        offer: JSON.parse(JSON.stringify(offer)),
+                                                        order: JSON.parse(JSON.stringify(order)),
                                                         modalIsOpen: true
                                                     }));
-                                                }}>&nbsp;{offer.product.name}</span>
+                                                }}>&nbsp;{order.product.name}</span>
                                             &nbsp;
                                         </td>
                                         <td>
@@ -426,15 +445,16 @@ class PartsCompany extends Component {
                                                                 type: 'prodSpec',
                                                                 mainText: 'Product specification',
                                                                 shortText: 'Product specification',
-                                                                name: offer.product.name,
-                                                                model: offer.product.modelNo,
+                                                                name: order.product.name,
+                                                                model: order.product.modelNo,
                                                             }
                                                         }));
-                                                    }}>&nbsp;{offer.product.modelNo}&nbsp;</span>
+                                                    }}>&nbsp;{order.product.modelNo}&nbsp;</span>
                                         </td>
-                                        <td>&nbsp;{offer.price}&nbsp;</td>
+                                        <td>&nbsp;{order.price}&nbsp;</td>
                                         <td>4.4</td>
-                                        <td>&nbsp;{offer.available}&nbsp;</td>
+                                        <td>&nbsp;{order.available}&nbsp;</td>
+                                        <td>&nbsp;in progress&nbsp;</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -450,22 +470,22 @@ class PartsCompany extends Component {
 
                             <div className="card-4" >
                                 <div className="bggreen">
-                                    <p>{this.state.isUpdateAtStart ? 'Update an offer' : (this.state.isUpdate ? 'Update an offer' : 'Add new offer')}</p>
+                                    <p>{this.state.isUpdateAtStart ? 'Update an order' : (this.state.isUpdate ? 'Update an order' : 'Add new order')}</p>
                                 </div>
-                                <div className="padding15">
+                                <div className="padding15 responsiveFSize">
                                     {console.log('isUpdateAtStart === ', this.state.isUpdateAtStart)}
                                     {!this.state.isUpdateAtStart &&
                                         <div>
-                                            <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
-                                                <label htmlFor="noOffers">products with no offer({this.state.productsNoOffer.length})&nbsp;</label>
-                                                <input id="noOffers" type="radio" value="noOffers" name="prodtype" defaultChecked />
+                                            {/*<div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
+                                                <label htmlFor="noOrders">products with no order({this.state.productsNoOrder.length})&nbsp;</label>
+                                                <input id="noOrders" type="radio" value="noOrders" name="prodtype" defaultChecked />
                                                 &nbsp;&nbsp;
-                                        <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
+                                                <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
                                                 <input id="all" type="radio" value="all" name="prodtype" />
-                                            </div>
+                                            </div>*/}
 
                                             <div>
-                                                <span>products </span>
+                                                <span>order </span>
                                                 <select
                                                     value={this.state.selectedOption}
                                                     onChange={(e) => {
@@ -484,22 +504,75 @@ class PartsCompany extends Component {
                                             </div>
                                         </div>
                                     }
+                                    <br/>
+                                    with:
+                                    <div className="" onChange={(e) => this.setState({ bestOfferType: e.target.value }) }>
+                                        &nbsp;&nbsp;<input id="optimal" type="radio" value="optimal" name="bestorder" defaultChecked />
+                                        <label htmlFor="optimal">&nbsp;cheapest price at min. rating</label>
+                                        <br />
+                                        &nbsp;&nbsp;<input id="highestrating" type="radio" value="highestrating" name="bestorder" />
+                                        <label htmlFor="highestrating">&nbsp;highest rating</label>
+                                        <br/>
+                                        &nbsp;&nbsp;<input id="cheapest" type="radio" value="cheapest" name="bestorder" />
+                                        <label htmlFor="cheapest">&nbsp;cheapest price</label>
+                                        <br />
+                                        &nbsp;&nbsp;<input id="custom" type="radio" value="custom" name="bestorder" />
+                                        <label htmlFor="custom">&nbsp;custom settings</label>                                        
 
-                                    <div className="">
-                                        <label htmlFor="price">price</label>
-                                        <input type="text" id="price" value={this.state.offer.price} onChange={this.handleChange.bind(this, 'price')} />
                                     </div>
+
+                                    {(this.state.bestOfferType === 'custom' || this.state.bestOfferType === 'highestrating') &&
+                                        <div className="">
+                                            <label htmlFor="price">max. price</label>
+                                            <input type="text" id="price" value={numeral(this.state.order.price).format('0.00')} onChange={this.handleChange.bind(this, 'price')} />
+                                            <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.99)}>- 1%</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.01)}>+ 1%</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.96)}>- 4%</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.04)}>+ 4%</button>&nbsp;
+                                        </div>
+                                    }
                                     <div className="">
-                                        <label htmlFor="available">available</label>
-                                        <input type="text" id="available" value={this.state.offer.available} onChange={this.handleChange.bind(this, 'available')} />
-                                </div>
+                                        <label htmlFor="available">quantity&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                        <input type="text" id="available" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'available')} />
+                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
+                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(10)}>+ 10</button>&nbsp;
+                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-100)}>- 100</button>&nbsp;
+                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(100)}>+ 100</button>&nbsp;
+                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-1000)}>- 1000</button>&nbsp;
+                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(1000)}>+ 1000</button>&nbsp;
+
+                                    </div>
+                                    {(this.state.bestOfferType === 'custom' || this.state.bestOfferType === 'optimal') &&
+                                        <div className="">
+                                            <label htmlFor="available">min. rating</label>
+                                            <input type="text" id="available" value={numeral(this.state.order.minRating).format('0.0')} onChange={this.handleChange.bind(this, 'available')} />
+                                        <button className="buttonSm button2a" onClick={() => this.handleRatingChange(-0.1, 1)}>- 0.1</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(0.1, 1)}>+ 0.1</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4, 0)}>4.0</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.2, 0)}>4.2</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.4, 0)}>4.4</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.6, 0)}>4.6</button>&nbsp;
+                                        </div>
+                                    }
                                     <br />
+                                    <div className="" onChange={() => this.setState()}>
+                                    payment type: &nbsp;&nbsp;
+                                        <label htmlFor="credit">&nbsp;credit&nbsp;</label>
+                                        <input id="credit" type="radio" value="credit" name="paymenttype" defaultChecked />
+                                        &nbsp;&nbsp;
+                                        <label htmlFor="cash">&nbsp;cash&nbsp;</label>
+                                        <input id="cash" type="radio" value="cash" name="paymenttype" />
+                                            </div>
+                                    <br />
+                                    <span className="responsiveFSize2a">Warning:&nbsp;</span>
+                                    <span className="responsiveFSize2a">first match to your order is a legally binding deal for you and ordering co.</span>
+                                    <br /><br />
                                     <div className="">
                                         {console.log(this.state.isSubmitValid, this.state.isUpdateAtStart)}
                                         
                                         {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
                                             <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
-                                                Add new
+                                                Place order
                                             </button>
                                         }
                                         
@@ -512,7 +585,7 @@ class PartsCompany extends Component {
                                         <button className="button button1" onClick={this.handleModalClose}>Cancel</button>
                                         <span className="horIndent"></span>
                                         {(this.state.isUpdateAtStart || this.state.isUpdate) &&
-                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.offer)}> Delete </button>
+                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.order)}> Delete </button>
                                         }
                                     </div>
                                 </div>
@@ -540,7 +613,7 @@ export default compose (
         QueryGetCompany,
         {
             options: function ({ id }) {
-                console.log('in BBB1');
+                console.log('in BBB1 id ', id);
                 return ({
                     variables: { id },
                     fetchPolicy: 'cache-and-network',
@@ -556,55 +629,55 @@ export default compose (
         },
     ),
     graphql(
-        MutationCreateOffer,
+        MutationCreateOrder,
         {
             props: (props) => ({
-                createOffer: (offer) => {
-                    console.log('point L1 at createOffer = ', offer);
+                createOrder: (order) => {
+                    console.log('point L1 at createOrder = ', order);
                     return props.mutate({
-                        update: (proxy, { data: { createOffer } }) => {
+                        update: (proxy, { data: { createOrder } }) => {
                             console.log('point L2 proxy - ', proxy);
-                            // Update QueryAllOffers
-                            const query = QueryAllOffers;
+                            // Update QueryAllOrders
+                            const query = QueryAllOrders;
                             const data = proxy.readQuery({ query });
                             console.log('query = ', query);
                             console.log('data after read = ', data);
-                            console.log('data.listOffers.items LEN after read = ', data.listOffers.items.length);
-                            console.log('data.listOffers.items after read = ', data.listOffers.items);
-                            console.log('createOffer = ', createOffer);
+                            console.log('data.listOrders.items LEN after read = ', data.listOrders.items.length);
+                            console.log('data.listOrders.items after read = ', data.listOrders.items);
+                            console.log('createOrder = ', createOrder);
 
-                            // // get latest offers from getCompany
-                            // data.listOffers.items = [
-                            // ...props.ownProps.offers.items, 
-                            // createOffer];
+                            // // get latest orders from getCompany
+                            // data.listOrders.items = [
+                            // ...props.ownProps.orders.items, 
+                            // createOrder];
 
                             // filter out old one if it is an update
-                            data.listOffers.items = [
-                                ...data.listOffers.items.filter(e => {
+                            data.listOrders.items = [
+                                ...data.listOrders.items.filter(e => {
                                     console.log('e = ', e);
-                                    console.log('e.offerID = ', e.offerID);
-                                    return e.offerID !== createOffer.offerID
+                                    console.log('e.orderID = ', e.orderID);
+                                    return e.orderID !== createOrder.orderID
                                 })
-                                , createOffer];
+                                , createOrder];
 
                             console.log('data after filter = ', data);
-                            console.log('data.listOffers.items after filter = ', data.listOffers.items);
+                            console.log('data.listOrders.items after filter = ', data.listOrders.items);
                             proxy.writeQuery({ query, data });
 
-                            // Create cache entry for QueryGetOffer
-                            const query2 = QueryGetOffer;
-                            const variables = { id: createOffer.id };
-                            const data2 = { getOffer: { ...createOffer } };
+                            // Create cache entry for QueryGetOrder
+                            const query2 = QueryGetOrder;
+                            const variables = { id: createOrder.id };
+                            const data2 = { getOrder: { ...createOrder } };
                             console.log('point L3 data2 = ', data2);
                             proxy.writeQuery({ query: query2, variables, data: data2 });
                             console.log('point L4 query2 = ', query2);
                             console.log('this.props GQL part -', props);
                         },
-                        variables: offer,
+                        variables: order,
                         optimisticResponse: () => (
                             {
-                                createOffer: {
-                                    ...offer, __typename: 'Offer'
+                                createOrder: {
+                                    ...order, __typename: 'Order'
                                 }
                             }),
                     })
@@ -613,47 +686,47 @@ export default compose (
         }
     ),
     graphql(
-        MutationUpdateOffer,
+        MutationUpdateOrder,
         {
             props: (props) => ({
-                updateOffer: (offer) => {
-                    console.log('point L1 at updateOffer = ', offer);
+                updateOrder: (order) => {
+                    console.log('point L1 at updateOrder = ', order);
                     return props.mutate({
-                        update: (proxy, { data: { updateOffer } }) => {
+                        update: (proxy, { data: { updateOrder } }) => {
                             console.log('point L2 proxy - ', proxy);
-                            // Update QueryAllOffers
-                            const query = QueryAllOffers;
+                            // Update QueryAllOrders
+                            const query = QueryAllOrders;
                             const data = proxy.readQuery({ query });
                             console.log('query = ', query);
                             console.log('data after read = ', data);
-                            console.log('data.listOffers.items LEN after read = ', data.listOffers.items.length);
-                            console.log('data.listOffers.items after read = ', data.listOffers.items);
-                            console.log('createOffer = ', updateOffer);
+                            console.log('data.listOrders.items LEN after read = ', data.listOrders.items.length);
+                            console.log('data.listOrders.items after read = ', data.listOrders.items);
+                            console.log('createOrder = ', updateOrder);
 
-                            // // get latest offers from getCompany
-                            // data.listOffers.items = [
-                            // ...props.ownProps.offers.items, 
-                            // createOffer];
+                            // // get latest orders from getCompany
+                            // data.listOrders.items = [
+                            // ...props.ownProps.orders.items, 
+                            // createOrder];
 
                             // filter out old one if it is an update
-                            data.listOffers.items = [
-                                ...data.listOffers.items.filter(e => {
+                            data.listOrders.items = [
+                                ...data.listOrders.items.filter(e => {
                                     console.log('e = ', e);
-                                    console.log('e.offerID = ', e.offerID);
-                                    return e.offerID !== updateOffer.offerID
+                                    console.log('e.orderID = ', e.orderID);
+                                    return e.orderID !== updateOrder.orderID
                                 })
-                                , updateOffer];
+                                , updateOrder];
 
                             console.log('data after filter = ', data);
-                            console.log('data.listOffers.items after filter = ', data.listOffers.items);
+                            console.log('data.listOrders.items after filter = ', data.listOrders.items);
                             proxy.writeQuery({ query, data });
 
                         },
-                        variables: offer,
+                        variables: order,
                         optimisticResponse: () => (
                             {
-                                updateOffer: {
-                                    ...offer, __typename: 'Offer'
+                                updateOrder: {
+                                    ...order, __typename: 'Order'
                                 }
                             }),
                     })
@@ -662,26 +735,26 @@ export default compose (
         }
     ),
     graphql(
-        MutationDeleteOffer,
+        MutationDeleteOrder,
         {
             options: {
-                update: (proxy, { data: { deleteOffer } }) => {
-                    const query = QueryAllOffers;
+                update: (proxy, { data: { deleteOrder } }) => {
+                    const query = QueryAllOrders;
                     const data = proxy.readQuery({ query });
 
-                    data.listOffers.items = data.listOffers.items.filter(offer => offer.offerID !== deleteOffer.offerID);
+                    data.listOrders.items = data.listOrders.items.filter(order => order.orderID !== deleteOrder.orderID);
 
                     proxy.writeQuery({ query, data });
                 }
             },
             props: (props) => ({
-                deleteOffer: (offer) => {
+                deleteOrder: (order) => {
                     console.log('props.ownProps', props.ownProps)
                     return props.mutate({
-                        variables: { companyID: props.ownProps.company.id, offerID: offer.offerID },
+                        variables: { companyID: props.ownProps.company.id, orderID: order.orderID },
                         optimisticResponse: () => ({
-                            deleteOffer: {
-                                ...offer, __typename: 'Offer'
+                            deleteOrder: {
+                                ...order, __typename: 'Order'
                             }
                         }),
                     });

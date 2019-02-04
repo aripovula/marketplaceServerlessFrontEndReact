@@ -133,7 +133,7 @@ button:disabled {
 
 input[type=text], input[type=number], input[type=date], input[type=password] {
   border: none;
-  border-bottom: 2px solid lightseagreen;
+  border-bottom: 1px solid #ddd;
   margin: 8px;
 }
 
@@ -233,6 +233,21 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
   cursor: pointer;
 }
 
+.buttonSm {
+  /* //border:  rgb(48, 190, 238) solid 1px;  */
+  color: white;
+  padding: 3px 3px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  margin: 1px 1px;
+  -webkit-transition-duration: 0.4s;
+  /* Safari */
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
 .button:disabled {
   cursor: default;
   background-color: rgb(151, 169, 175);
@@ -255,6 +270,17 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
 }
 
 .button2:hover {
+  /* //background-color: rgb(48, 190, 238); 
+  //color: #ff6600; */
+  box-shadow: 0 8px 10px 0 rgba(0, 0, 0, 0.2), 0 8px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.button2a {
+  background-color: rgb(151, 169, 175);
+  color: white;
+}
+
+.button2a:hover {
   /* //background-color: rgb(48, 190, 238); 
   //color: #ff6600; */
   box-shadow: 0 8px 10px 0 rgba(0, 0, 0, 0.2), 0 8px 20px 0 rgba(0, 0, 0, 0.19);
