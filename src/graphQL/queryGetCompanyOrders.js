@@ -20,6 +20,22 @@ query ($id: ID!) {
         orderedProductRating
         bestOfferType
         minProductRating
+        product {
+          id,
+          name
+          modelNo
+          productImages {
+            items {
+              productID
+              s3imageID
+              bucket
+              key
+              region
+            }
+          }
+          specificationURL
+        }
+
       }
     }
   }

@@ -110,14 +110,15 @@ class PartsCompany extends Component {
         return {
             companyID: this.props.company ? this.props.company.id : null,
             orderID: uuid(),
-            producerID: '',
+            producerID: 'pr1',
             productID: '',
+            product: null,
             orderTime: Date.now(),
             status: 'INFO_REQUESTED',
             price: 1,
             quantity: 100,
             orderedProductRating: null,
-            bestOfferType: 'optimal',
+            bestOfferType: 'OPTIMAL',
             minProductRating: 4.5
         }
     }
@@ -245,19 +246,26 @@ class PartsCompany extends Component {
 
     handleBestOfferTypeChange(e) {
         const type = e.target.value;
-        this.setState((prevState) => ({ order: { ...prevState.order, bestOfferType: type } })) 
+        this.setState((prevState) => ({ order: { ...prevState.order, bestOfferType: type } }));
     }
 
     handlePriceChange(factor) {
-        this.setState(prevState => ({ order: { ...prevState.order, price: (prevState.order.price * factor).toFixed(2) } }))
+        let newPrice = (parseFloat(this.state.order.price) * parseFloat(factor)).toFixed(2);
+        newPrice = parseFloat(newPrice) < 0 ? 0.00 : newPrice;
+        this.setState(prevState => ({ order: { ...prevState.order, price: newPrice} }))
     }
 
     handleQuantityChange(delta) {
-        this.setState(prevState => ({ order: { ...prevState.order, quantity: prevState.order.quantity + delta } }))
+        let newQuantity = parseInt(this.state.order.quantity) + parseInt(delta);
+        newQuantity = parseInt(newQuantity) < 0 ? 0 : newQuantity;
+        this.setState(prevState => ({ order: { ...prevState.order, quantity: newQuantity} }))
     }
 
-    handleRatingChange(value, type) {
-        this.setState(prevState => ({ order: { ...prevState.order, minProductRating: type === 1 ? (prevState.order.minProductRating + value).toFixed(1) : value } }))
+    handleRatingChange(val, type) {
+        let newRating = type === 1 ? (parseFloat(this.state.order.minProductRating) + parseFloat(val)).toFixed(1) : parseFloat(val);
+        newRating = newRating > 5 ? 5.0 : newRating;
+        newRating = newRating < 0 ? 0.0 : newRating;
+        this.setState(prevState => ({ order: { ...prevState.order, minProductRating: newRating } }))
     }
 
     handleDelete = async (order, e) => {
@@ -514,21 +522,21 @@ class PartsCompany extends Component {
                                     <br/>
                                     with:
                                     <div className="" onChange={(e) => this.handleBestOfferTypeChange(e)}>
-                                        &nbsp;&nbsp;<input id="optimal" type="radio" value="optimal" name="bestorder" defaultChecked />
+                                        &nbsp;&nbsp;<input id="optimal" type="radio" value="OPTIMAL" name="bestorder" defaultChecked />
                                         <label htmlFor="optimal">&nbsp;cheapest price at min. rating</label>
                                         <br />
-                                        &nbsp;&nbsp;<input id="highestrating" type="radio" value="highestrating" name="bestorder" />
+                                        &nbsp;&nbsp;<input id="highestrating" type="radio" value="HIGHESTRATING" name="bestorder" />
                                         <label htmlFor="highestrating">&nbsp;highest rating</label>
                                         <br/>
-                                        &nbsp;&nbsp;<input id="cheapest" type="radio" value="cheapest" name="bestorder" />
+                                        &nbsp;&nbsp;<input id="cheapest" type="radio" value="CHEAPEST" name="bestorder" />
                                         <label htmlFor="cheapest">&nbsp;cheapest price</label>
                                         <br />
-                                        &nbsp;&nbsp;<input id="custom" type="radio" value="custom" name="bestorder" />
+                                        &nbsp;&nbsp;<input id="custom" type="radio" value="CUSTOM" name="bestorder" />
                                         <label htmlFor="custom">&nbsp;custom settings</label>                                        
 
                                     </div>
 
-                                    {(this.state.bestOfferType === 'custom' || this.state.bestOfferType === 'highestrating') &&
+                                    {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'HIGHESTRATING') &&
                                         <div className="">
                                             <label htmlFor="price">max. price</label>
                                             <input type="text" id="price" value={this.state.order.price} onChange={this.handleChange.bind(this, 'price')} />
@@ -539,8 +547,8 @@ class PartsCompany extends Component {
                                         </div>
                                     }
                                     <div className="">
-                                        <label htmlFor="available">quantity&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                                        <input type="text" id="available" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'available')} />
+                                        <label htmlFor="quantity">quantity&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
+                                        <input type="text" id="quantity" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'quantity')} />
                                         <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
                                         <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(10)}>+ 10</button>&nbsp;
                                         <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-100)}>- 100</button>&nbsp;
@@ -549,11 +557,11 @@ class PartsCompany extends Component {
                                         <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(1000)}>+ 1000</button>&nbsp;
 
                                     </div>
-                                    {(this.state.bestOfferType === 'custom' || this.state.bestOfferType === 'optimal') &&
+                                    {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'OPTIMAL') &&
                                         <div className="">
-                                            <label htmlFor="available">min. rating</label>
-                                            <input type="text" id="available" value={this.state.order.minProductRating} onChange={this.handleChange.bind(this, 'available')} />
-                                        <button className="buttonSm button2a" onClick={() => this.handleRatingChange(-0.1, 1)}>- 0.1</button>&nbsp;
+                                        <label htmlFor="minProductRating">min. rating</label>
+                                            <input type="text" id="minProductRating" value={this.state.order.minProductRating} onChange={this.handleChange.bind(this, 'minProductRating')} />
+                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(-0.1, 1)}>- 0.1</button>&nbsp;
                                             <button className="buttonSm button2a" onClick={() => this.handleRatingChange(0.1, 1)}>+ 0.1</button>&nbsp;
                                             <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4, 0)}>4.0</button>&nbsp;
                                             <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.2, 0)}>4.2</button>&nbsp;

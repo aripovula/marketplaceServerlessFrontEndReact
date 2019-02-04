@@ -3,24 +3,40 @@ import gql from "graphql-tag";
 export default gql(`
 mutation (
     $companyID: ID!
-    $offerID: String!
+    $orderID: String!
+    $producerID: String!
     $productID: String!
+    $orderTime: AWSTimestamp!
+    $status: OrderStatus!
+    $bestOfferType: BestOfferEnum!
     $price: Float!
-    $available: Int!
-  ) {
-    createOffer(
-      input: {
-        companyID: $companyID
-        offerID: $offerID
-        productID: $productID
-        price: $price
-        available: $available
-      }
-    ) {
-      companyID
-      offerID
-      productID
-      price
-      available
+    $quantity: Int!
+    $orderedProductRating: Float
+    $minProductRating: Float
+) {
+  createOrder(input: {
+    companyID: $companyID,
+    orderID: $orderID,
+    productID: $productID,
+    producerID: $producerID,
+    orderTime: $orderTime,
+    status:$status,
+    price: $price,
+    quantity: $quantity,
+    minProductRating: $minProductRating,
+    orderedProductRating: $orderedProductRating,
+    bestOfferType: $bestOfferType
+  }) {
+    companyID
+    orderID
+    producerID
+    productID
+    orderTime
+    status
+    price
+    quantity
+    orderedProductRating
+    bestOfferType
+    minProductRating
   }
 }`);
