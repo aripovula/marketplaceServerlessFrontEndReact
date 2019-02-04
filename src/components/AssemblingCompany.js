@@ -68,7 +68,6 @@ class PartsCompany extends Component {
             isUpdateAtStart: false,
             selectedOption: -1,
             
-            bestOfferType: 'optimal',
             loading: false,
             infoModalData: null
         };
@@ -111,12 +110,15 @@ class PartsCompany extends Component {
         return {
             companyID: this.props.company ? this.props.company.id : null,
             orderID: uuid(),
+            producerID: '',
             productID: '',
-            modelNo: '',
-            product: null,
+            orderTime: Date.now(),
+            status: 'INFO_REQUESTED',
             price: 1,
             quantity: 100,
-            minRating: 4.5
+            orderedProductRating: null,
+            bestOfferType: 'optimal',
+            minProductRating: 4.5
         }
     }
 
@@ -241,8 +243,13 @@ class PartsCompany extends Component {
         console.log('handleChange', this.state.order);
     }
 
+    handleBestOfferTypeChange(e) {
+        const type = e.target.value;
+        this.setState((prevState) => ({ order: { ...prevState.order, bestOfferType: type } })) 
+    }
+
     handlePriceChange(factor) {
-        this.setState(prevState => ({ order: { ...prevState.order, price: prevState.order.price * factor } }))
+        this.setState(prevState => ({ order: { ...prevState.order, price: (prevState.order.price * factor).toFixed(2) } }))
     }
 
     handleQuantityChange(delta) {
@@ -250,7 +257,7 @@ class PartsCompany extends Component {
     }
 
     handleRatingChange(value, type) {
-        this.setState(prevState => ({ order: { ...prevState.order, minRating: type === 1 ? prevState.order.minRating + value : value } }))
+        this.setState(prevState => ({ order: { ...prevState.order, minProductRating: type === 1 ? (prevState.order.minProductRating + value).toFixed(1) : value } }))
     }
 
     handleDelete = async (order, e) => {
@@ -506,7 +513,7 @@ class PartsCompany extends Component {
                                     }
                                     <br/>
                                     with:
-                                    <div className="" onChange={(e) => this.setState({ bestOfferType: e.target.value }) }>
+                                    <div className="" onChange={(e) => this.handleBestOfferTypeChange(e)}>
                                         &nbsp;&nbsp;<input id="optimal" type="radio" value="optimal" name="bestorder" defaultChecked />
                                         <label htmlFor="optimal">&nbsp;cheapest price at min. rating</label>
                                         <br />
@@ -524,7 +531,7 @@ class PartsCompany extends Component {
                                     {(this.state.bestOfferType === 'custom' || this.state.bestOfferType === 'highestrating') &&
                                         <div className="">
                                             <label htmlFor="price">max. price</label>
-                                            <input type="text" id="price" value={numeral(this.state.order.price).format('0.00')} onChange={this.handleChange.bind(this, 'price')} />
+                                            <input type="text" id="price" value={this.state.order.price} onChange={this.handleChange.bind(this, 'price')} />
                                             <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.99)}>- 1%</button>&nbsp;
                                             <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.01)}>+ 1%</button>&nbsp;
                                             <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.96)}>- 4%</button>&nbsp;
@@ -545,7 +552,7 @@ class PartsCompany extends Component {
                                     {(this.state.bestOfferType === 'custom' || this.state.bestOfferType === 'optimal') &&
                                         <div className="">
                                             <label htmlFor="available">min. rating</label>
-                                            <input type="text" id="available" value={numeral(this.state.order.minRating).format('0.0')} onChange={this.handleChange.bind(this, 'available')} />
+                                            <input type="text" id="available" value={this.state.order.minProductRating} onChange={this.handleChange.bind(this, 'available')} />
                                         <button className="buttonSm button2a" onClick={() => this.handleRatingChange(-0.1, 1)}>- 0.1</button>&nbsp;
                                             <button className="buttonSm button2a" onClick={() => this.handleRatingChange(0.1, 1)}>+ 0.1</button>&nbsp;
                                             <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4, 0)}>4.0</button>&nbsp;
@@ -556,7 +563,7 @@ class PartsCompany extends Component {
                                     }
                                     <br />
                                     <div className="" onChange={() => this.setState()}>
-                                    payment type: &nbsp;&nbsp;
+                                        settlement type: &nbsp;&nbsp;
                                         <label htmlFor="credit">&nbsp;credit&nbsp;</label>
                                         <input id="credit" type="radio" value="credit" name="paymenttype" defaultChecked />
                                         &nbsp;&nbsp;
