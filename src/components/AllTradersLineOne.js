@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import AssemblingCompany from './AssemblingCompany';
+import { OrderStatus } from './OrderStatus';
 
 export class AllTradersLineOne extends Component {
   render() {
@@ -14,6 +15,18 @@ export class AllTradersLineOne extends Component {
           </div>
           <div id="right2">
             UPPER-RIGHT - Finisher Co.
+          </div>
+        </div>
+
+        <div id="container2a">
+          <div id="left2">
+            <OrderStatus/>
+          </div>
+          <div id="middle2">
+            orders in progress part
+          </div>
+          <div id="right2">
+            orders in progress part
           </div>
         </div>
 

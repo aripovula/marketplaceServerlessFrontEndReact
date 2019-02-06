@@ -179,7 +179,7 @@ class MarketDataTable extends React.Component {
             data={data}
             columns={columns}
             showPagination={false}
-            defaultPageSize={data.length + 1}
+            defaultPageSize={data.length }
             className="-striped -highlight"
 
         />

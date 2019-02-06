@@ -393,16 +393,16 @@ class PartsCompany extends Component {
                             }}>sync offers</span>
                         &nbsp;&nbsp;*/}
 
-                        <span className="responsiveFSize2">hover this text</span>
+                        <span className="responsiveFSize2">hover for more info</span>
 
                         <table className="smalltable">
                             <tbody>
                                 <tr>
                                     <td>&nbsp;</td>
-                                    <td>Model #</td>
-                                    <td>Price</td>
-                                    <td>Rating</td>
-                                    <td>Available</td>
+                                    <td>model #</td>
+                                    <td>price</td>
+                                    <td>rating</td>
+                                    <td>available</td>
                                 </tr>
 
                                 {[].concat(items).sort((a, b) => a.offerID.localeCompare(b.offerID)).map((offer) =>

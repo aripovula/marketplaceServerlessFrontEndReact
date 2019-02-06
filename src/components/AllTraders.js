@@ -29,8 +29,10 @@ export class AllTrader extends Component {
           <div id="left">
             {/*2nd*/}
             <div>
+              <div className="center"><i>Marketplace Board</i></div>
+              <hr/>
               Deal prices &nbsp;
-              <span className="responsiveFSize2">( last 10 deals lowest / highest price )</span>
+              <span className="responsiveFSize2">(last 10 deals lowest / highest price)</span>
               <br/>
               <span
               className="addnlightbg notbold cursorpointer"
@@ -45,7 +47,8 @@ export class AllTrader extends Component {
               <span className="responsiveFSize2">hover for more info</span>
 
             <Offers/>
-            <span className="responsiveFSize2a">Communication between each company is an end-to-end communication (exclusively through AppSync based serverless back-end). None of companies exchange data locally.</span>
+            <span className="verIndent"></span>
+            <span className="responsiveFSize2a">Data exchange between each company takes place as an end-to-end communication (exclusively through AppSync based serverless back-end). None of companies exchange data locally.</span>
             <ModalProduct
               // selectedOption = {this.state.selectedOption}
 

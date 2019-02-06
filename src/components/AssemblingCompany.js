@@ -28,7 +28,7 @@ var sectionStyle = {
 // style for modal
 const customStyles = {
     content: {
-        top: '30%',
+        top: '40%',
         left: '50%',
         right: 'auto',
         bottom: 'auto',
@@ -75,6 +75,8 @@ class PartsCompany extends Component {
         this.openModal = this.openModal.bind(this);
         this.handleModalClose = this.handleModalClose.bind(this);
         this.handleInfoModalClose = this.handleInfoModalClose.bind(this);
+        this.updateOrderType = this.updateOrderType.bind(this);
+        this.updateSettlementType = this.updateSettlementType.bind(this);
     }
 
     componentWillMount() {
@@ -119,7 +121,11 @@ class PartsCompany extends Component {
             quantity: 100,
             orderedProductRating: null,
             bestOfferType: 'OPTIMAL',
-            minProductRating: 4.5
+            minProductRating: 4.5,
+            isCashPayment: false,
+            isOneOff: false,
+            reorderLevel: 50,
+            reorderQnty: 250
         }
     }
 
@@ -168,6 +174,28 @@ class PartsCompany extends Component {
         }
     }
 
+    updateSettlementType(e) {
+        const isCashPayment = e.target.value === 'true';
+        console.log('isCashPayment', isCashPayment, e.target.value );
+        this.setState(prevState => ({
+            order: {
+                ...prevState.order,
+                isCashPayment
+            }
+        }));
+    }
+
+    updateOrderType(e) {
+        const isOneOff = e.target.value === 'true';
+        console.log('isOneOff', isOneOff, e.target.value);
+        this.setState(prevState => ({
+            order: {
+                ...prevState.order,
+                isOneOff
+            }
+        }));
+    }
+
     // update array of products when 'all' or 'no-oder' radio buttons are selected
     updateProductOptions(e) {
         if (e.target.value === 'all') {
@@ -194,6 +222,29 @@ class PartsCompany extends Component {
         });
         console.log('newProducts', newProducts);
         return newProducts;
+    }
+
+    getThresholdText(order) {
+        let text = '';
+        switch (order.bestOfferType) {
+            case 'OPTIMAL':
+                text = `$: min, R: ${order.minProductRating}-min`;
+                break;
+            case 'HIGHESTRATING':
+                text = `$: ${order.price}-max, R: max`;
+                break;
+            case 'CHEAPEST':
+                text = `$: min, R: any`;
+                break;
+            case 'CUSTOM':
+                text = `$: ${order.price}-max, R: ${order.minProductRating}-min`;
+                break;
+        
+            default:
+                break;
+        }
+        console.log('threshold', text);
+        return text;
     }
 
     // update modal UI when certain product is selected in drop-down
@@ -266,6 +317,18 @@ class PartsCompany extends Component {
         newRating = newRating > 5 ? 5.0 : newRating;
         newRating = newRating < 0 ? 0.0 : newRating;
         this.setState(prevState => ({ order: { ...prevState.order, minProductRating: newRating } }))
+    }
+
+    handleReorderQntyChange(delta) {
+        let newQuantity = parseInt(this.state.order.reorderQnty) + parseInt(delta);
+        newQuantity = parseInt(newQuantity) < 0 ? 0 : newQuantity;
+        this.setState(prevState => ({ order: { ...prevState.order, reorderQnty: newQuantity } }))
+    }
+
+    handleReorderLevelChange(delta) {
+        let newQuantity = parseInt(this.state.order.reorderLevel) + parseInt(delta);
+        newQuantity = parseInt(newQuantity) < 0 ? 0 : newQuantity;
+        this.setState(prevState => ({ order: { ...prevState.order, reorderLevel: newQuantity } }))
     }
 
     handleDelete = async (order, e) => {
@@ -403,7 +466,7 @@ class PartsCompany extends Component {
                         </div>
                     }
                     {company && <div className="">
-                        <div className="responsiveFSize">{company.name} - last 4 orders:</div>
+                        <span className="responsiveFSize">{company.name}</span>
                         <span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
@@ -417,7 +480,7 @@ class PartsCompany extends Component {
                                     modalIsOpen: true,
                                     isUpdateAtStart: false
                                 }));
-                            }}>add order</span>
+                            }}>&nbsp;&nbsp;add order / order rule</span>
                         &nbsp;&nbsp;
                         {/*<span
                             className="addnlightbg notbold cursorpointer"
@@ -425,18 +488,37 @@ class PartsCompany extends Component {
                                 this.handleSync();
                             }}>sync orders</span>
                         &nbsp;&nbsp;*/}
-
-                        <span className="responsiveFSize2">hover this text</span>
-
                         <table className="smalltable">
                             <tbody>
                                 <tr>
-                                    <td>&nbsp;</td>
-                                    <td>Model #</td>
-                                    <td>Price</td>
-                                    <td>Rating</td>
+                                    <td>product</td>
+                                    <td>reorder rule</td>
+                                    <td>left</td>
+                                </tr>
+                                <tr>
+                                    <td>Caster C122</td>
+                                    <td>$: 1.08-max, R: 4.3-min, Q: 1,000, RO 800 @ 100</td>
+                                    <td>208</td>
+                                </tr>
+                                <tr>
+                                    <td>Caster C122</td>
+                                    <td>$: 1.08-max, R: 4.3-min, Q: 1,000, RO 800 @ 100</td>
+                                    <td>208</td>
+                                </tr>
+                                <tr>
+                                    <td>Caster C122</td>
+                                    <td>$: 1.08-max, R: 4.3-min, Q: 1,000, RO 800 @ 100</td>
+                                    <td>208</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <span className="verIndent"></span>
+                        <table className="smalltable">
+                            <tbody>
+                                <tr>
+                                    <td>product</td>
                                     <td>quantity</td>
-                                    <td>Status</td>
+                                    <td>status</td>
                                 </tr>
 
                                 {[].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
@@ -450,9 +532,6 @@ class PartsCompany extends Component {
                                                         modalIsOpen: true
                                                     }));
                                                 }}>&nbsp;{order.product.name}</span>
-                                            &nbsp;
-                                        </td>
-                                        <td>
                                             <span className="addnlightbg notbold cursorpointer"
                                                     onClick={() => {
                                                         this.setState(() => ({
@@ -464,12 +543,11 @@ class PartsCompany extends Component {
                                                                 model: order.product.modelNo,
                                                             }
                                                         }));
-                                                    }}>&nbsp;{order.product.modelNo}&nbsp;</span>
+                                                    }}>&nbsp;{order.product.modelNo}</span>
                                         </td>
-                                        <td>&nbsp;{order.price}&nbsp;</td>
-                                        <td>4.4</td>
-                                        <td>&nbsp;{order.available}&nbsp;</td>
-                                        <td>&nbsp;in progress&nbsp;</td>
+                                        
+                                        <td>&nbsp;{order.quantity}&nbsp;</td>
+                                        <td>{order.status.toLowerCase()}</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -488,6 +566,16 @@ class PartsCompany extends Component {
                                     <p>{this.state.isUpdateAtStart ? 'Update an order' : (this.state.isUpdate ? 'Update an order' : 'Add new order')}</p>
                                 </div>
                                 <div className="padding15 responsiveFSize">
+                                    <div className="" onChange={this.updateOrderType.bind(this)}>
+                                                <label htmlFor="recurring">recurring orders (order rule)&nbsp;</label>
+                                                <input id="recurring" type="radio" value="false" name="orderType" defaultChecked />
+                                                &nbsp;&nbsp;
+                                                <label htmlFor="oneoff">&nbsp;one-off order&nbsp;</label>
+                                                <input id="oneoff" type="radio" value="true" name="orderType" />
+                                            </div>
+                                    <br/>
+                                    {!this.state.order.isOneOff && 
+                                    <div><div>( below settings apply to initial order and subsequent re-orders )</div><br/></div>}
                                     {console.log('isUpdateAtStart === ', this.state.isUpdateAtStart)}
                                     {!this.state.isUpdateAtStart &&
                                         <div>
@@ -500,7 +588,7 @@ class PartsCompany extends Component {
                                             </div>*/}
 
                                             <div>
-                                                <span>order </span>
+                                            <span>order </span>
                                                 <select
                                                     value={this.state.selectedOption}
                                                     onChange={(e) => {
@@ -516,78 +604,103 @@ class PartsCompany extends Component {
                                                         <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
                                                     )}
                                                 </select>
-                                            </div>
+                                                </div>
                                         </div>
                                     }
                                     <br/>
-                                    with:
-                                    <div className="" onChange={(e) => this.handleBestOfferTypeChange(e)}>
-                                        &nbsp;&nbsp;<input id="optimal" type="radio" value="OPTIMAL" name="bestorder" defaultChecked />
-                                        <label htmlFor="optimal">&nbsp;cheapest price at min. rating</label>
-                                        <br />
-                                        &nbsp;&nbsp;<input id="highestrating" type="radio" value="HIGHESTRATING" name="bestorder" />
-                                        <label htmlFor="highestrating">&nbsp;highest rating</label>
-                                        <br/>
-                                        &nbsp;&nbsp;<input id="cheapest" type="radio" value="CHEAPEST" name="bestorder" />
-                                        <label htmlFor="cheapest">&nbsp;cheapest price</label>
-                                        <br />
-                                        &nbsp;&nbsp;<input id="custom" type="radio" value="CUSTOM" name="bestorder" />
-                                        <label htmlFor="custom">&nbsp;custom settings</label>                                        
-
-                                    </div>
-
-                                    {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'HIGHESTRATING') &&
-                                        <div className="">
-                                            <label htmlFor="price">max. price</label>
-                                            <input type="text" id="price" value={this.state.order.price} onChange={this.handleChange.bind(this, 'price')} />
-                                            <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.99)}>- 1%</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.01)}>+ 1%</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.96)}>- 4%</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.04)}>+ 4%</button>&nbsp;
+                                    {(this.state.selectedOption > -1 || this.state.isUpdateAtStart) &&
+                                      <div>
+                                        with:
+                                        <div className="" onChange={(e) => this.handleBestOfferTypeChange(e)}>
+                                            &nbsp;&nbsp;<input id="optimal" type="radio" value="OPTIMAL" name="bestorder" defaultChecked />
+                                            <label htmlFor="optimal">&nbsp;cheapest price at min. rating</label>
+                                            <br />
+                                            &nbsp;&nbsp;<input id="cheapest" type="radio" value="CHEAPEST" name="bestorder" />
+                                            <label htmlFor="cheapest">&nbsp;cheapest price</label>
+                                            <br />
+                                            &nbsp;&nbsp;<input id="highestrating" type="radio" value="HIGHESTRATING" name="bestorder" />
+                                            <label htmlFor="highestrating">&nbsp;highest rating</label>
+                                            <br/>
+                                            &nbsp;&nbsp;<input id="custom" type="radio" value="CUSTOM" name="bestorder" />
+                                            <label htmlFor="custom">&nbsp;custom settings</label>                                        
+    
                                         </div>
-                                    }
-                                    <div className="">
-                                        <label htmlFor="quantity">quantity&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label>
-                                        <input type="text" id="quantity" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'quantity')} />
-                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
-                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(10)}>+ 10</button>&nbsp;
-                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-100)}>- 100</button>&nbsp;
-                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(100)}>+ 100</button>&nbsp;
-                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-1000)}>- 1000</button>&nbsp;
-                                        <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(1000)}>+ 1000</button>&nbsp;
-
-                                    </div>
-                                    {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'OPTIMAL') &&
-                                        <div className="">
-                                        <label htmlFor="minProductRating">min. rating</label>
-                                            <input type="text" id="minProductRating" value={this.state.order.minProductRating} onChange={this.handleChange.bind(this, 'minProductRating')} />
-                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(-0.1, 1)}>- 0.1</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(0.1, 1)}>+ 0.1</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4, 0)}>4.0</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.2, 0)}>4.2</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.4, 0)}>4.4</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.6, 0)}>4.6</button>&nbsp;
-                                        </div>
-                                    }
-                                    <br />
-                                    <div className="" onChange={() => this.setState()}>
-                                        settlement type: &nbsp;&nbsp;
-                                        <label htmlFor="credit">&nbsp;credit&nbsp;</label>
-                                        <input id="credit" type="radio" value="credit" name="paymenttype" defaultChecked />
-                                        &nbsp;&nbsp;
-                                        <label htmlFor="cash">&nbsp;cash&nbsp;</label>
-                                        <input id="cash" type="radio" value="cash" name="paymenttype" />
+    
+                                        {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'HIGHESTRATING') &&
+                                            <div className="">
+                                                <label htmlFor="price">max. price</label>
+                                                <input type="text" id="price" value={this.state.order.price} onChange={this.handleChange.bind(this, 'price')} />
+                                                <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.99)}>- 1%</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.01)}>+ 1%</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.96)}>- 4%</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.04)}>+ 4%</button>&nbsp;
                                             </div>
+                                        }
+                                        {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'OPTIMAL') &&
+                                            <div className="">
+                                            <label htmlFor="minProductRating">min. rating</label>
+                                                <input type="text" id="minProductRating" value={this.state.order.minProductRating} onChange={this.handleChange.bind(this, 'minProductRating')} />
+                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(-0.1, 1)}>- 0.1</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(0.1, 1)}>+ 0.1</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4, 0)}>4.0</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.2, 0)}>4.2</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.4, 0)}>4.4</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.6, 0)}>4.6</button>&nbsp;
+                                            </div>
+                                        }
+                                        <br />
+                                        <div className="">
+                                            <label htmlFor="quantity">
+                                            {!this.state.order.isOneOff && <span>initial </span>}
+                                            order quantity&nbsp;&nbsp;</label>
+                                            <input type="text" id="quantity" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'quantity')} />
+                                            <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(10)}>+ 10</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-100)}>- 100</button>&nbsp;
+                                            <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(100)}>+ 100</button>&nbsp;
+                                        </div>
+
+                                        {!this.state.order.isOneOff &&
+                                          <div>
+                                            <div>reorder &nbsp;
+                                                <input type="text" id="reorderQnty" value={this.state.order.reorderQnty} onChange={this.handleChange.bind(this, 'reorderQnty')} />
+                                                &nbsp; items&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleReorderQntyChange(-10)}>- 10</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleReorderQntyChange(10)}>+ 10</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleReorderQntyChange(-100)}>- 100</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleReorderQntyChange(100)}>+ 100</button>&nbsp;
+                                            </div>
+                                            <div>when stock is below&nbsp;
+                                                <input type="text" id="reorderLevel" value={this.state.order.reorderLevel} onChange={this.handleChange.bind(this, 'reorderLevel')} />
+                                                <button className="buttonSm button2a" onClick={() => this.handleReorderLevelChange(-10)}>- 10</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleReorderLevelChange(10)}>+ 10</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleReorderLevelChange(-100)}>- 100</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleReorderLevelChange(100)}>+ 100</button>&nbsp;
+                                            </div>
+                                          </div>
+                                        }
+                                        <br/>
+                                        <div className="" onChange={this.updateSettlementType.bind(this)}>
+                                            settlement type: &nbsp;&nbsp;
+                                            <label htmlFor="credit">&nbsp;credit&nbsp;</label>
+                                            <input id="credit" type="radio" value="false" name="paymenttype" defaultChecked />
+                                            &nbsp;&nbsp;
+                                            <label htmlFor="cash">&nbsp;cash&nbsp;</label>
+                                            <input id="cash" type="radio" value="true" name="paymenttype" />
+                                        </div>
+
+                                      </div>
+                                    }
                                     <br />
                                     <span className="responsiveFSize2a">Warning:&nbsp;</span>
-                                    <span className="responsiveFSize2a">first match to your order is a legally binding deal for you and ordering co.</span>
+                                    <span className="responsiveFSize2a">first match to your order is a legally binding deal for you and offering co.</span>
                                     <br /><br />
                                     <div className="">
                                         {console.log(this.state.isSubmitValid, this.state.isUpdateAtStart)}
                                         
                                         {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
                                             <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
-                                                Place order
+                                            {this.state.order.isOneOff ? 'Place order' : 'Place order and set rules'}
                                             </button>
                                         }
                                         

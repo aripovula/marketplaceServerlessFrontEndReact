@@ -6,9 +6,15 @@ query {
     items {
       companyID
       orderID
+      producerID
       productID
+      orderTime
+      status
       price
       quantity
+      orderedProductRating
+      bestOfferType
+      minProductRating
     }
   }
 }
