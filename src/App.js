@@ -67,6 +67,10 @@ const client = new AWSAppSyncClient({
             const offers = `${typename}:${obj.price}`;
             console.log('in OFFER S -',  offers);
             return `${typename}:${obj.offerID}`;
+          case 'Order':
+            const orders = `${typename}:${obj.price}`;
+            console.log('in ORDER S -', orders);
+            return `${typename}:${obj.orderID}`;
           case 'Product':
             const products = `${typename}:${obj.name}`;;
             console.log('in PRODUCT S - ', products);

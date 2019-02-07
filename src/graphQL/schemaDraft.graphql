@@ -25,8 +25,21 @@
     type Deal {
         dealID: ID!
         orderID: String!
-        dealStatus: OfferStatus
-        blockchainBlockStatus: BlockchainBlockStatus
+        dealStatus: DealStatus!
+        buyerID: String!
+        producerID: String!
+        dealTime: AWSTimestamp!
+        dealPrice: Float!
+        productRatingByBuyer: Float
+        blockchainBlockID: String!
+        blockchainBlockStatus: BlockchainBlockStatus!
+    }
+
+    type Notification {
+        companyID: ID!
+        notificationID: String!
+        notificationTextRegular: String!
+        notificationTextHighlighted: String!
     }
 
     interface Member {
@@ -65,15 +78,30 @@
     type Order {
         companyID: ID!
         orderID: String!
-        producerID: String!
         productID: String!
-        orderTime: Int!
+        product: Product!
         status: OrderStatus!
-        price: Float!
+        maxPrice: Float!,
         quantity: Int!
-        orderedProductRating: Float
         bestOfferType: BestOfferEnum!
+        secondBestOfferType: BestOfferEnum!
         minProductRating: Float
+        isCashPayment: Boolean!
+    }
+
+    type ReOrderRule {
+        companyID: ID!
+        reorderRuleID: String!
+        productID: String!
+        product: Product!
+        maxPrice: Float!
+        bestOfferType: BestOfferEnum
+        secondBestOfferType: BestOfferEnum!
+        minProductRating: Float!
+        isRuleEffective: Boolean!
+        isCashPayment: Boolean!
+        reorderLevel: Int!
+        reorderQnty: Int!
     }
 
     enum CreditRating {
@@ -102,10 +130,14 @@
       REJECTED
     }
 
+    enum DealStatus {
+        DEAL_MADE
+        BLOCKCHAIN_CONFIRMED
+        BLOCKCHAIN_REJECTED
+    }
+
     enum OrderStatus {
-        INFO_REQUESTED
-        PURCHASE_APPROVAL_PENDING
-        CONFIRMING_DEAL_BLOCK
+        ORDER_PLACED
         CONFIRMED
         REJECTED
     }

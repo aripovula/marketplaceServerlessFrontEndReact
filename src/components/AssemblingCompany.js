@@ -117,10 +117,11 @@ class PartsCompany extends Component {
             product: null,
             orderTime: Date.now(),
             status: 'INFO_REQUESTED',
-            price: 1,
+            price: 20,
             quantity: 100,
             orderedProductRating: null,
             bestOfferType: 'OPTIMAL',
+            secondBestOfferType: 'CHEAPEST',
             minProductRating: 4.5,
             isCashPayment: false,
             isOneOff: false,
@@ -563,23 +564,12 @@ class PartsCompany extends Component {
 
                             <div className="card-4" >
                                 <div className="bggreen">
-                                    <p>{this.state.isUpdateAtStart ? 'Update an order' : (this.state.isUpdate ? 'Update an order' : 'Add new order')}</p>
+                                    <p>{this.state.isUpdateAtStart ? 'Update re-order rule' : (this.state.isUpdate ? 'Update re-order rule' : 'Add new order / re-order rule')}</p>
                                 </div>
                                 <div className="padding15 responsiveFSize">
-                                    <div className="" onChange={this.updateOrderType.bind(this)}>
-                                                <label htmlFor="recurring">recurring orders (order rule)&nbsp;</label>
-                                                <input id="recurring" type="radio" value="false" name="orderType" defaultChecked />
-                                                &nbsp;&nbsp;
-                                                <label htmlFor="oneoff">&nbsp;one-off order&nbsp;</label>
-                                                <input id="oneoff" type="radio" value="true" name="orderType" />
-                                            </div>
-                                    <br/>
-                                    {!this.state.order.isOneOff && 
-                                    <div><div>( below settings apply to initial order and subsequent re-orders )</div><br/></div>}
-                                    {console.log('isUpdateAtStart === ', this.state.isUpdateAtStart)}
-                                    {!this.state.isUpdateAtStart &&
-                                        <div>
-                                            {/*<div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
+                                    {!this.state.isUpdateAtStart && <span></span>}
+                                    <div>
+                                        {/*<div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
                                                 <label htmlFor="noOrders">products with no order({this.state.productsNoOrder.length})&nbsp;</label>
                                                 <input id="noOrders" type="radio" value="noOrders" name="prodtype" defaultChecked />
                                                 &nbsp;&nbsp;
@@ -587,8 +577,10 @@ class PartsCompany extends Component {
                                                 <input id="all" type="radio" value="all" name="prodtype" />
                                             </div>*/}
 
+                                        {this.state.isUpdateAtStart && <div>(Re)order `'{this.state.order.product.name} - {this.state.order.product.modelNo}'`</div>}
+                                        {!this.state.isUpdateAtStart &&
                                             <div>
-                                            <span>order </span>
+                                                <span>Product to order </span>
                                                 <select
                                                     value={this.state.selectedOption}
                                                     onChange={(e) => {
@@ -600,17 +592,55 @@ class PartsCompany extends Component {
                                                     }}
                                                 >
                                                     <option key="-1" value='null'>( please select a product )</option>
-                                                    {this.state.products.map((aProduct) =>
+                                                    {this.state.productsAll.map((aProduct) =>
                                                         <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
                                                     )}
                                                 </select>
-                                                </div>
+                                            </div>
+                                        }
+
+                                    {console.log('isUpdateAtStart === ', this.state.isUpdateAtStart)}
+
                                         </div>
-                                    }
+
                                     <br/>
                                     {(this.state.selectedOption > -1 || this.state.isUpdateAtStart) &&
                                       <div>
-                                        with:
+                                        {!this.state.isUpdateAtStart &&
+                                            <div className="" onChange={this.updateOrderType.bind(this)}>
+                                                <label htmlFor="recurring">recurring orders (order rule)&nbsp;</label>
+                                                <input id="recurring" type="radio" value="false" name="orderType" defaultChecked />
+                                                &nbsp;&nbsp;
+                                            <label htmlFor="oneoff">&nbsp;one-off order&nbsp;</label>
+                                                <input id="oneoff" type="radio" value="true" name="orderType" />
+                                            </div>
+                                        }
+                                        <br />
+                                        {!this.state.order.isOneOff && !this.state.isUpdateAtStart &&
+                                            <div><div>( below settings apply to initial order and subsequent re-orders )</div><br /></div>}
+
+                                        Order product with following terms:
+                                        {(this.state.order.bestOfferType === 'OPTIMAL' || this.state.order.bestOfferType === 'CUSTOM') &&
+                                            <div className="floatRight">
+                                                <span>if no offer is found fallback to </span>
+                                                <select
+                                                    value={this.state.secondBestOfferType}
+                                                    onChange={(e) => {
+                                                        const secondBestOfferType = e.target.value;
+                                                        this.setState(prevState => ({
+                                                            order: {
+                                                                ...prevState.order,
+                                                                secondBestOfferType
+                                                            }
+                                                        }));
+                                                    }}
+                                                >
+                                                <option key="0" value='CHEAPEST'>cheapest (default)</option>
+                                                <option key="1" value='HIGHESTRATING'>highest rated</option>
+                                                </select>
+                                            </div>
+                                        }
+
                                         <div className="" onChange={(e) => this.handleBestOfferTypeChange(e)}>
                                             &nbsp;&nbsp;<input id="optimal" type="radio" value="OPTIMAL" name="bestorder" defaultChecked />
                                             <label htmlFor="optimal">&nbsp;cheapest price at min. rating</label>
@@ -649,16 +679,18 @@ class PartsCompany extends Component {
                                             </div>
                                         }
                                         <br />
-                                        <div className="">
-                                            <label htmlFor="quantity">
-                                            {!this.state.order.isOneOff && <span>initial </span>}
-                                            order quantity&nbsp;&nbsp;</label>
-                                            <input type="text" id="quantity" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'quantity')} />
-                                            <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(10)}>+ 10</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-100)}>- 100</button>&nbsp;
-                                            <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(100)}>+ 100</button>&nbsp;
-                                        </div>
+                                        {!this.state.isUpdateAtStart &&
+                                            <div className="">
+                                                <label htmlFor="quantity">
+                                                {!this.state.order.isOneOff && <span>initial </span>}
+                                                order quantity&nbsp;&nbsp;</label>
+                                                <input type="text" id="quantity" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'quantity')} />
+                                                <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(10)}>+ 10</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-100)}>- 100</button>&nbsp;
+                                                <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(100)}>+ 100</button>&nbsp;
+                                            </div>
+                                        }
 
                                         {!this.state.order.isOneOff &&
                                           <div>
@@ -692,8 +724,7 @@ class PartsCompany extends Component {
                                       </div>
                                     }
                                     <br />
-                                    <span className="responsiveFSize2a">Warning:&nbsp;</span>
-                                    <span className="responsiveFSize2a">first match to your order is a legally binding deal for you and offering co.</span>
+                                    <span className="responsiveFSize2a">Warning: best match to your order is a legally binding deal for you and offering co.</span>
                                     <br /><br />
                                     <div className="">
                                         {console.log(this.state.isSubmitValid, this.state.isUpdateAtStart)}
@@ -706,7 +737,7 @@ class PartsCompany extends Component {
                                         
                                         {(this.state.isUpdateAtStart || this.state.isUpdate) &&
                                             <button className="button button1" onClick={this.handleSaveUpdate} disabled={!this.state.isSubmitValid && !this.state.isUpdateAtStart}>
-                                                Update
+                                                Update rule
                                             </button>
                                         }
                                         
