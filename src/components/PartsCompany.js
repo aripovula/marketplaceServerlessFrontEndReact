@@ -117,20 +117,29 @@ class PartsCompany extends Component {
     }
 
     getLatestProductsList() {
-        const { client } = this.props;
-        return client.readQuery({
-            query: QueryAllProducts
-        });
+        let products = (this.props.products && this.props.products.length > 0) ? this.props.products : null;
+
+        if (!products) {
+            const { client } = this.props;
+            const productItems = client.readQuery({
+                query: QueryAllProducts
+            });
+            products = productItems.listProducts.items;
+        }
+        if (!products) products = [];
+        console.log('products', products);
+        
+        return products;
     }
 
     // prepares array of all products recorded in store for options drop-down
     allProducts(productsListFromStore) {
-        console.log('indexed prs from store in MET - ', productsListFromStore.listProducts.items.length, productsListFromStore);
-        if (productsListFromStore.listProducts.items.length > 0) {
-            const l = productsListFromStore.listProducts.items.length;
+        console.log('indexed prs from store in MET - ', productsListFromStore.length, productsListFromStore);
+        if (productsListFromStore.length > 0) {
+            const l = productsListFromStore.length;
             let indexedProductsAll = [];
             for (let x = 0; x < l; x++) {
-                indexedProductsAll.push({ seqNumb: x, details: productsListFromStore.listProducts.items[x] })
+                indexedProductsAll.push({ seqNumb: x, details: productsListFromStore[x] })
             }
             return indexedProductsAll;
         } else {
@@ -140,17 +149,17 @@ class PartsCompany extends Component {
 
     // prepares array of products (for which company did not make an offer) recorded in store for options drop-down
     noOfferProducts(productsListFromStore) {
-        if (productsListFromStore.listProducts.items.length > 0 && this.props.company && this.props.company.offers.items.length > 0) {
+        if (productsListFromStore.length > 0 && this.props.company && this.props.company.offers.items.length > 0) {
             let coOffers;
             this.props.company.offers.items.forEach((item) => { coOffers = coOffers + item.productID + ';;' });
-            const l = productsListFromStore.listProducts.items.length;
+            const l = productsListFromStore.length;
             let indexedProductsNoOffer = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
-                if (!coOffers.includes(productsListFromStore.listProducts.items[x].id)) {
+                if (!coOffers.includes(productsListFromStore[x].id)) {
                     indexedProductsNoOffer.push({
                         seqNumb: count++,
-                        details: productsListFromStore.listProducts.items[x]
+                        details: productsListFromStore[x]
                     })
                 }
             }

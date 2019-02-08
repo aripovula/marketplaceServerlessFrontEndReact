@@ -2,19 +2,20 @@ import gql from "graphql-tag";
 
 export default gql(`
 query {
-  listOrders(limit: 100) {
+  listReOrderRules(limit: 100) {
     items {
       companyID
-      orderID
+      reorderRuleID
       productID
       product
-      status
       maxPrice
-      quantity
       bestOfferType
       secondBestOfferType
       minProductRating
+      isRuleEffective
       isCashPayment
+      reorderLevel
+      reorderQnty
     }
   }
 }

@@ -1,6 +1,8 @@
 enum BestOfferEnum {
-	LEAST_PRICE
-	BEST_PRODUCT_RATING
+	OPTIMAL
+	HIGHESTRATING
+	CHEAPEST
+	CUSTOM
 }
 
 enum BlockchainBlockStatus {
@@ -43,6 +45,24 @@ input CreateCompanyInput {
 	creditSaleLimitForB: Int
 }
 
+input CreateDealInput {
+	dealID: ID!
+	orderID: String!
+	buyerID: String!
+	producerID: String!
+	dealTime: AWSTimestamp!
+	dealPrice: Float!
+	productRatingByBuyer: Float
+	blockchainBlockID: String!
+}
+
+input CreateNotificationInput {
+	companyID: ID!
+	notificationID: String!
+	notificationTextRegular: String!
+	notificationTextHighlighted: String!
+}
+
 input CreateOfferInput {
 	companyID: ID!
 	offerID: String!
@@ -54,27 +74,34 @@ input CreateOfferInput {
 input CreateOrderInput {
 	companyID: ID!
 	orderID: String!
-	producerID: String!
 	productID: String!
-	orderTime: Int!
-	price: Float!
+	maxPrice: Float!
+	minProductRating: Float!
 	quantity: Int!
-	orderedProductRating: Float
-	minProductRating: Float
+	isCashPayment: Boolean!
+	bestOfferType: BestOfferEnum!
+	secondBestOfferType: BestOfferEnum!
+	status: OrderStatus!
 }
 
 input CreateProductInput {
 	name: String!
 	modelNo: String!
 	specificationURL: String!
-	productImages: [CreateS3ImageInput]
+	imageURL: String
+	lastTenRatingAverage: Float
 }
 
-input CreateS3ImageInput {
-	s3imageID: String!
-	bucket: String!
-	region: String!
-	key: String!
+input CreateReOrderRuleInput {
+	companyID: ID!
+	reorderRuleID: String!
+	productID: String!
+	maxPrice: Float!
+	minProductRating: Float!
+	isRuleEffective: Boolean!
+	isCashPayment: Boolean!
+	reorderLevel: Int!
+	reorderQnty: Int!
 }
 
 enum CreditRating {
@@ -86,8 +113,41 @@ enum CreditRating {
 	B
 }
 
+type Deal {
+	dealID: ID!
+	orderID: String!
+	dealStatus: DealStatus!
+	buyerID: String!
+	producerID: String!
+	dealTime: AWSTimestamp!
+	dealPrice: Float!
+	productRatingByBuyer: Float
+	blockchainBlockID: String!
+	blockchainBlockStatus: BlockchainBlockStatus!
+}
+
+type DealConnection {
+	items: [Deal]
+	nextToken: String
+}
+
+enum DealStatus {
+	DEAL_MADE
+	BLOCKCHAIN_CONFIRMED
+	BLOCKCHAIN_REJECTED
+}
+
 input DeleteCompanyInput {
 	id: ID!
+}
+
+input DeleteDealInput {
+	dealID: ID!
+}
+
+input DeleteNotificationInput {
+	companyID: ID!
+	notificationID: String!
 }
 
 input DeleteOfferInput {
@@ -104,9 +164,9 @@ input DeleteProductInput {
 	id: ID!
 }
 
-input DeleteS3ImageInput {
-	productID: ID!
-	s3imageID: String!
+input DeleteReOrderRuleInput {
+	companyID: ID!
+	reorderRuleID: String!
 }
 
 interface Member {
@@ -127,18 +187,36 @@ type Mutation {
 	createOffer(input: CreateOfferInput!): Offer
 	updateOffer(input: UpdateOfferInput!): Offer
 	deleteOffer(input: DeleteOfferInput!): Offer
-	createOrder(input: CreateOrderInput!): Order
-	updateOrder(input: UpdateOrderInput!): Order
-	deleteOrder(input: DeleteOrderInput!): Order
 	createProduct(input: CreateProductInput!): Product
 	updateProduct(input: UpdateProductInput!): Product
 	deleteProduct(input: DeleteProductInput!): Product
 	createCompany(input: CreateCompanyInput!): Company
 	updateCompany(input: UpdateCompanyInput!): Company
 	deleteCompany(input: DeleteCompanyInput!): Company
-	createS3Image(input: CreateS3ImageInput!): S3Image
-	updateS3Image(input: UpdateS3ImageInput!): S3Image
-	deleteS3Image(input: DeleteS3ImageInput!): S3Image
+	createReOrderRule(input: CreateReOrderRuleInput!): ReOrderRule
+	updateReOrderRule(input: UpdateReOrderRuleInput!): ReOrderRule
+	deleteReOrderRule(input: DeleteReOrderRuleInput!): ReOrderRule
+	createDeal(input: CreateDealInput!): Deal
+	updateDeal(input: UpdateDealInput!): Deal
+	deleteDeal(input: DeleteDealInput!): Deal
+	createNotification(input: CreateNotificationInput!): Notification
+	updateNotification(input: UpdateNotificationInput!): Notification
+	deleteNotification(input: DeleteNotificationInput!): Notification
+	createOrder(input: CreateOrderInput!): Order
+	updateOrder(input: UpdateOrderInput!): Order
+	deleteOrder(input: DeleteOrderInput!): Order
+}
+
+type Notification {
+	companyID: ID!
+	notificationID: String!
+	notificationTextRegular: String!
+	notificationTextHighlighted: String!
+}
+
+type NotificationConnection {
+	items: [Notification]
+	nextToken: String
 }
 
 type Offer {
@@ -163,15 +241,15 @@ enum OfferStatus {
 type Order {
 	companyID: ID!
 	orderID: String!
-	producerID: String!
 	productID: String!
-	orderTime: Int!
-	status: OrderStatus!
-	price: Float!
+	maxPrice: Float!
+	minProductRating: Float!
 	quantity: Int!
-	orderedProductRating: Float
 	bestOfferType: BestOfferEnum!
-	minProductRating: Float
+	secondBestOfferType: BestOfferEnum!
+	status: OrderStatus!
+	isCashPayment: Boolean!
+	product: Product
 }
 
 type OrderConnection {
@@ -180,9 +258,7 @@ type OrderConnection {
 }
 
 enum OrderStatus {
-	INFO_REQUESTED
-	PURCHASE_APPROVAL_PENDING
-	CONFIRMING_DEAL_BLOCK
+	ORDER_PLACED
 	CONFIRMED
 	REJECTED
 }
@@ -191,8 +267,9 @@ type Product implements TradedItems {
 	id: ID!
 	name: String!
 	modelNo: String!
-	productImages: S3ImageConnection
 	specificationURL: String!
+	imageURL: String
+	lastTenRatingAverage: Float
 }
 
 type ProductConnection {
@@ -203,26 +280,37 @@ type ProductConnection {
 type Query {
 	getOffer(companyID: ID!, offerID: String!): Offer
 	listOffers(filter: TableOfferFilterInput, limit: Int, nextToken: String): OfferConnection
-	getOrder(companyID: ID!, orderID: String!): Order
-	listOrders(filter: TableOrderFilterInput, limit: Int, nextToken: String): OrderConnection
 	getProduct(id: ID!): Product
 	listProducts(filter: TableProductFilterInput, limit: Int, nextToken: String): ProductConnection
 	getCompany(id: ID!): Company
 	listCompanies(filter: TableCompanyFilterInput, limit: Int, nextToken: String): CompanyConnection
-	getS3Image(productID: ID!, s3imageID: String!): S3Image
-	listS3Images(filter: TableS3ImageFilterInput, limit: Int, nextToken: String): S3ImageConnection
+	getReOrderRule(companyID: ID!, reorderRuleID: String!): ReOrderRule
+	listReOrderRules(filter: TableReOrderRuleFilterInput, limit: Int, nextToken: String): ReOrderRuleConnection
+	getDeal(dealID: ID!): Deal
+	listDeals(filter: TableDealFilterInput, limit: Int, nextToken: String): DealConnection
+	getNotification(companyID: ID!, notificationID: String!): Notification
+	listNotifications(filter: TableNotificationFilterInput, limit: Int, nextToken: String): NotificationConnection
+	getOrder(companyID: ID!, orderID: String!): Order
+	listOrders(filter: TableOrderFilterInput, limit: Int, nextToken: String): OrderConnection
 }
 
-type S3Image {
-	productID: ID!
-	s3imageID: String!
-	bucket: String!
-	region: String!
-	key: String!
+type ReOrderRule {
+	companyID: ID!
+	reorderRuleID: String!
+	productID: String!
+	product: Product!
+	maxPrice: Float!
+	bestOfferType: BestOfferEnum
+	secondBestOfferType: BestOfferEnum!
+	minProductRating: Float!
+	isRuleEffective: Boolean!
+	isCashPayment: Boolean!
+	reorderLevel: Int!
+	reorderQnty: Int!
 }
 
-type S3ImageConnection {
-	items: [S3Image]
+type ReOrderRuleConnection {
+	items: [ReOrderRule]
 	nextToken: String
 }
 
@@ -243,30 +331,6 @@ type Subscription {
 		price: Float
 	): Offer
 		@aws_subscribe(mutations: ["deleteOffer"])
-	onCreateOrder(
-		companyID: ID,
-		orderID: String,
-		producerID: String,
-		productID: String,
-		orderTime: Int
-	): Order
-		@aws_subscribe(mutations: ["createOrder"])
-	onUpdateOrder(
-		companyID: ID,
-		orderID: String,
-		producerID: String,
-		productID: String,
-		orderTime: Int
-	): Order
-		@aws_subscribe(mutations: ["updateOrder"])
-	onDeleteOrder(
-		companyID: ID,
-		orderID: String,
-		producerID: String,
-		productID: String,
-		orderTime: Int
-	): Order
-		@aws_subscribe(mutations: ["deleteOrder"])
 	onCreateProduct(
 		id: ID,
 		name: String,
@@ -312,30 +376,99 @@ type Subscription {
 		creditSaleLimitForAA: Int
 	): Company
 		@aws_subscribe(mutations: ["deleteCompany"])
-	onCreateS3Image(
-		productID: ID,
-		s3imageID: String,
-		bucket: String,
-		region: String,
-		key: String
-	): S3Image
-		@aws_subscribe(mutations: ["createS3Image"])
-	onUpdateS3Image(
-		productID: ID,
-		s3imageID: String,
-		bucket: String,
-		region: String,
-		key: String
-	): S3Image
-		@aws_subscribe(mutations: ["updateS3Image"])
-	onDeleteS3Image(
-		productID: ID,
-		s3imageID: String,
-		bucket: String,
-		region: String,
-		key: String
-	): S3Image
-		@aws_subscribe(mutations: ["deleteS3Image"])
+	onCreateReOrderRule(
+		companyID: ID,
+		reorderRuleID: String,
+		productID: String,
+		maxPrice: Float,
+		minProductRating: Float
+	): ReOrderRule
+		@aws_subscribe(mutations: ["createReOrderRule"])
+	onUpdateReOrderRule(
+		companyID: ID,
+		reorderRuleID: String,
+		productID: String,
+		maxPrice: Float,
+		minProductRating: Float
+	): ReOrderRule
+		@aws_subscribe(mutations: ["updateReOrderRule"])
+	onDeleteReOrderRule(
+		companyID: ID,
+		reorderRuleID: String,
+		productID: String,
+		maxPrice: Float,
+		minProductRating: Float
+	): ReOrderRule
+		@aws_subscribe(mutations: ["deleteReOrderRule"])
+	onCreateDeal(
+		dealID: ID,
+		orderID: String,
+		buyerID: String,
+		producerID: String,
+		dealTime: AWSTimestamp
+	): Deal
+		@aws_subscribe(mutations: ["createDeal"])
+	onUpdateDeal(
+		dealID: ID,
+		orderID: String,
+		buyerID: String,
+		producerID: String,
+		dealTime: AWSTimestamp
+	): Deal
+		@aws_subscribe(mutations: ["updateDeal"])
+	onDeleteDeal(
+		dealID: ID,
+		orderID: String,
+		buyerID: String,
+		producerID: String,
+		dealTime: AWSTimestamp
+	): Deal
+		@aws_subscribe(mutations: ["deleteDeal"])
+	onCreateNotification(
+		companyID: ID,
+		notificationID: String,
+		notificationTextRegular: String,
+		notificationTextHighlighted: String
+	): Notification
+		@aws_subscribe(mutations: ["createNotification"])
+	onUpdateNotification(
+		companyID: ID,
+		notificationID: String,
+		notificationTextRegular: String,
+		notificationTextHighlighted: String
+	): Notification
+		@aws_subscribe(mutations: ["updateNotification"])
+	onDeleteNotification(
+		companyID: ID,
+		notificationID: String,
+		notificationTextRegular: String,
+		notificationTextHighlighted: String
+	): Notification
+		@aws_subscribe(mutations: ["deleteNotification"])
+	onCreateOrder(
+		companyID: ID,
+		orderID: String,
+		productID: String,
+		maxPrice: Float,
+		minProductRating: Float
+	): Order
+		@aws_subscribe(mutations: ["createOrder"])
+	onUpdateOrder(
+		companyID: ID,
+		orderID: String,
+		productID: String,
+		maxPrice: Float,
+		minProductRating: Float
+	): Order
+		@aws_subscribe(mutations: ["updateOrder"])
+	onDeleteOrder(
+		companyID: ID,
+		orderID: String,
+		productID: String,
+		maxPrice: Float,
+		minProductRating: Float
+	): Order
+		@aws_subscribe(mutations: ["deleteOrder"])
 }
 
 input TableBooleanFilterInput {
@@ -353,6 +486,17 @@ input TableCompanyFilterInput {
 	creditSaleLimitForBBB: TableIntFilterInput
 	creditSaleLimitForBB: TableIntFilterInput
 	creditSaleLimitForB: TableIntFilterInput
+}
+
+input TableDealFilterInput {
+	dealID: TableIDFilterInput
+	orderID: TableStringFilterInput
+	buyerID: TableStringFilterInput
+	producerID: TableStringFilterInput
+	dealTime: TableIntFilterInput
+	dealPrice: TableFloatFilterInput
+	productRatingByBuyer: TableFloatFilterInput
+	blockchainBlockID: TableStringFilterInput
 }
 
 input TableFloatFilterInput {
@@ -392,6 +536,13 @@ input TableIntFilterInput {
 	between: [Int]
 }
 
+input TableNotificationFilterInput {
+	companyID: TableIDFilterInput
+	notificationID: TableStringFilterInput
+	notificationTextRegular: TableStringFilterInput
+	notificationTextHighlighted: TableStringFilterInput
+}
+
 input TableOfferFilterInput {
 	companyID: TableIDFilterInput
 	offerID: TableStringFilterInput
@@ -403,13 +554,11 @@ input TableOfferFilterInput {
 input TableOrderFilterInput {
 	companyID: TableIDFilterInput
 	orderID: TableStringFilterInput
-	producerID: TableStringFilterInput
 	productID: TableStringFilterInput
-	orderTime: TableIntFilterInput
-	price: TableFloatFilterInput
-	quantity: TableIntFilterInput
-	orderedProductRating: TableFloatFilterInput
+	maxPrice: TableFloatFilterInput
 	minProductRating: TableFloatFilterInput
+	quantity: TableIntFilterInput
+	isCashPayment: TableBooleanFilterInput
 }
 
 input TableProductFilterInput {
@@ -419,12 +568,16 @@ input TableProductFilterInput {
 	specificationURL: TableStringFilterInput
 }
 
-input TableS3ImageFilterInput {
-	productID: TableIDFilterInput
-	s3imageID: TableStringFilterInput
-	bucket: TableStringFilterInput
-	region: TableStringFilterInput
-	key: TableStringFilterInput
+input TableReOrderRuleFilterInput {
+	companyID: TableIDFilterInput
+	reorderRuleID: TableStringFilterInput
+	productID: TableStringFilterInput
+	maxPrice: TableFloatFilterInput
+	minProductRating: TableFloatFilterInput
+	isRuleEffective: TableBooleanFilterInput
+	isCashPayment: TableBooleanFilterInput
+	reorderLevel: TableIntFilterInput
+	reorderQnty: TableIntFilterInput
 }
 
 input TableStringFilterInput {
@@ -458,6 +611,24 @@ input UpdateCompanyInput {
 	creditSaleLimitForB: Int
 }
 
+input UpdateDealInput {
+	dealID: ID!
+	orderID: String
+	buyerID: String
+	producerID: String
+	dealTime: AWSTimestamp
+	dealPrice: Float
+	productRatingByBuyer: Float
+	blockchainBlockID: String
+}
+
+input UpdateNotificationInput {
+	companyID: ID!
+	notificationID: String!
+	notificationTextRegular: String
+	notificationTextHighlighted: String
+}
+
 input UpdateOfferInput {
 	companyID: ID!
 	offerID: String!
@@ -469,13 +640,11 @@ input UpdateOfferInput {
 input UpdateOrderInput {
 	companyID: ID!
 	orderID: String!
-	producerID: String
 	productID: String
-	orderTime: Int
-	price: Float
-	quantity: Int
-	orderedProductRating: Float
+	maxPrice: Float
 	minProductRating: Float
+	quantity: Int
+	isCashPayment: Boolean
 }
 
 input UpdateProductInput {
@@ -485,12 +654,16 @@ input UpdateProductInput {
 	specificationURL: String
 }
 
-input UpdateS3ImageInput {
-	productID: ID!
-	s3imageID: String!
-	bucket: String
-	region: String
-	key: String
+input UpdateReOrderRuleInput {
+	companyID: ID!
+	reorderRuleID: String!
+	productID: String
+	maxPrice: Float
+	minProductRating: Float
+	isRuleEffective: Boolean
+	isCashPayment: Boolean
+	reorderLevel: Int
+	reorderQnty: Int
 }
 
 schema {

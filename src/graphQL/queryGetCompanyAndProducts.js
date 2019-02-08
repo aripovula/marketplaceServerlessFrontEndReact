@@ -18,16 +18,10 @@ query ($id: ID!) {
           id
           name
           modelNo
-          productImages {
-            items {
-              productID
-              s3imageID
-              bucket
-              key
-              region
-            }
-          }
           specificationURL
+          imageURL
+          lastTenRatingAverage
+
         }
       }
     }
@@ -38,15 +32,8 @@ query ($id: ID!) {
       name
       modelNo
       specificationURL
-      productImages {
-        items {
-          productID
-          s3imageID
-          region
-          bucket
-          key
-        }
-      }
+      imageURL
+      lastTenRatingAverage
     }
   }
 }

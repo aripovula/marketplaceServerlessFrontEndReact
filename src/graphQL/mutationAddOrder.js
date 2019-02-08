@@ -4,39 +4,36 @@ export default gql(`
 mutation (
     $companyID: ID!
     $orderID: String!
-    $producerID: String!
     $productID: String!
-    $orderTime: AWSTimestamp!
     $status: OrderStatus!
-    $bestOfferType: BestOfferEnum!
-    $price: Float!
+    $maxPrice: Float!
     $quantity: Int!
-    $orderedProductRating: Float
-    $minProductRating: Float
+    $bestOfferType: BestOfferEnum!
+    $secondBestOfferType: BestOfferEnum!
+    $minProductRating: Float!
+    $isCashPayment: Boolean!
 ) {
   createOrder(input: {
     companyID: $companyID,
     orderID: $orderID,
     productID: $productID,
-    producerID: $producerID,
-    orderTime: $orderTime,
     status:$status,
-    price: $price,
+    maxPrice: $maxPrice,
     quantity: $quantity,
+    bestOfferType: $bestOfferType,
+    secondBestOfferType: $secondBestOfferType
     minProductRating: $minProductRating,
-    orderedProductRating: $orderedProductRating,
-    bestOfferType: $bestOfferType
+    isCashPayment: $isCashPayment,
   }) {
     companyID
     orderID
-    producerID
     productID
-    orderTime
     status
-    price
+    maxPrice
     quantity
-    orderedProductRating
     bestOfferType
+    secondBestOfferType
     minProductRating
+    isCashPayment
   }
 }`);

@@ -11,31 +11,22 @@ query ($id: ID!) {
       items {
         companyID
         orderID
-        producerID
         productID
-        orderTime
         status
-        price
+        maxPrice
         quantity
-        orderedProductRating
         bestOfferType
+        secondBestOfferType
         minProductRating
+        isCashPayment
         product {
           id,
           name
           modelNo
-          productImages {
-            items {
-              productID
-              s3imageID
-              bucket
-              key
-              region
-            }
-          }
           specificationURL
+          imageURL
+          lastTenRatingAverage
         }
-
       }
     }
   }

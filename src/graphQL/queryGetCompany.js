@@ -17,16 +17,9 @@ query ($id: ID!) {
           id,
           name
           modelNo
-          productImages {
-            items {
-              productID
-              s3imageID
-              bucket
-              key
-              region
-            }
-          }
           specificationURL
+          imageURL
+          lastTenRatingAverage
         }
       }
     }

@@ -34,13 +34,13 @@ const customStyles = {
         bottom: 'auto',
         marginRight: '-50%',
         transform: 'translate(-50%, -50%)',
-        width: '650px',
+        width: '60%',
         padding: '1%',
         margin: '4%'
     }
 };
 
-class PartsCompany extends Component {
+class AssemblingCompany extends Component {
 
     productSubscription;
 
@@ -59,7 +59,7 @@ class PartsCompany extends Component {
         this.state = {
             modalIsOpen: false,
             order: this.newOrder(),
-            orders: this.props.company ? this.props.company.orders.items : null,
+            orders: this.props.company.orders ? this.props.company.orders.items : null,
             products: noOrderProducts,
             productsNoOrder: noOrderProducts,
             productsAll: this.allProducts(productsListFromStore),
@@ -112,39 +112,48 @@ class PartsCompany extends Component {
         return {
             companyID: this.props.company ? this.props.company.id : null,
             orderID: uuid(),
-            producerID: 'pr1',
+            reorderRuleID: uuid(),
             productID: '',
             product: null,
-            orderTime: Date.now(),
-            status: 'INFO_REQUESTED',
-            price: 20,
+            status: 'ORDER_PLACED',
+            // price: 20,
+            maxPrice: 20,
             quantity: 100,
-            orderedProductRating: null,
             bestOfferType: 'OPTIMAL',
             secondBestOfferType: 'CHEAPEST',
             minProductRating: 4.5,
             isCashPayment: false,
-            isOneOff: false,
+            isBothOrOrderOnly: 0,
+            isRuleEffective: true,
             reorderLevel: 50,
             reorderQnty: 250
         }
     }
 
     getLatestProductsList() {
-        const { client } = this.props;
-        return client.readQuery({
-            query: QueryAllProducts
-        });
+        let products = (this.props.products && this.props.products.length > 0) ? this.props.products : null;
+
+        if (!products) {
+            const { client } = this.props;
+            const productItems = client.readQuery({
+                query: QueryAllProducts
+            });
+            products = productItems.listProducts.items;
+        }
+        if (!products) products = [];
+        console.log('products', products);
+
+        return products;
     }
 
     // prepares array of all products recorded in store for options drop-down
     allProducts(productsListFromStore) {
-        console.log('indexed prs from store in MET - ', productsListFromStore.listProducts.items.length, productsListFromStore);
-        if (productsListFromStore.listProducts.items.length > 0) {
-            const l = productsListFromStore.listProducts.items.length;
+        console.log('indexed prs from store in MET - ', productsListFromStore.length, productsListFromStore);
+        if (productsListFromStore.length > 0) {
+            const l = productsListFromStore.length;
             let indexedProductsAll = [];
             for (let x = 0; x < l; x++) {
-                indexedProductsAll.push({ seqNumb: x, details: productsListFromStore.listProducts.items[x] })
+                indexedProductsAll.push({ seqNumb: x, details: productsListFromStore[x] })
             }
             return indexedProductsAll;
         } else {
@@ -155,17 +164,17 @@ class PartsCompany extends Component {
     // prepares array of products (for which company did not make an order) recorded in store for options drop-down
     noOrderProducts(productsListFromStore) {
 
-        if (productsListFromStore.listProducts.items.length > 0 && this.props.company && this.props.company.orders.items.length > 0) {
+        if (productsListFromStore.length > 0 && this.props.company && this.props.company.orders && this.props.company.orders.items.length > 0) {
             let coOrders;
             this.props.company.orders.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
-            const l = productsListFromStore.listProducts.items.length;
+            const l = productsListFromStore.length;
             let indexedProductsNoOrder = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
-                if (!coOrders.includes(productsListFromStore.listProducts.items[x].id)) {
+                if (!coOrders.includes(productsListFromStore[x].id)) {
                     indexedProductsNoOrder.push({
                         seqNumb: count++,
-                        details: productsListFromStore.listProducts.items[x]
+                        details: productsListFromStore[x]
                     })
                 }
             }
@@ -187,12 +196,12 @@ class PartsCompany extends Component {
     }
 
     updateOrderType(e) {
-        const isOneOff = e.target.value === 'true';
-        console.log('isOneOff', isOneOff, e.target.value);
+        const isBothOrOrderOnly = parseInt(e.target.value);
+        console.log('isBothOrOrderOnly', isBothOrOrderOnly, e.target.value);
         this.setState(prevState => ({
             order: {
                 ...prevState.order,
-                isOneOff
+                isBothOrOrderOnly
             }
         }));
     }
@@ -232,13 +241,13 @@ class PartsCompany extends Component {
                 text = `$: min, R: ${order.minProductRating}-min`;
                 break;
             case 'HIGHESTRATING':
-                text = `$: ${order.price}-max, R: max`;
+                text = `$: ${order.maxPrice}-max, R: max`;
                 break;
             case 'CHEAPEST':
                 text = `$: min, R: any`;
                 break;
             case 'CUSTOM':
-                text = `$: ${order.price}-max, R: ${order.minProductRating}-min`;
+                text = `$: ${order.maxPrice}-max, R: ${order.minProductRating}-min`;
                 break;
         
             default:
@@ -251,19 +260,21 @@ class PartsCompany extends Component {
     // update modal UI when certain product is selected in drop-down
     handleSelectOptionChange(selected) {
         console.log('selected - ', selected);
-        if (selected > -1) {
+        if (selected > -1 ) {
             console.log('products[selected]', this.state.products[selected].details);
             let isFound = false; let xF = -1;
-            for (let x = 0; x < this.props.company.orders.items.length; x++) {
-                if (this.props.company.orders.items[x].productID === this.state.products[selected].details.id) {
-                    isFound = true; xF = x;
+            if (this.props.company.orders) {
+                for (let x = 0; x < this.props.company.orders.items.length; x++) {
+                    if (this.props.company.orders.items[x].productID === this.state.products[selected].details.id) {
+                        isFound = true; xF = x;
+                    }
                 }
             }
-            console.log('prods, orders, isF, xF ', this.state.products, this.props.company.orders.items, isFound, xF);
+            // console.log('prods, orders, isF, xF ', this.state.products, this.props.company.orders.items, isFound, xF);
 
             if (isFound) {
                 this.setState(prevState => ({
-                    order: this.props.company.orders.items[xF],
+                    order: this.props.company.orders ? this.props.company.orders.items[xF] : null,
                     isSubmitValid: true,
                     isUpdate: true
                 }))
@@ -302,7 +313,7 @@ class PartsCompany extends Component {
     }
 
     handlePriceChange(factor) {
-        let newPrice = (parseFloat(this.state.order.price) * parseFloat(factor)).toFixed(2);
+        let newPrice = (parseFloat(this.state.order.maxPrice) * parseFloat(factor)).toFixed(2);
         newPrice = parseFloat(newPrice) < 0 ? 0.00 : newPrice;
         this.setState(prevState => ({ order: { ...prevState.order, price: newPrice} }))
     }
@@ -332,6 +343,19 @@ class PartsCompany extends Component {
         this.setState(prevState => ({ order: { ...prevState.order, reorderLevel: newQuantity } }))
     }
 
+    handleSuspend = async (order, e) => {
+        e.preventDefault();
+        console.log('order - ', order);
+        if (window.confirm(`Are you sure you want to delete order ${order.orderID}`)) {
+            this.setState({ loading: true, modalIsOpen: false });
+            const { deleteOrder } = this.props;
+            console.log('deleteOrder = ', this.props.deleteOrder);
+            await deleteOrder(order);
+            // this.setState({ loading: false });
+            this.handleSync();
+        }
+    }
+
     handleDelete = async (order, e) => {
         e.preventDefault();
         console.log('order - ', order);
@@ -352,6 +376,7 @@ class PartsCompany extends Component {
 
         const { createOrder } = this.props;
         const { order } = this.state;
+
         console.log('createOrder -', this.props.createOrder);
         console.log('order b4 save -', this.state.order);
         await createOrder({ ...order });
@@ -397,7 +422,7 @@ class PartsCompany extends Component {
         const noOrderProducts = this.noOrderProducts(productsListFromStore);
         this.setState({
             order: this.newOrder(),
-            orders: this.props.company.orders.items,
+            orders: this.props.company.orders ? this.props.company.orders.items : null,
             products: noOrderProducts,
             productsNoOrder: noOrderProducts,
             productsAll: this.allProducts(productsListFromStore),
@@ -416,7 +441,8 @@ class PartsCompany extends Component {
         const { company, loading } = this.props;
         const loadingState = this.state.loading;
         if (this.props.company) {
-            const { company: { orders: { items } } } = this.props;
+            // const { company: { orders: { items } } } = this.props;
+            const items = this.props.company.orders ? this.props.company.orders.items : null;
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
@@ -522,7 +548,7 @@ class PartsCompany extends Component {
                                     <td>status</td>
                                 </tr>
 
-                                {[].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
+                                {items && [].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
                                     <tr key={order.orderID}>
                                         <td>
                                             <span className="addnlightbg notbold cursorpointer"
@@ -608,15 +634,18 @@ class PartsCompany extends Component {
                                       <div>
                                         {!this.state.isUpdateAtStart &&
                                             <div className="" onChange={this.updateOrderType.bind(this)}>
-                                                <label htmlFor="recurring">recurring orders (order rule)&nbsp;</label>
-                                                <input id="recurring" type="radio" value="false" name="orderType" defaultChecked />
-                                                &nbsp;&nbsp;
-                                            <label htmlFor="oneoff">&nbsp;one-off order&nbsp;</label>
-                                                <input id="oneoff" type="radio" value="true" name="orderType" />
+                                            <label htmlFor="both">one-off order + re-order rule&nbsp;</label>
+                                            <input id="both" type="radio" value="0" name="orderType" defaultChecked />
+                                            &nbsp;&nbsp;
+                                            <label htmlFor="oneoff">&nbsp;one-off order only&nbsp;</label>
+                                            <input id="oneoff" type="radio" value="1" name="orderType" />
+                                            &nbsp;&nbsp;
+                                            <label htmlFor="ruleonly">&nbsp;re-order rule only&nbsp;</label>
+                                            <input id="ruleonly" type="radio" value="2" name="orderType" />
                                             </div>
                                         }
                                         <br />
-                                        {!this.state.order.isOneOff && !this.state.isUpdateAtStart &&
+                                        {this.state.order.isBothOrOrderOnly === 0 && !this.state.isUpdateAtStart &&
                                             <div><div>( below settings apply to initial order and subsequent re-orders )</div><br /></div>}
 
                                         Order product with following terms:
@@ -659,7 +688,7 @@ class PartsCompany extends Component {
                                         {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'HIGHESTRATING') &&
                                             <div className="">
                                                 <label htmlFor="price">max. price</label>
-                                                <input type="text" id="price" value={this.state.order.price} onChange={this.handleChange.bind(this, 'price')} />
+                                            <input type="text" id="price" value={this.state.order.maxPrice} onChange={this.handleChange.bind(this, 'maxPrice')} />
                                                 <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.99)}>- 1%</button>&nbsp;
                                                 <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.01)}>+ 1%</button>&nbsp;
                                                 <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.96)}>- 4%</button>&nbsp;
@@ -679,10 +708,11 @@ class PartsCompany extends Component {
                                             </div>
                                         }
                                         <br />
-                                        {!this.state.isUpdateAtStart &&
+                                        {console.log('both conds', !this.state.isUpdateAtStart, !(this.state.order.isBothOrOrderOnly === 2), this.state.order.isBothOrOrderOnly)}
+                                        {!this.state.isUpdateAtStart && !(this.state.order.isBothOrOrderOnly === 2) &&
                                             <div className="">
                                                 <label htmlFor="quantity">
-                                                {!this.state.order.isOneOff && <span>initial </span>}
+                                                {this.state.order.isBothOrOrderOnly === 0 && <span>initial </span>}
                                                 order quantity&nbsp;&nbsp;</label>
                                                 <input type="text" id="quantity" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'quantity')} />
                                                 <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
@@ -691,8 +721,8 @@ class PartsCompany extends Component {
                                                 <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(100)}>+ 100</button>&nbsp;
                                             </div>
                                         }
-
-                                        {!this.state.order.isOneOff &&
+                                        {console.log('one cond', !this.state.order.isBothOrOrderOnly == 1, this.state.order.isBothOrOrderOnly, typeof this.state.order.isBothOrOrderOnly)}
+                                        {!(this.state.order.isBothOrOrderOnly === 1) &&
                                           <div>
                                             <div>reorder &nbsp;
                                                 <input type="text" id="reorderQnty" value={this.state.order.reorderQnty} onChange={this.handleChange.bind(this, 'reorderQnty')} />
@@ -731,7 +761,7 @@ class PartsCompany extends Component {
                                         
                                         {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
                                             <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
-                                            {this.state.order.isOneOff ? 'Place order' : 'Place order and set rules'}
+                                            {this.state.order.isBothOrOrderOnly === 1 ? 'Place order' : (this.state.order.isBothOrOrderOnly === 2 ? 'Set re-order rule' : 'Place order and set rule')}
                                             </button>
                                         }
                                         
@@ -743,8 +773,11 @@ class PartsCompany extends Component {
                                         
                                         <button className="button button1" onClick={this.handleModalClose}>Cancel</button>
                                         <span className="horIndent"></span>
-                                        {(this.state.isUpdateAtStart || this.state.isUpdate) &&
-                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.order)}> Delete </button>
+                                        {(this.state.isUpdateAtStart || this.state.isUpdate) && 
+                                            <div>
+                                            <button className="button button1 floatRight" onClick={this.handleSuspend.bind(this, this.state.order)}> Suspend rule </button>
+                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.order)}> Delete rule</button>
+                                            </div>
                                         }
                                     </div>
                                 </div>
@@ -797,31 +830,31 @@ export default compose (
                         update: (proxy, { data: { createOrder } }) => {
                             console.log('point L2 proxy - ', proxy);
                             // Update QueryAllOrders
-                            const query = QueryAllOrders;
-                            const data = proxy.readQuery({ query });
-                            console.log('query = ', query);
-                            console.log('data after read = ', data);
-                            console.log('data.listOrders.items LEN after read = ', data.listOrders.items.length);
-                            console.log('data.listOrders.items after read = ', data.listOrders.items);
-                            console.log('createOrder = ', createOrder);
+                            console.log('QueryAllOrders = ', QueryAllOrders);
+                            // const query = QueryAllOrders;
+                            // const data = proxy.readQuery({ query });
+                            // console.log('data after read = ', data);
+                            // console.log('data.listOrders.items LEN after read = ', data.listOrders.items.length);
+                            // console.log('data.listOrders.items after read = ', data.listOrders.items);
+                            // console.log('createOrder = ', createOrder);
 
                             // // get latest orders from getCompany
                             // data.listOrders.items = [
                             // ...props.ownProps.orders.items, 
                             // createOrder];
 
-                            // filter out old one if it is an update
-                            data.listOrders.items = [
-                                ...data.listOrders.items.filter(e => {
-                                    console.log('e = ', e);
-                                    console.log('e.orderID = ', e.orderID);
-                                    return e.orderID !== createOrder.orderID
-                                })
-                                , createOrder];
+                            // // filter out old one if it is an update
+                            // data.listOrders.items = [
+                            //     ...data.listOrders.items.filter(e => {
+                            //         console.log('e = ', e);
+                            //         console.log('e.orderID = ', e.orderID);
+                            //         return e.orderID !== createOrder.orderID
+                            //     })
+                            //     , createOrder];
 
-                            console.log('data after filter = ', data);
-                            console.log('data.listOrders.items after filter = ', data.listOrders.items);
-                            proxy.writeQuery({ query, data });
+                            // console.log('data after filter = ', data);
+                            // console.log('data.listOrders.items after filter = ', data.listOrders.items);
+                            // proxy.writeQuery({ query, data });
 
                             // Create cache entry for QueryGetOrder
                             const query2 = QueryGetOrder;
@@ -945,4 +978,4 @@ export default compose (
         })
     })
 
-)(PartsCompany);
+)(AssemblingCompany);

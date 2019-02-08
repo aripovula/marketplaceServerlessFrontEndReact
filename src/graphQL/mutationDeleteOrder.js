@@ -1,12 +1,9 @@
 import gql from "graphql-tag";
 
 export default gql(`
-mutation($companyID: ID!, $offerID: String!) {
-  deleteOffer( input: { companyID: $companyID, offerID: $offerID } ) {
+mutation($companyID: ID!, $orderID: String!) {
+  deleteOrder( input: { companyID: $companyID, orderID: $orderID } ) {
     companyID
-	offerID
-	productID
-	price
-	available
+		orderID
   }
 }`);

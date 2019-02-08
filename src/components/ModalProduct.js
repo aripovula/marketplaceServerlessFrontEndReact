@@ -49,7 +49,8 @@ class ModalProduct extends Component {
             name: "",
             modelNo: "",
             specificationURL: "",
-            productImages: {}
+            imageURL: '',
+	        lastTenRatingAverage: 4.5
         };
     }
 
@@ -133,6 +134,10 @@ class ModalProduct extends Component {
                         <label htmlFor="modelNo">model #  (max. 10 characters)</label>
                         <input type="text" id="modelNo" value={product.modelNo} onChange={this.handleChange.bind(this, 'modelNo')} />
                         </div>
+                            <div className="">
+                                <label htmlFor="imageURL">image URL</label>
+                                <input type="text" id="imageURL" value={product.imageURL} onChange={this.handleChange.bind(this, 'imageURL')} />
+                            </div>
                         <div className="">
                         <label htmlFor="specificationURL">specification URL (type any value *)</label>
                         <input type="text" id="specificationURL" value={product.specificationURL} onChange={this.handleChange.bind(this, 'specificationURL')} />

@@ -1,12 +1,12 @@
     type S3Object {
       bucket: String!
       region: String!
-      key: String!
+          key: String!
     }
 
     type BlockchainBlock {
         id: ID!
-        orderID: String!
+        dealID: String!
         marketplaceSignatureOnDeal: String!
         previousHashOnDeal: String!
         hashOnDeal: String!
@@ -20,6 +20,8 @@
         modelNo: String!
         productImage: S3Object
         specificationURL: String!
+        imageURL: String
+        lastTenRatingAverage: Float
     }
 
     type Deal {
