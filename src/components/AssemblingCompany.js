@@ -7,10 +7,15 @@ import numeral from 'numeral';
 import QueryGetCompany from "../graphQL/queryGetCompanyOrders";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryAllOrders from "../graphQL/queryAllOrders";
+import QueryAllReOrderRules from "../graphQL/queryAllReorderRules";
 import QueryGetOrder from "../graphQL/queryGetOrder";
+import QueryGetReOrderRule from "../graphQL/queryGetReorderRule";
 import MutationCreateOrder from "../graphQL/mutationAddOrder";
+import MutationCreateReOrderRule from "../graphQL/mutationAddReorderRule";
 import MutationUpdateOrder from "../graphQL/mutationUpdateOrder";
+import MutationUpdateReOrderRule from "../graphQL/mutationUpdateReorderRule";
 import MutationDeleteOrder from "../graphQL/mutationDeleteOrder";
+import MutationDeleteReOrderRule from "../graphQL/mutationDeleteReorderRule";
 import NewProductSubscription from '../graphQL/subsriptionProducts';
 import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
@@ -47,22 +52,25 @@ class AssemblingCompany extends Component {
     static defaultProps = {
         company: null,
         createOrder: () => null,
+        createReOrderRule: () => null,
         updateOrder: () => null,
+        updateReOrderRule: () => null,
         getCompany: () => null,
     }
 
     constructor(props) {
         super(props);
-        const productsListFromStore = this.getLatestProductsList();
-        console.log('indexed prs from store', productsListFromStore);
-        const noOrderProducts = this.noOrderProducts(productsListFromStore);
+        const productsListFromProps = this.props.products ? this.props.products : null;
+        console.log('indexed prs from store', productsListFromProps);
+        console.log('props in CONSt', this.props);
+        const noOrderProducts = this.noOrderProducts(productsListFromProps);
         this.state = {
             modalIsOpen: false,
             order: this.newOrder(),
-            orders: this.props.company.orders ? this.props.company.orders.items : null,
+            orders: (this.props.company && this.props.company.orders) ? this.props.company.orders.items : null,
             products: noOrderProducts,
             productsNoOrder: noOrderProducts,
-            productsAll: this.allProducts(productsListFromStore),
+            productsAll: this.allProducts(productsListFromProps),
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
@@ -130,30 +138,14 @@ class AssemblingCompany extends Component {
         }
     }
 
-    getLatestProductsList() {
-        let products = (this.props.products && this.props.products.length > 0) ? this.props.products : null;
-
-        if (!products) {
-            const { client } = this.props;
-            const productItems = client.readQuery({
-                query: QueryAllProducts
-            });
-            products = productItems.listProducts.items;
-        }
-        if (!products) products = [];
-        console.log('products', products);
-
-        return products;
-    }
-
     // prepares array of all products recorded in store for options drop-down
-    allProducts(productsListFromStore) {
-        console.log('indexed prs from store in MET - ', productsListFromStore.length, productsListFromStore);
-        if (productsListFromStore.length > 0) {
-            const l = productsListFromStore.length;
+    allProducts(productsListFromProps) {
+        console.log('indexed prs from store in MET - ', productsListFromProps.length, productsListFromProps);
+        if (productsListFromProps.length > 0) {
+            const l = productsListFromProps.length;
             let indexedProductsAll = [];
             for (let x = 0; x < l; x++) {
-                indexedProductsAll.push({ seqNumb: x, details: productsListFromStore[x] })
+                indexedProductsAll.push({ seqNumb: x, details: productsListFromProps[x] })
             }
             return indexedProductsAll;
         } else {
@@ -162,25 +154,25 @@ class AssemblingCompany extends Component {
     }
 
     // prepares array of products (for which company did not make an order) recorded in store for options drop-down
-    noOrderProducts(productsListFromStore) {
+    noOrderProducts(productsListFromProps) {
 
-        if (productsListFromStore.length > 0 && this.props.company && this.props.company.orders && this.props.company.orders.items.length > 0) {
+        if (productsListFromProps.length > 0 && this.props.company && this.props.company.orders && this.props.company.orders.items.length > 0) {
             let coOrders;
             this.props.company.orders.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
-            const l = productsListFromStore.length;
+            const l = productsListFromProps.length;
             let indexedProductsNoOrder = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
-                if (!coOrders.includes(productsListFromStore[x].id)) {
+                if (!coOrders.includes(productsListFromProps[x].id)) {
                     indexedProductsNoOrder.push({
                         seqNumb: count++,
-                        details: productsListFromStore[x]
+                        details: productsListFromProps[x]
                     })
                 }
             }
             return indexedProductsNoOrder;
         } else {
-            return this.allProducts(productsListFromStore);
+            return this.allProducts(productsListFromProps);
         }
     }
 
@@ -261,11 +253,11 @@ class AssemblingCompany extends Component {
     handleSelectOptionChange(selected) {
         console.log('selected - ', selected);
         if (selected > -1 ) {
-            console.log('products[selected]', this.state.products[selected].details);
+            console.log('products[selected]', this.state.productsAll[selected]);
             let isFound = false; let xF = -1;
             if (this.props.company.orders) {
                 for (let x = 0; x < this.props.company.orders.items.length; x++) {
-                    if (this.props.company.orders.items[x].productID === this.state.products[selected].details.id) {
+                    if (this.props.company.orders.items[x].productID === this.state.productsAll[selected].details.id) {
                         isFound = true; xF = x;
                     }
                 }
@@ -283,8 +275,8 @@ class AssemblingCompany extends Component {
                 this.setState(prevState => ({
                     order: {
                         ...orderNew,
-                        productID: prevState.products[selected].details.id,
-                        modelNo: prevState.products[selected].details.modelNo
+                        productID: prevState.productsAll[selected].details.id,
+                        modelNo: prevState.productsAll[selected].details.modelNo
                     },
                     isSubmitValid: true,
                     isUpdate: false
@@ -373,14 +365,26 @@ class AssemblingCompany extends Component {
         e.stopPropagation();
         e.preventDefault();
         this.setState({ loading: true, modalIsOpen: false });
+        console.log('handle save state', this.state);
+        console.log('isBothOrOrderOnly', this.state.order.isBothOrOrderOnly);
+        
+        if (this.state.order.isBothOrOrderOnly === 1) {
+            const { createOrder } = this.props;
+            const { order } = this.state;
 
-        const { createOrder } = this.props;
-        const { order } = this.state;
+            console.log('createOrder -', createOrder);
+            console.log('order b4 save -', order);
+            await createOrder({ ...order });
+            // this.setState({ loading: false });
+        } else if (this.state.order.isBothOrOrderOnly === 2) {
+            const { createReOrderRule } = this.props;
+            const { order } = this.state;
 
-        console.log('createOrder -', this.props.createOrder);
-        console.log('order b4 save -', this.state.order);
-        await createOrder({ ...order });
-        // this.setState({ loading: false });
+            console.log('createReOrderRule -', createReOrderRule);
+            console.log('order b4 save -', order);
+            await createReOrderRule({ ...order });            
+            // this.setState({ loading: false });
+        }
         console.log('order after save -', this.state.order);
         this.handleSync();
     }
@@ -390,13 +394,22 @@ class AssemblingCompany extends Component {
         e.stopPropagation();
         e.preventDefault();
 
-        const { updateOrder } = this.props;
-                
         const { order } = this.state;
-        console.log('updateOrder -', this.props.updateOrder);
-        console.log('order b4 save -', this.state.order);
+        if (this.state.order.isBothOrOrderOnly === 1) {
 
-        await updateOrder({ ...order });
+            const { updateOrder } = this.props;
+                    
+            console.log('updateOrder -', this.props.updateOrder);
+            console.log('order b4 save -', this.state.order);
+
+            await updateOrder({ ...order });
+
+        } else if (this.state.order.isBothOrOrderOnly === 2) {
+            const { updateReOrderRule } = this.props;
+            console.log('updateReOrderRule -', this.props.updateOrder);
+            console.log('order b4 save -', this.state.order);
+            await updateReOrderRule({ ...order });
+        }
         // this.setState({ loading: false });
         console.log('order after save -', this.state.order);
         this.handleSync();
@@ -417,15 +430,15 @@ class AssemblingCompany extends Component {
             fetchPolicy: 'network-only',
         });
 
-        const productsListFromStore = this.getLatestProductsList();
-        console.log('indexed prs from store', productsListFromStore);
-        const noOrderProducts = this.noOrderProducts(productsListFromStore);
+        const productsListFromProps = this.props.products ? this.props.products : null;
+        console.log('indexed prs from store', productsListFromProps);
+        const noOrderProducts = this.noOrderProducts(productsListFromProps);
         this.setState({
             order: this.newOrder(),
             orders: this.props.company.orders ? this.props.company.orders.items : null,
             products: noOrderProducts,
             productsNoOrder: noOrderProducts,
-            productsAll: this.allProducts(productsListFromStore),
+            productsAll: this.allProducts(productsListFromProps),
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
@@ -462,12 +475,12 @@ class AssemblingCompany extends Component {
                                 onClick={() => {
                                     const fromProps = JSON.parse(JSON.stringify(this.props.products));
                                     const fromState = JSON.parse(JSON.stringify(this.state.productsAll));
-                                    const productsListFromStore = this.getLatestProductsList();
-                                    const noOrderProducts = this.noOrderProducts(productsListFromStore);
+                                    const productsListFromProps = this.props.products ? this.props.products : null;
+                                    const noOrderProducts = this.noOrderProducts(productsListFromProps);
                                     this.setState(() => ({
                                         products: noOrderProducts,
                                         productsNoOrder: noOrderProducts,
-                                        productsAll: this.allProducts(productsListFromStore),
+                                        productsAll: this.allProducts(productsListFromProps),
                                         infoModalData: {
                                             type: 'newProds',
                                             mainText: 'New product(s) with followings details were added:',
@@ -480,12 +493,12 @@ class AssemblingCompany extends Component {
                             <span
                                 className="addnlightbg notbold cursorpointer"
                                 onClick={() => {
-                                    const productsListFromStore = this.getLatestProductsList();
-                                    const noOrderProducts = this.noOrderProducts(productsListFromStore);
+                                    const productsListFromProps = this.props.products ? this.props.products : null;
+                                    const noOrderProducts = this.noOrderProducts(productsListFromProps);
                                     this.setState(() => ({
                                         products: noOrderProducts,
                                         productsNoOrder: noOrderProducts,
-                                        productsAll: this.allProducts(productsListFromStore),
+                                        productsAll: this.allProducts(productsListFromProps),
                                     }));
                                 }}>dismiss
                             </span>
@@ -497,13 +510,13 @@ class AssemblingCompany extends Component {
                         <span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
-                                const productsListFromStore = this.getLatestProductsList();
-                                console.log('products in Store', productsListFromStore);
-                                const noOrderProducts = this.noOrderProducts(productsListFromStore);
+                                const productsListFromProps = this.props.products ? this.props.products : null;
+                                console.log('products in Store', productsListFromProps);
+                                const noOrderProducts = this.noOrderProducts(productsListFromProps);
                                 this.setState(() => ({
                                     products: noOrderProducts,
                                     productsNoOrder: noOrderProducts,
-                                    productsAll: this.allProducts(productsListFromStore),
+                                    productsAll: this.allProducts(productsListFromProps),
                                     modalIsOpen: true,
                                     isUpdateAtStart: false
                                 }));
@@ -831,30 +844,30 @@ export default compose (
                             console.log('point L2 proxy - ', proxy);
                             // Update QueryAllOrders
                             console.log('QueryAllOrders = ', QueryAllOrders);
-                            // const query = QueryAllOrders;
-                            // const data = proxy.readQuery({ query });
-                            // console.log('data after read = ', data);
-                            // console.log('data.listOrders.items LEN after read = ', data.listOrders.items.length);
-                            // console.log('data.listOrders.items after read = ', data.listOrders.items);
-                            // console.log('createOrder = ', createOrder);
+                            const query = QueryAllOrders;
+                            const data = proxy.readQuery({ query });
+                            console.log('data after read = ', data);
+                            console.log('data.listOrders.items LEN after read = ', data.listOrders.items.length);
+                            console.log('data.listOrders.items after read = ', data.listOrders.items);
+                            console.log('createOrder = ', createOrder);
 
-                            // // get latest orders from getCompany
-                            // data.listOrders.items = [
-                            // ...props.ownProps.orders.items, 
-                            // createOrder];
+                            // get latest orders from getCompany
+                            data.listOrders.items = [
+                            ...props.ownProps.orders.items, 
+                            createOrder];
 
-                            // // filter out old one if it is an update
-                            // data.listOrders.items = [
-                            //     ...data.listOrders.items.filter(e => {
-                            //         console.log('e = ', e);
-                            //         console.log('e.orderID = ', e.orderID);
-                            //         return e.orderID !== createOrder.orderID
-                            //     })
-                            //     , createOrder];
+                            // filter out old one if it is an update
+                            data.listOrders.items = [
+                                ...data.listOrders.items.filter(e => {
+                                    console.log('e = ', e);
+                                    console.log('e.orderID = ', e.orderID);
+                                    return e.orderID !== createOrder.orderID
+                                })
+                                , createOrder];
 
-                            // console.log('data after filter = ', data);
-                            // console.log('data.listOrders.items after filter = ', data.listOrders.items);
-                            // proxy.writeQuery({ query, data });
+                            console.log('data after filter = ', data);
+                            console.log('data.listOrders.items after filter = ', data.listOrders.items);
+                            proxy.writeQuery({ query, data });
 
                             // Create cache entry for QueryGetOrder
                             const query2 = QueryGetOrder;
@@ -950,6 +963,177 @@ export default compose (
                             }
                         }),
                     });
+                }
+            })
+        }
+    ),
+    graphql(
+        MutationCreateReOrderRule,
+        {
+            props: (props) => ({
+                createReOrderRule: (order) => {
+                    console.log('point L1 at createReOrderRule = ', order);
+                    return props.mutate({
+                        update: (proxy, { data: { createReOrderRule } }) => {
+                            console.log('point L2 proxy - ', proxy);
+                            // Update QueryAllOrders
+                            console.log('QueryAllOrders = ', QueryAllOrders);
+                            const query = QueryAllReOrderRules;
+                            const data = proxy.readQuery({ query });
+                            console.log('data after read = ', data);
+                            console.log('data.listOrders.items LEN after read = ', data.listReOrderRules.items.length);
+                            console.log('data.listOrders.items after read = ', data.listReOrderRules.items);
+                            console.log('createOrder = ', createReOrderRule);
+
+                            // get latest orders from getCompany
+                            data.listReOrderRules.items = [
+                                ...props.ownProps.orders.items,
+                                createReOrderRule];
+
+                            // filter out old one if it is an update
+                            data.listOrders.items = [
+                                ...data.listOrders.items.filter(e => {
+                                    console.log('e = ', e);
+                                    console.log('e.orderID = ', e.orderID);
+                                    return e.orderID !== createReOrderRule.orderID
+                                })
+                                , createReOrderRule];
+
+                            console.log('data after filter = ', data);
+                            console.log('data.listOrders.items after filter = ', data.listReOrderRules.items);
+                            proxy.writeQuery({ query, data });
+
+                            // Create cache entry for QueryGetOrder
+                            const query2 = QueryGetReOrderRule;
+                            const variables = { id: createReOrderRule.id };
+                            const data2 = { getOrder: { ...createReOrderRule } };
+                            console.log('point L3 data2 = ', data2);
+                            proxy.writeQuery({ query: query2, variables, data: data2 });
+                            console.log('point L4 query2 = ', query2);
+                            console.log('this.props GQL part -', props);
+                        },
+                        variables: order,
+                        optimisticResponse: () => (
+                            {
+                                createOrder: {
+                                    ...order, __typename: 'ReOrderRule'
+                                }
+                            }),
+                    })
+                }
+            })
+        }
+    ),
+    graphql(
+        MutationCreateReOrderRule,
+        {
+            props: (props) => ({
+                createReOrderRule: (order) => {
+                    console.log('point L1 at createReOrderRule = ', order);
+                    return props.mutate({
+                        update: (proxy, { data: { createReOrderRule } }) => {
+                            console.log('point L2 proxy - ', proxy);
+                            // Update QueryAllOrders
+                            console.log('QueryAllReOrderRules = ', QueryAllReOrderRules);
+                            const query = QueryAllReOrderRules;
+                            const data = proxy.readQuery({ query });
+                            console.log('data after read = ', data);
+                            console.log('data.listReOrderRules.items LEN after read = ', data.listReOrderRules.items.length);
+                            console.log('data.listReOrderRules.items after read = ', data.listReOrderRules.items);
+                            console.log('createOrder = ', createReOrderRule);
+
+                            // get latest orders from getCompany
+                            data.listReOrderRules.items = [
+                                ...props.ownProps.orders.items,
+                                createReOrderRule];
+
+                            // filter out old one if it is an update
+                            data.listReOrderRules.items = [
+                                ...data.listReOrderRules.items.filter(e => {
+                                    console.log('e = ', e);
+                                    console.log('e.orderID = ', e.reorderRuleID);
+                                    return e.reorderRuleID !== createReOrderRule.reorderRuleID
+                                })
+                                , createReOrderRule];
+
+                            console.log('data after filter = ', data);
+                            console.log('data.reorderRuleID.items after filter = ', data.listReOrderRules.items);
+                            proxy.writeQuery({ query, data });
+
+                            // Create cache entry for QueryGetOrder
+                            const query2 = QueryGetReOrderRule;
+                            const variables = { id: createReOrderRule.id };
+                            const data2 = { getOrder: { ...createReOrderRule } };
+                            console.log('point L3 data2 = ', data2);
+                            proxy.writeQuery({ query: query2, variables, data: data2 });
+                            console.log('point L4 query2 = ', query2);
+                            console.log('this.props GQL part -', props);
+                        },
+                        variables: order,
+                        optimisticResponse: () => (
+                            {
+                                createOrder: {
+                                    ...order, __typename: 'ReOrderRule'
+                                }
+                            }),
+                    })
+                }
+            })
+        }
+    ),
+    graphql(
+        MutationUpdateReOrderRule,
+        {
+            props: (props) => ({
+                updateReOrderRule: (order) => {
+                    console.log('point L1 at updateReOrderRule = ', order);
+                    return props.mutate({
+                        update: (proxy, { data: { updateReOrderRule } }) => {
+                            console.log('point L2 proxy - ', proxy);
+                            // Update QueryAllOrders
+                            console.log('QueryAllReOrderRules = ', QueryAllReOrderRules);
+                            const query = QueryAllReOrderRules;
+                            const data = proxy.readQuery({ query });
+                            console.log('data after read = ', data);
+                            console.log('data.listReOrderRules.items LEN after read = ', data.listReOrderRules.items.length);
+                            console.log('data.listReOrderRules.items after read = ', data.listReOrderRules.items);
+                            console.log('updateReOrderRule = ', updateReOrderRule);
+
+                            // get latest orders from getCompany
+                            data.listReOrderRules.items = [
+                                ...props.ownProps.orders.items,
+                                updateReOrderRule];
+
+                            // filter out old one if it is an update
+                            data.listReOrderRules.items = [
+                                ...data.listReOrderRules.items.filter(e => {
+                                    console.log('e = ', e);
+                                    console.log('e.reorderRuleID = ', e.reorderRuleID);
+                                    return e.reorderRuleID !== updateReOrderRule.reorderRuleID
+                                })
+                                , updateReOrderRule];
+
+                            console.log('data after filter = ', data);
+                            console.log('data.listReOrderRules.items after filter = ', data.listReOrderRules.items);
+                            proxy.writeQuery({ query, data });
+
+                            // Create cache entry for QueryGetOrder
+                            const query2 = QueryGetReOrderRule;
+                            const variables = { id: updateReOrderRule.id };
+                            const data2 = { getOrder: { ...updateReOrderRule } };
+                            console.log('point L3 data2 = ', data2);
+                            proxy.writeQuery({ query: query2, variables, data: data2 });
+                            console.log('point L4 query2 = ', query2);
+                            console.log('this.props GQL part -', props);
+                        },
+                        variables: order,
+                        optimisticResponse: () => (
+                            {
+                                updateOrder: {
+                                    ...order, __typename: 'ReOrderRule'
+                                }
+                            }),
+                    })
                 }
             })
         }

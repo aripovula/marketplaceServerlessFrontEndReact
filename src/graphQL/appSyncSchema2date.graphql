@@ -18,6 +18,7 @@ type Company implements Member {
 	yearsOfOperation: Int!
 	status: MemberStatus!
 	orders(limit: Int, nextToken: String): OrderConnection
+	reOrderRules(limit: Int, nextToken: String): ReOrderRuleConnection
 	offers(limit: Int, nextToken: String): OfferConnection
 	creditSaleLimitForAAA: Int
 	creditSaleLimitForAA: Int
@@ -102,6 +103,8 @@ input CreateReOrderRuleInput {
 	isCashPayment: Boolean!
 	reorderLevel: Int!
 	reorderQnty: Int!
+	bestOfferType: BestOfferEnum
+	secondBestOfferType: BestOfferEnum!
 }
 
 enum CreditRating {

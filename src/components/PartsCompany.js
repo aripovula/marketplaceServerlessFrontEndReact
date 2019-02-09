@@ -52,16 +52,16 @@ class PartsCompany extends Component {
 
     constructor(props) {
         super(props);
-        const productsListFromStore = this.getLatestProductsList();
-        console.log('indexed prs from store', productsListFromStore);
-        const noOfferProducts = this.noOfferProducts(productsListFromStore);
+        const productsListFromProps = this.props.products ? this.props.products : null;
+        console.log('indexed prs from store', productsListFromProps);
+        const noOfferProducts = this.noOfferProducts(productsListFromProps);
         this.state = {
             modalIsOpen: false,
             offer: this.newOffer(),
             offers: this.props.company ? this.props.company.offers.items : null,
             products: noOfferProducts,
             productsNoOffer: noOfferProducts,
-            productsAll: this.allProducts(productsListFromStore),
+            productsAll: this.allProducts(productsListFromProps),
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
@@ -116,30 +116,14 @@ class PartsCompany extends Component {
         }
     }
 
-    getLatestProductsList() {
-        let products = (this.props.products && this.props.products.length > 0) ? this.props.products : null;
-
-        if (!products) {
-            const { client } = this.props;
-            const productItems = client.readQuery({
-                query: QueryAllProducts
-            });
-            products = productItems.listProducts.items;
-        }
-        if (!products) products = [];
-        console.log('products', products);
-        
-        return products;
-    }
-
     // prepares array of all products recorded in store for options drop-down
-    allProducts(productsListFromStore) {
-        console.log('indexed prs from store in MET - ', productsListFromStore.length, productsListFromStore);
-        if (productsListFromStore.length > 0) {
-            const l = productsListFromStore.length;
+    allProducts(productsListFromProps) {
+        console.log('indexed prs from store in MET - ', productsListFromProps.length, productsListFromProps);
+        if (productsListFromProps.length > 0) {
+            const l = productsListFromProps.length;
             let indexedProductsAll = [];
             for (let x = 0; x < l; x++) {
-                indexedProductsAll.push({ seqNumb: x, details: productsListFromStore[x] })
+                indexedProductsAll.push({ seqNumb: x, details: productsListFromProps[x] })
             }
             return indexedProductsAll;
         } else {
@@ -148,24 +132,24 @@ class PartsCompany extends Component {
     }
 
     // prepares array of products (for which company did not make an offer) recorded in store for options drop-down
-    noOfferProducts(productsListFromStore) {
-        if (productsListFromStore.length > 0 && this.props.company && this.props.company.offers.items.length > 0) {
+    noOfferProducts(productsListFromProps) {
+        if (productsListFromProps.length > 0 && this.props.company && this.props.company.offers.items.length > 0) {
             let coOffers;
             this.props.company.offers.items.forEach((item) => { coOffers = coOffers + item.productID + ';;' });
-            const l = productsListFromStore.length;
+            const l = productsListFromProps.length;
             let indexedProductsNoOffer = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
-                if (!coOffers.includes(productsListFromStore[x].id)) {
+                if (!coOffers.includes(productsListFromProps[x].id)) {
                     indexedProductsNoOffer.push({
                         seqNumb: count++,
-                        details: productsListFromStore[x]
+                        details: productsListFromProps[x]
                     })
                 }
             }
             return indexedProductsNoOffer;
         } else {
-            return this.allProducts(productsListFromStore);
+            return this.allProducts(productsListFromProps);
         }
     }
 
@@ -305,15 +289,15 @@ class PartsCompany extends Component {
             fetchPolicy: 'network-only',
         });
 
-        const productsListFromStore = this.getLatestProductsList();
-        console.log('indexed prs from store', productsListFromStore);
-        const noOfferProducts = this.noOfferProducts(productsListFromStore);
+        const productsListFromProps = this.props.products ? this.props.products : null;
+        console.log('indexed prs from store', productsListFromProps);
+        const noOfferProducts = this.noOfferProducts(productsListFromProps);
         this.setState({
             offer: this.newOffer(),
             offers: this.props.company.offers.items,
             products: noOfferProducts,
             productsNoOffer: noOfferProducts,
-            productsAll: this.allProducts(productsListFromStore),
+            productsAll: this.allProducts(productsListFromProps),
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
@@ -348,12 +332,12 @@ class PartsCompany extends Component {
                                 onClick={() => {
                                     const fromProps = JSON.parse(JSON.stringify(this.props.products));
                                     const fromState = JSON.parse(JSON.stringify(this.state.productsAll));
-                                    const productsListFromStore = this.getLatestProductsList();
-                                    const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                    const productsListFromProps = this.props.products ? this.props.products : null;
+                                    const noOfferProducts = this.noOfferProducts(productsListFromProps);
                                     this.setState(() => ({
                                         products: noOfferProducts,
                                         productsNoOffer: noOfferProducts,
-                                        productsAll: this.allProducts(productsListFromStore),
+                                        productsAll: this.allProducts(productsListFromProps),
                                         infoModalData: {
                                             type: 'newProds',
                                             mainText: 'New product(s) with followings details were added:',
@@ -366,12 +350,12 @@ class PartsCompany extends Component {
                             <span
                                 className="addnlightbg notbold cursorpointer"
                                 onClick={() => {
-                                    const productsListFromStore = this.getLatestProductsList();
-                                    const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                    const productsListFromProps = this.props.products ? this.props.products : null;
+                                    const noOfferProducts = this.noOfferProducts(productsListFromProps);
                                     this.setState(() => ({
                                         products: noOfferProducts,
                                         productsNoOffer: noOfferProducts,
-                                        productsAll: this.allProducts(productsListFromStore),
+                                        productsAll: this.allProducts(productsListFromProps),
                                     }));
                                 }}>dismiss
                             </span>
@@ -383,13 +367,13 @@ class PartsCompany extends Component {
                         <span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
-                                const productsListFromStore = this.getLatestProductsList();
-                                console.log('products in Store', productsListFromStore);
-                                const noOfferProducts = this.noOfferProducts(productsListFromStore);
+                                const productsListFromProps = this.props.products ? this.props.products : null;
+                                console.log('products in Store', productsListFromProps);
+                                const noOfferProducts = this.noOfferProducts(productsListFromProps);
                                 this.setState(() => ({
                                     products: noOfferProducts,
                                     productsNoOffer: noOfferProducts,
-                                    productsAll: this.allProducts(productsListFromStore),
+                                    productsAll: this.allProducts(productsListFromProps),
                                     modalIsOpen: true,
                                     isUpdateAtStart: false
                                 }));
