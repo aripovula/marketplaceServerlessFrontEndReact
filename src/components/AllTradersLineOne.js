@@ -17,19 +17,7 @@ export class AllTradersLineOne extends Component {
             UPPER-RIGHT - Finisher Co.
           </div>
         </div>
-
-        <div id="container2a">
-          <div id="left2">
-            <OrderStatus/>
-          </div>
-          <div id="middle2">
-            orders in progress part
-          </div>
-          <div id="right2">
-            orders in progress part
-          </div>
-        </div>
-
+        
         <div id="container2a">
           <div id="left2">
             blockChain part

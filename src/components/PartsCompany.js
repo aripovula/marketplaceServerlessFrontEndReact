@@ -426,7 +426,7 @@ class PartsCompany extends Component {
                                                     }}>&nbsp;{offer.product.modelNo}&nbsp;</span>
                                         </td>
                                         <td>&nbsp;{offer.price}&nbsp;</td>
-                                        <td>4.4</td>
+                                        <td>&nbsp;{offer.product.lastTenRatingAverage}&nbsp;</td>
                                         <td>&nbsp;{offer.available}&nbsp;</td>
                                     </tr>
                                 )}

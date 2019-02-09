@@ -28,7 +28,6 @@ mutation (
     companyID
     orderID
     productID
-    product
     status
     maxPrice
     quantity
@@ -36,5 +35,14 @@ mutation (
     secondBestOfferType
     minProductRating
     isCashPayment
+    product {
+      id,
+      name
+      modelNo
+      specificationURL
+      imageURL
+      lastTenRatingAverage
+    }
+
   }
 }`);

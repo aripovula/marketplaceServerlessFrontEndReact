@@ -587,7 +587,7 @@ a.addnlightbg:active {
 }
 
 #container2top>div {
-  height: calc(30vh - 18px);
+  height: calc(40vh - 18px);
   float: left;
 }
 
