@@ -648,6 +648,9 @@ input UpdateOrderInput {
 	minProductRating: Float
 	quantity: Int
 	isCashPayment: Boolean
+	status: OrderStatus
+	bestOfferType: BestOfferEnum
+	secondBestOfferType: BestOfferEnum
 }
 
 input UpdateProductInput {
@@ -667,6 +670,8 @@ input UpdateReOrderRuleInput {
 	isCashPayment: Boolean
 	reorderLevel: Int
 	reorderQnty: Int
+	bestOfferType: BestOfferEnum
+	secondBestOfferType: BestOfferEnum
 }
 
 schema {

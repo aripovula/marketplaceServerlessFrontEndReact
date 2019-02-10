@@ -48,7 +48,8 @@ export class AllTrader extends Component {
 
             <Offers/>
             <span className="verIndent"></span>
-            <span className="responsiveFSize2a">Data exchange between each company takes place as an end-to-end communication (exclusively through AppSync based serverless back-end). None of companies exchange data locally.</span>
+            <span className="responsiveFSize2">Data exchange between each company takes place as an end-to-end communication (exclusively through AppSync based serverless back-end). None of companies exchange data locally.</span>
+            <span className="responsiveFSize2">Please try opening this app at least in one another browser (better in another computer) logging in with the same user name and password to see how components communicate with each other.</span>
             <ModalProduct
               // selectedOption = {this.state.selectedOption}
 

@@ -21,7 +21,7 @@ import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
 
 // style for loading spinner
-var sectionStyle = {
+const sectionStyle = {
     width: "100%",
     height: "100%",
     backgroundImage: `url(${Spinner})`,
@@ -63,21 +63,21 @@ class AssemblingCompany extends Component {
         const productsListFromProps = this.props.products ? this.props.products : null;
         console.log('indexed prs from store', productsListFromProps);
         console.log('props in CONSt', this.props);
-        const noOrderProducts = this.noOrderProducts(productsListFromProps);
+        const noRuleProducts = this.noRuleProducts(productsListFromProps);
         this.state = {
             modalIsOpen: false,
             order: this.newOrder(),
             orders: (this.props.company && this.props.company.orders) ? this.props.company.orders.items : null,
-            products: noOrderProducts,
-            productsNoOrder: noOrderProducts,
+            products: noRuleProducts,
+            productsNoRule: noRuleProducts,
             productsAll: this.allProducts(productsListFromProps),
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
             selectedOption: -1,
-            isBothOrOrderOnly: 0,
+            oneOffOrRule: 1,
             loading: false,
-            infoModalData: null
+            infoModalData: ''
         };
 
         this.openModal = this.openModal.bind(this);
@@ -85,6 +85,7 @@ class AssemblingCompany extends Component {
         this.handleInfoModalClose = this.handleInfoModalClose.bind(this);
         this.updateOrderType = this.updateOrderType.bind(this);
         this.updateSettlementType = this.updateSettlementType.bind(this);
+        this.handleChange = this.handleChange.bind(this);
     }
 
     componentWillMount() {
@@ -103,17 +104,19 @@ class AssemblingCompany extends Component {
     handleModalClose() {
         this.setState(prevState => ({
             order: this.newOrder(),
-            products: prevState.productsNoOrder,
+            products: prevState.productsNoRule,
             isSubmitValid: false,
             isUpdateAtStart: false,
             isUpdate: false,
             selectedOption: -1,
-            modalIsOpen: false
+            modalIsOpen: false,
+            oneOffOrRule: 1,
+            infoModalData: ''
         }));
     }
 
     handleInfoModalClose() {
-        this.setState({ infoModalData: null });
+        this.setState({ infoModalData: '' });
     }
 
     newOrder() {
@@ -122,9 +125,8 @@ class AssemblingCompany extends Component {
             orderID: uuid(),
             reorderRuleID: uuid(),
             productID: '',
-            product: null,
+            product: '',
             status: 'ORDER_PLACED',
-            // price: 20,
             maxPrice: 20,
             quantity: 100,
             bestOfferType: 'OPTIMAL',
@@ -153,23 +155,23 @@ class AssemblingCompany extends Component {
     }
 
     // prepares array of products (for which company did not make an order) recorded in store for options drop-down
-    noOrderProducts(productsListFromProps) {
+    noRuleProducts(productsListFromProps) {
 
-        if (productsListFromProps.length > 0 && this.props.company && this.props.company.orders && this.props.company.orders.items.length > 0) {
+        if (productsListFromProps.length > 0 && this.props.company && this.props.company.reOrderRules && this.props.company.reOrderRules.items.length > 0) {
             let coOrders;
-            this.props.company.orders.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
+            this.props.company.reOrderRules.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
             const l = productsListFromProps.length;
-            let indexedProductsNoOrder = [];
+            let indexedproductsNoRule = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
                 if (!coOrders.includes(productsListFromProps[x].id)) {
-                    indexedProductsNoOrder.push({
+                    indexedproductsNoRule.push({
                         seqNumb: count++,
                         details: productsListFromProps[x]
                     })
                 }
             }
-            return indexedProductsNoOrder;
+            return indexedproductsNoRule;
         } else {
             return this.allProducts(productsListFromProps);
         }
@@ -187,11 +189,12 @@ class AssemblingCompany extends Component {
     }
 
     updateOrderType(e) {
-        const isBothOrOrderOnly = parseInt(e.target.value);
-        console.log('isBothOrOrderOnly', isBothOrOrderOnly, e.target.value);
+        const oneOffOrRule = parseInt(e.target.value);
+        console.log('oneOffOrRule', oneOffOrRule, e.target.value);
         this.setState({
-            isBothOrOrderOnly
-        });
+            oneOffOrRule
+        }, () => this.updateModalState());
+        
     }
 
     // update array of products when 'all' or 'no-oder' radio buttons are selected
@@ -205,7 +208,7 @@ class AssemblingCompany extends Component {
             }, () => this.handleSelectOptionChange(-1));
         } else {
             this.setState({
-                products: this.state.productsNoOrder,
+                products: this.state.productsNoRule,
                 selectedOption: -1,
                 isSubmitValid: false,
                 isUpdateAtStart: false
@@ -241,44 +244,52 @@ class AssemblingCompany extends Component {
             default:
                 break;
         }
-        text = `${text}, RO: ${orderRule.reorderQnty} @ ${orderRule.reorderLevel}`
+        text = `${text}, RO: ${orderRule.reorderQnty} @ ${orderRule.reorderLevel}`;
+        text = !orderRule.isRuleEffective ? `( SUSPENDED ) - ${text}` : text;
         console.log('threshold', text);
         return text;
+    }
+
+    updateModalState() {
+        console.log('products[selected]', this.state.products[this.state.selectedOption]);
+        let isFound = false; let xF = -1;
+        if (this.props.company.reOrderRules) {
+            for (let x = 0; x < this.props.company.reOrderRules.items.length; x++) {
+                if (this.props.company.reOrderRules.items[x].productID === this.state.products[this.state.selectedOption].details.id) {
+                    isFound = true; xF = x;
+                }
+            }
+        }
+        console.log('prods, orders, isF, xF ', this.state.products, this.props.company.reOrderRules.items, isFound, xF);
+
+        if (isFound && this.state.oneOffOrRule === 2) {
+            const deepCopyRule = this.props.company.reOrderRules ? JSON.parse(JSON.stringify(this.props.company.reOrderRules.items[xF])) : null;
+            console.log('deepCopyRule', deepCopyRule);
+            
+            this.setState(prevState => ({
+                order: deepCopyRule,
+                isSubmitValid: true,
+                isUpdate: true
+            }))
+        } else {
+            const orderNew = this.newOrder();
+            this.setState(prevState => ({
+                order: {
+                    ...orderNew,
+                    productID: prevState.productsAll[this.state.selectedOption].details.id,
+                    modelNo: prevState.productsAll[this.state.selectedOption].details.modelNo
+                },
+                isSubmitValid: true,
+                isUpdate: false
+            }))
+        }
     }
 
     // update modal UI when certain product is selected in drop-down
     handleSelectOptionChange(selected) {
         console.log('selected - ', selected);
         if (selected > -1 ) {
-            console.log('products[selected]', this.state.productsAll[selected]);
-            let isFound = false; let xF = -1;
-            if (this.props.company.orders) {
-                for (let x = 0; x < this.props.company.orders.items.length; x++) {
-                    if (this.props.company.orders.items[x].productID === this.state.productsAll[selected].details.id) {
-                        isFound = true; xF = x;
-                    }
-                }
-            }
-            // console.log('prods, orders, isF, xF ', this.state.products, this.props.company.orders.items, isFound, xF);
-
-            if (isFound) {
-                this.setState(prevState => ({
-                    order: this.props.company.orders ? this.props.company.orders.items[xF] : null,
-                    isSubmitValid: true,
-                    isUpdate: true
-                }))
-            } else {
-                const orderNew = this.newOrder();
-                this.setState(prevState => ({
-                    order: {
-                        ...orderNew,
-                        productID: prevState.productsAll[selected].details.id,
-                        modelNo: prevState.productsAll[selected].details.modelNo
-                    },
-                    isSubmitValid: true,
-                    isUpdate: false
-                }))
-            }
+            this.updateModalState();
         } else {
             this.setState({
                 order: this.newOrder(),
@@ -332,24 +343,33 @@ class AssemblingCompany extends Component {
         this.setState(prevState => ({ order: { ...prevState.order, reorderLevel: newQuantity } }))
     }
 
-    handleSuspend = async (order, e) => {
-        e.preventDefault();
+    handleSuspendResume (order, e) {
         console.log('order - ', order);
-        if (window.confirm(`Are you sure you want to delete order ${order.orderID}`)) {
-            this.setState({ loading: true, modalIsOpen: false });
-            const { deleteOrder } = this.props;
-            console.log('deleteOrder = ', this.props.deleteOrder);
-            await deleteOrder(order);
-            // this.setState({ loading: false });
-            this.handleSync();
+        const suspendOrResume = this.state.order.isRuleEffective ? 'suspend' : 'resume';
+        if (window.confirm(`Are you sure you want to ${suspendOrResume} this re-order rule ?`)) {
+            e.stopPropagation();
+            e.preventDefault();
+            this.setState(prevState => ({
+                order: { ...prevState.order, isRuleEffective: !prevState.order.isRuleEffective },
+                loading: true,
+                modalIsOpen: false
+            }), async () => {
+                const { order } = this.state;
+                const { updateReOrderRule } = this.props;
+                console.log('updateReOrderRule -', this.props.updateOrder);
+                console.log('order b4 save -', this.state.order);
+                await updateReOrderRule({ ...order });
+                console.log('order after save -', this.state.order);
+                this.handleSync();
+            })
         }
     }
 
     handleDelete = async (order, e) => {
         e.preventDefault();
         console.log('order - ', order);
-        if (this.state.isBothOrOrderOnly === 1) {
-            if (window.confirm(`Are you sure you want to delete order ${order.orderID}`)) {
+        if (this.state.oneOffOrRule === 1) {
+            if (window.confirm(`Are you sure you want to delete this order ?`)) {
                 this.setState({ loading: true, modalIsOpen: false });
                 const { deleteOrder } = this.props;
                 console.log('deleteOrder = ', this.props.deleteOrder);
@@ -357,8 +377,8 @@ class AssemblingCompany extends Component {
                 // this.setState({ loading: false });
                 this.handleSync();
             }
-        } else if (this.state.isBothOrOrderOnly === 2) {
-            if (window.confirm(`Are you sure you want to delete re-order rule ${order.reorderRuleID}`)) {
+        } else if (this.state.oneOffOrRule === 2) {
+            if (window.confirm(`Are you sure you want to delete this re-order rule ?`)) {
                 this.setState({ loading: true, modalIsOpen: false });
                 const { deleteReOrderRule } = this.props;
                 console.log('deleteOrder = ', deleteReOrderRule);
@@ -374,9 +394,9 @@ class AssemblingCompany extends Component {
         e.preventDefault();
         this.setState({ loading: true, modalIsOpen: false });
         console.log('handle save state', this.state);
-        console.log('isBothOrOrderOnly', this.state.isBothOrOrderOnly);
+        console.log('oneOffOrRule', this.state.oneOffOrRule);
         
-        if (this.state.isBothOrOrderOnly === 1) {
+        if (this.state.oneOffOrRule === 1) {
             const { createOrder } = this.props;
             const { order } = this.state;
 
@@ -384,7 +404,7 @@ class AssemblingCompany extends Component {
             console.log('order b4 save -', order);
             await createOrder({ ...order });
             // this.setState({ loading: false });
-        } else if (this.state.isBothOrOrderOnly === 2) {
+        } else if (this.state.oneOffOrRule === 2) {
             const { createReOrderRule } = this.props;
             const { order } = this.state;
 
@@ -405,9 +425,9 @@ class AssemblingCompany extends Component {
         const { order } = this.state;
         console.log('handle save state', this.state);
         console.log('handle save order', order);
-        console.log('isBothOrOrderOnly', this.state.isBothOrOrderOnly);
+        console.log('oneOffOrRule', this.state.oneOffOrRule);
 
-        if (this.state.isBothOrOrderOnly === 1) {
+        if (this.state.oneOffOrRule === 1) {
 
             const { updateOrder } = this.props;
                     
@@ -416,7 +436,7 @@ class AssemblingCompany extends Component {
 
             await updateOrder({ ...order });
 
-        } else if (this.state.isBothOrOrderOnly === 2) {
+        } else if (this.state.oneOffOrRule === 2) {
             const { updateReOrderRule } = this.props;
             console.log('updateReOrderRule -', this.props.updateOrder);
             console.log('order b4 save -', this.state.order);
@@ -444,18 +464,20 @@ class AssemblingCompany extends Component {
 
         const productsListFromProps = this.props.products ? this.props.products : null;
         console.log('indexed prs from store', productsListFromProps);
-        const noOrderProducts = this.noOrderProducts(productsListFromProps);
+        const noRuleProducts = this.noRuleProducts(productsListFromProps);
         this.setState({
             order: this.newOrder(),
             orders: this.props.company.orders ? this.props.company.orders.items : null,
-            products: noOrderProducts,
-            productsNoOrder: noOrderProducts,
+            products: noRuleProducts,
+            productsNoRule: noRuleProducts,
             productsAll: this.allProducts(productsListFromProps),
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
             selectedOption: -1,
-            loading: false
+            loading: false,
+            oneOffOrRule: 1,
+            infoModalData: ''
         });
     }
 
@@ -488,10 +510,10 @@ class AssemblingCompany extends Component {
                                     const fromProps = JSON.parse(JSON.stringify(this.props.products));
                                     const fromState = JSON.parse(JSON.stringify(this.state.productsAll));
                                     const productsListFromProps = this.props.products ? this.props.products : null;
-                                    const noOrderProducts = this.noOrderProducts(productsListFromProps);
+                                    const noRuleProducts = this.noRuleProducts(productsListFromProps);
                                     this.setState(() => ({
-                                        products: noOrderProducts,
-                                        productsNoOrder: noOrderProducts,
+                                        products: noRuleProducts,
+                                        productsNoRule: noRuleProducts,
                                         productsAll: this.allProducts(productsListFromProps),
                                         infoModalData: {
                                             type: 'newProds',
@@ -506,10 +528,10 @@ class AssemblingCompany extends Component {
                                 className="addnlightbg notbold cursorpointer"
                                 onClick={() => {
                                     const productsListFromProps = this.props.products ? this.props.products : null;
-                                    const noOrderProducts = this.noOrderProducts(productsListFromProps);
+                                    const noRuleProducts = this.noRuleProducts(productsListFromProps);
                                     this.setState(() => ({
-                                        products: noOrderProducts,
-                                        productsNoOrder: noOrderProducts,
+                                        products: noRuleProducts,
+                                        productsNoRule: noRuleProducts,
                                         productsAll: this.allProducts(productsListFromProps),
                                     }));
                                 }}>dismiss
@@ -524,10 +546,10 @@ class AssemblingCompany extends Component {
                             onClick={() => {
                                 const productsListFromProps = this.props.products ? this.props.products : null;
                                 console.log('products in Store', productsListFromProps);
-                                const noOrderProducts = this.noOrderProducts(productsListFromProps);
+                                const noRuleProducts = this.noRuleProducts(productsListFromProps);
                                 this.setState(() => ({
-                                    products: noOrderProducts,
-                                    productsNoOrder: noOrderProducts,
+                                    products: noRuleProducts,
+                                    productsNoRule: noRuleProducts,
                                     productsAll: this.allProducts(productsListFromProps),
                                     modalIsOpen: true,
                                     isUpdateAtStart: false
@@ -558,7 +580,7 @@ class AssemblingCompany extends Component {
                                                     this.setState(() => ({
                                                         isUpdateAtStart: true,
                                                         order: JSON.parse(JSON.stringify(orderRule)),
-                                                        isBothOrOrderOnly: 2,
+                                                        oneOffOrRule: 2,
                                                         modalIsOpen: true
                                                     }));
                                                 }}>&nbsp;{orderRule.product.name} {orderRule.product.modelNo}
@@ -574,12 +596,6 @@ class AssemblingCompany extends Component {
                         <span className="verIndent"></span>
                         <table className="smalltable">
                             <tbody>
-                                <tr>
-                                    <td>product</td>
-                                    <td>reorder rule</td>
-                                    <td>left</td>
-                                </tr>
-
                                 {items && [].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
                                     <tr key={order.orderID}>
                                         <td>
@@ -588,29 +604,13 @@ class AssemblingCompany extends Component {
                                                     this.setState(() => ({
                                                         isUpdateAtStart: true,
                                                         order: JSON.parse(JSON.stringify(order)),
-                                                        isBothOrOrderOnly: 1,
+                                                        oneOffOrRule: 1,
                                                         modalIsOpen: true
                                                     }));
-                                                }}>&nbsp;{order.product.name}</span>
-                                            <span className="addnlightbg notbold cursorpointer"
-                                                    onClick={() => {
-                                                        this.setState(() => ({
-                                                            infoModalData: {
-                                                                type: 'prodSpec',
-                                                                mainText: 'Product specification',
-                                                                shortText: 'Product specification',
-                                                                name: order.product.name,
-                                                                model: order.product.modelNo,
-                                                            }
-                                                        }));
-                                                    }}>&nbsp;{order.product.modelNo}</span>
+                                                }}>&nbsp;{order.quantity} {order.product.name}-{order.product.modelNo} @ {order.maxPrice} $&nbsp;
+                                            </span>
                                         </td>
-                                        
-                                        <td>&nbsp;'a'&nbsp;</td>
-                                        <td>{order.quantity}</td>
-                                        {/*<td>&nbsp;{order.quantity}&nbsp;</td>
-                                        <td>{order.status.toLowerCase()}</td>*/}
-
+                                        <td>&nbsp;{order.status.toLowerCase()}&nbsp;</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -631,15 +631,15 @@ class AssemblingCompany extends Component {
                                 <div className="padding15 responsiveFSize">
                                     {!this.state.isUpdateAtStart && <span></span>}
                                     <div>
-                                        {/*<div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
-                                                <label htmlFor="noOrders">products with no order({this.state.productsNoOrder.length})&nbsp;</label>
-                                                <input id="noOrders" type="radio" value="noOrders" name="prodtype" defaultChecked />
-                                                &nbsp;&nbsp;
-                                                <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
-                                                <input id="all" type="radio" value="all" name="prodtype" />
-                                            </div>*/}
+                                        <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
+                                            <label htmlFor="noOrders">products with no re-order rule({this.state.productsNoRule.length})&nbsp;</label>
+                                            <input id="noOrders" type="radio" value="noOrders" name="prodtype" defaultChecked />
+                                            &nbsp;&nbsp;
+                                            <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
+                                            <input id="all" type="radio" value="all" name="prodtype" />
+                                        </div>
 
-                                        {this.state.isUpdateAtStart && <div>(Re)order `'{this.state.order.product.name} - {this.state.order.product.modelNo}'`</div>}
+                                        {this.state.isUpdateAtStart && <div>Update re-order rule for '{this.state.order.product.name} - {this.state.order.product.modelNo}' - works only for new orders not yet placed</div>}
                                         {!this.state.isUpdateAtStart &&
                                             <div>
                                                 <span>Product to order </span>
@@ -654,7 +654,7 @@ class AssemblingCompany extends Component {
                                                     }}
                                                 >
                                                     <option key="-1" value='null'>( please select a product )</option>
-                                                    {this.state.productsAll.map((aProduct) =>
+                                                    {this.state.products.map((aProduct) =>
                                                         <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
                                                     )}
                                                 </select>
@@ -669,19 +669,18 @@ class AssemblingCompany extends Component {
                                     {(this.state.selectedOption > -1 || this.state.isUpdateAtStart) &&
                                       <div>
                                         {!this.state.isUpdateAtStart &&
-                                            <div className="" onChange={this.updateOrderType.bind(this)}>
-                                            <label htmlFor="both">one-off order + re-order rule&nbsp;</label>
-                                            <input id="both" type="radio" value="0" name="orderType" defaultChecked />
-                                            &nbsp;&nbsp;
-                                            <label htmlFor="oneoff">&nbsp;one-off order only&nbsp;</label>
-                                            <input id="oneoff" type="radio" value="1" name="orderType" />
-                                            &nbsp;&nbsp;
-                                            <label htmlFor="ruleonly">&nbsp;re-order rule only&nbsp;</label>
-                                            <input id="ruleonly" type="radio" value="2" name="orderType" />
+                                            <div className="">
+                                            <label htmlFor="oneoff">&nbsp;one-off order &nbsp;</label>
+                                            <input id="oneoff" type="radio" value="1" name="orderType" 
+                                                checked={this.state.oneOffOrRule === 1} onChange={this.updateOrderType.bind(this)}/>
+                                                &nbsp;&nbsp;
+                                            <label htmlFor="ruleonly">&nbsp;re-order rule &nbsp;</label>
+                                            <input id="ruleonly" type="radio" value="2" name="orderType" 
+                                                checked={this.state.oneOffOrRule === 2} onChange={this.updateOrderType.bind(this)}/>
                                             </div>
                                         }
                                         <br />
-                                        {this.state.isBothOrOrderOnly === 0 && !this.state.isUpdateAtStart &&
+                                        {this.state.oneOffOrRule === 0 && !this.state.isUpdateAtStart &&
                                             <div><div>( below settings apply to initial order and subsequent re-orders )</div><br /></div>}
 
                                         Order product with following terms:
@@ -689,7 +688,7 @@ class AssemblingCompany extends Component {
                                             <div className="floatRight">
                                                 <span>if no offer is found fallback to </span>
                                                 <select
-                                                    value={this.state.secondBestOfferType}
+                                                    value={this.state.order.secondBestOfferType}
                                                     onChange={(e) => {
                                                         const secondBestOfferType = e.target.value;
                                                         this.setState(prevState => ({
@@ -706,17 +705,25 @@ class AssemblingCompany extends Component {
                                             </div>
                                         }
 
-                                        <div className="" onChange={(e) => this.handleBestOfferTypeChange(e)}>
-                                            &nbsp;&nbsp;<input id="optimal" type="radio" value="OPTIMAL" name="bestorder" defaultChecked />
+                                        <div className="">
+                                            &nbsp;&nbsp;<input id="optimal" type="radio" value="OPTIMAL" name="bestorder" 
+                                                checked={this.state.order.bestOfferType === "OPTIMAL"} 
+                                                onChange={(e) => this.handleBestOfferTypeChange(e)}/>
                                             <label htmlFor="optimal">&nbsp;cheapest price at min. rating</label>
                                             <br />
-                                            &nbsp;&nbsp;<input id="cheapest" type="radio" value="CHEAPEST" name="bestorder" />
+                                            &nbsp;&nbsp;<input id="cheapest" type="radio" value="CHEAPEST" name="bestorder" 
+                                                checked={this.state.order.bestOfferType === "CHEAPEST"}
+                                                onChange={(e) => this.handleBestOfferTypeChange(e)}/>
                                             <label htmlFor="cheapest">&nbsp;cheapest price</label>
                                             <br />
-                                            &nbsp;&nbsp;<input id="highestrating" type="radio" value="HIGHESTRATING" name="bestorder" />
+                                            &nbsp;&nbsp;<input id="highestrating" type="radio" value="HIGHESTRATING" name="bestorder" 
+                                                checked={this.state.order.bestOfferType === "HIGHESTRATING"}
+                                                onChange={(e) => this.handleBestOfferTypeChange(e)}/>
                                             <label htmlFor="highestrating">&nbsp;highest rating</label>
                                             <br/>
-                                            &nbsp;&nbsp;<input id="custom" type="radio" value="CUSTOM" name="bestorder" />
+                                            &nbsp;&nbsp;<input id="custom" type="radio" value="CUSTOM" name="bestorder" 
+                                                checked={this.state.order.bestOfferType === "CUSTOM"}
+                                                onChange={(e) => this.handleBestOfferTypeChange(e)}/>
                                             <label htmlFor="custom">&nbsp;custom settings</label>                                        
     
                                         </div>
@@ -744,11 +751,11 @@ class AssemblingCompany extends Component {
                                             </div>
                                         }
                                         <br/>
-                                        {console.log('both conds', !this.state.isUpdateAtStart, !(this.state.isBothOrOrderOnly === 2), this.state.isBothOrOrderOnly)}
-                                        {!this.state.isUpdateAtStart && !(this.state.isBothOrOrderOnly === 2) &&
+                                        {console.log('both conds', !this.state.isUpdateAtStart, !(this.state.oneOffOrRule === 2), this.state.oneOffOrRule)}
+                                        {!(this.state.oneOffOrRule === 2) &&
                                             <div className="">
                                                 <label htmlFor="quantity">
-                                                {this.state.isBothOrOrderOnly === 0 && <span>initial </span>}
+                                                {this.state.oneOffOrRule === 0 && <span>initial </span>}
                                                 order quantity&nbsp;&nbsp;</label>
                                                 <input type="text" id="quantity" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'quantity')} />
                                                 <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
@@ -757,8 +764,8 @@ class AssemblingCompany extends Component {
                                                 <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(100)}>+ 100</button>&nbsp;
                                             </div>
                                         }
-                                        {console.log('one cond', !this.state.isBothOrOrderOnly == 1, this.state.isBothOrOrderOnly, typeof this.state.isBothOrOrderOnly)}
-                                        {!(this.state.isBothOrOrderOnly === 1) &&
+                                        {console.log('one cond', !this.state.oneOffOrRule == 1, this.state.oneOffOrRule, typeof this.state.oneOffOrRule)}
+                                        {!(this.state.oneOffOrRule === 1) &&
                                           <div>
                                             <div>reorder &nbsp;
                                                 <input type="text" id="reorderQnty" value={this.state.order.reorderQnty} onChange={this.handleChange.bind(this, 'reorderQnty')} />
@@ -778,13 +785,15 @@ class AssemblingCompany extends Component {
                                           </div>
                                         }
                                         <br/>
-                                        <div className="" onChange={this.updateSettlementType.bind(this)}>
+                                        <div className="" >
                                             settlement type: &nbsp;&nbsp;
                                             <label htmlFor="credit">&nbsp;credit&nbsp;</label>
-                                            <input id="credit" type="radio" value="false" name="paymenttype" defaultChecked />
+                                            <input id="credit" type="radio" value="false" name="paymenttype"
+                                                checked={!this.state.order.isCashPayment} onChange={this.updateSettlementType.bind(this)}/>
                                             &nbsp;&nbsp;
                                             <label htmlFor="cash">&nbsp;cash&nbsp;</label>
-                                            <input id="cash" type="radio" value="true" name="paymenttype" />
+                                            <input id="cash" type="radio" value="true" name="paymenttype" 
+                                                checked={this.state.order.isCashPayment} onChange={this.updateSettlementType.bind(this)}/>
                                         </div>
 
                                       </div>
@@ -797,20 +806,24 @@ class AssemblingCompany extends Component {
                                         
                                         {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
                                             <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
-                                            {this.state.isBothOrOrderOnly === 1 ? 'Place order' : (this.state.isBothOrOrderOnly === 2 ? 'Set re-order rule' : 'Place order and set rule')}
+                                            {this.state.oneOffOrRule === 1 ? 'Place order' : 
+                                            (this.state.oneOffOrRule === 2 ? 'Set re-order rule' : 'Place order and set rule')}
                                             </button>
                                         }
                                         
                                         {(this.state.isUpdateAtStart || this.state.isUpdate) &&
-                                            <button className="button button1" onClick={this.handleSaveUpdate} disabled={!this.state.isSubmitValid && !this.state.isUpdateAtStart}>
+                                            <button className="button button1" onClick={this.handleSaveUpdate} disabled={!this.state.isSubmitValid && 
+                                                !this.state.isUpdateAtStart}>
                                                 Update rule
                                             </button>
                                         }
                                         
                                         {(this.state.isUpdateAtStart || this.state.isUpdate) && 
                                             <span>
-                                            <button className="button button1" onClick={this.handleSuspend.bind(this, this.state.order)}> Suspend rule </button>
-                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.order)}> Delete rule</button>
+                                            <button className="button button1" onClick={this.handleSuspendResume.bind(this, this.state.order)}>
+                                            {this.state.order.isRuleEffective ? 'Suspend rule' : 'Resume rule'}  </button>
+                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.order)}>
+                                             Delete rule</button>
                                             </span>
                                         }
                                         <button className="button button1" onClick={this.handleModalClose}>Cancel</button>
@@ -825,7 +838,6 @@ class AssemblingCompany extends Component {
                             />
                         }
                     </div>
-                    <div id="container2a">test</div>
                 </div>
             );
         } else {

@@ -7,7 +7,7 @@ export class OrderStatus extends Component {
         <table className="smalltable">
             <tbody>
                 <tr>
-                    <td>200 Caster C122 at $238.04 - order placed</td>
+                    <td> 200 Caster C122 at $238.04 - order placed</td>
                 </tr>
                 <tr>
                     <td>800 Gauge G122 at $238.04 - order placed</td>
