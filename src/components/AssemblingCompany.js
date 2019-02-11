@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { graphql, compose } from 'react-apollo'
 import { v4 as uuid } from "uuid";
 import Modal from 'react-modal';
-import numeral from 'numeral';
 
 import QueryGetCompany from "../graphQL/queryGetCompanyOrders";
 import QueryAllProducts from "../graphQL/queryAllProducts";
@@ -154,7 +153,7 @@ class AssemblingCompany extends Component {
         }
     }
 
-    // prepares array of products (for which company did not make an order) recorded in store for options drop-down
+    // prepares array of products (for which company did not set a re-order rule) recorded in store for options drop-down
     noRuleProducts(productsListFromProps) {
 
         if (productsListFromProps.length > 0 && this.props.company && this.props.company.reOrderRules && this.props.company.reOrderRules.items.length > 0) {
@@ -629,8 +628,7 @@ class AssemblingCompany extends Component {
                                     <p>{this.state.isUpdateAtStart ? 'Update re-order rule' : (this.state.isUpdate ? 'Update re-order rule' : 'Add new order / re-order rule')}</p>
                                 </div>
                                 <div className="padding15 responsiveFSize">
-                                    {!this.state.isUpdateAtStart && <span></span>}
-                                    <div>
+                                    {!this.state.isUpdateAtStart && 
                                         <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
                                             <label htmlFor="noOrders">products with no re-order rule({this.state.productsNoRule.length})&nbsp;</label>
                                             <input id="noOrders" type="radio" value="noOrders" name="prodtype" defaultChecked />
@@ -638,7 +636,7 @@ class AssemblingCompany extends Component {
                                             <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
                                             <input id="all" type="radio" value="all" name="prodtype" />
                                         </div>
-
+                                    }
                                         {this.state.isUpdateAtStart && <div>Update re-order rule for '{this.state.order.product.name} - {this.state.order.product.modelNo}' - works only for new orders not yet placed</div>}
                                         {!this.state.isUpdateAtStart &&
                                             <div>
@@ -662,8 +660,6 @@ class AssemblingCompany extends Component {
                                         }
 
                                     {console.log('isUpdateAtStart === ', this.state.isUpdateAtStart)}
-
-                                        </div>
 
                                     <br/>
                                     {(this.state.selectedOption > -1 || this.state.isUpdateAtStart) &&
@@ -806,7 +802,7 @@ class AssemblingCompany extends Component {
                                         
                                         {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
                                             <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
-                                            {this.state.oneOffOrRule === 1 ? 'Place order' : 
+                                            {this.state.oneOffOrRule === 1 ? 'Place new order' : 
                                             (this.state.oneOffOrRule === 2 ? 'Set re-order rule' : 'Place order and set rule')}
                                             </button>
                                         }
@@ -842,7 +838,7 @@ class AssemblingCompany extends Component {
             );
         } else {
             return (
-                <div>Loading ...</div>
+                <div>Company is not defined ...</div>
             )
         }
     }
