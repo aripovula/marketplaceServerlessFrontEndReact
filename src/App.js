@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Route } from 'react-router-dom';
 
+import Amplify, { Auth } from 'aws-amplify';
+import { withAuthenticator } from 'aws-amplify-react';
 import appSyncConfig from "./aws-exports";
 import { ApolloProvider } from "react-apollo";
 import AWSAppSyncClient, { defaultDataIdFromObject } from "aws-appsync";
@@ -14,6 +16,8 @@ import { Header } from './components/Header';
 import { LoginPage } from './components/LoginPage';
 import Offers from './components/Offers';
 
+// Amplify init
+Amplify.configure(appSyncConfig);
 
 const Home = () => (
   <div className="ui container">
@@ -50,7 +54,8 @@ const client = new AWSAppSyncClient({
   region: appSyncConfig.aws_appsync_region,
   auth: {
     type: appSyncConfig.aws_appsync_authenticationType,
-    apiKey: appSyncConfig.aws_appsync_apiKey,
+    // apiKey: appSyncConfig.aws_appsync_apiKey,
+    credentials: () => Auth.currentCredentials(),
   },
   cacheOptions: {
     dataIdFromObject: (obj) => {
@@ -86,10 +91,12 @@ const client = new AWSAppSyncClient({
   }
 });
 
+const AppWithAuth = withAuthenticator(App, true);
+
 const WithProvider = () => (
   <ApolloProvider client={client}>
     <Rehydrated>
-      <App />
+      <AppWithAuth />
     </Rehydrated>
   </ApolloProvider>
 );
