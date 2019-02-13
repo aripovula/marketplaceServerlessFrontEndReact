@@ -81,7 +81,7 @@ class PartsCompany extends Component {
     }
 
     componentWillUnmount() {
-        this.productSubscription();
+        // this.productSubscription();
     }
 
     openModal() {

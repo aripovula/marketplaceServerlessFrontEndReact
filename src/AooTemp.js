@@ -1,6 +1,8 @@
-import React, { Component } from 'react';
-import AppRouter, { history } from './AppRouter';
+import React from 'react';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 
+import Amplify, { Auth } from 'aws-amplify';
+import { withAuthenticator } from 'aws-amplify-react';
 import appSyncConfig from "./aws-exports";
 import { ApolloProvider } from "react-apollo";
 import AWSAppSyncClient, { defaultDataIdFromObject } from "aws-appsync";
@@ -8,63 +10,95 @@ import { Rehydrated } from "aws-appsync-react";
 
 import './App.css';
 
-const App = () => (
-    <div className="App">
-        <header>
-            <AppRouter client={client} />
-        </header>
+import AllTraders from './components/AllTraders';
+import OneTrader from './components/OneTrader';
+import { Header } from './components/Header';
+import { LoginPage } from './components/LoginPage';
+import Offers from './components/Offers';
+
+// Amplify init
+Amplify.configure(appSyncConfig);
+
+const Home = () => (
+    <div className="ui container">
+        <AllTraders client={client} />
     </div>
 );
 
-// class App extends Component {
-//   render() {
-//     return (
-//       <div className="App">
-//         <header>
-//           <AppRouter/>
-//         </header>
-//       </div>
-//     );
-//   }
-// }
+const AllTradersWithClient = () => (
+    <AllTraders client={client} />
+);
+
+const OneTraderWithClient = () => (
+    <OneTrader client={client} />
+);
+
+
+const App = () => (
+    <Router>
+        <div>
+            <Header />
+            <Route exact={true} path="/" component={Home} />
+            <Route path="/multitrader" component={AllTradersWithClient} />
+            <Route path="/onetrader" component={OneTraderWithClient} />
+            <Route path="/offers" component={Offers} />
+            {/*<Route path="/offer/:id" component={ViewCompanyOffers} />*/}
+            <Route path="/login" component={LoginPage} />
+
+        </div>
+    </Router>
+);
 
 const client = new AWSAppSyncClient({
     url: appSyncConfig.aws_appsync_graphqlEndpoint,
     region: appSyncConfig.aws_appsync_region,
     auth: {
         type: appSyncConfig.aws_appsync_authenticationType,
-        apiKey: appSyncConfig.aws_appsync_apiKey,
+        // apiKey: appSyncConfig.aws_appsync_apiKey,
+        credentials: () => Auth.currentCredentials(),
     },
     cacheOptions: {
         dataIdFromObject: (obj) => {
-            console.log("obj = ", obj);
-
             let id = defaultDataIdFromObject(obj);
-            console.log("id 1 = ", id);
+
             if (!id) {
                 const { __typename: typename } = obj;
                 switch (typename) {
-                    case 'Option':
-                        console.log("coID = ", `${typename}:${obj.companyID}`);
-                        return `${typename}:${obj.companyID}`;
+                    case 'Company':
+                        const cos = `${typename}:${obj.id}`;
+                        console.log('in COMPANIES S -', cos);
+                        return `${typename}:${obj.id}`;
+                    case 'Offer':
+                        const offers = `${typename}:${obj.price}`;
+                        console.log('in OFFER S -', offers);
+                        return `${typename}:${obj.offerID}`;
+                    case 'Order':
+                        const orders = `${typename}:${obj.price}`;
+                        console.log('in ORDER S -', orders);
+                        return `${typename}:${obj.orderID}`;
+                    case 'Product':
+                        const products = `${typename}:${obj.name}`;;
+                        console.log('in PRODUCT S - ', products);
+                        return `${typename}:${obj.id}`;
                     default:
-                        console.log("id 2 = ", id);
+                        console.log('in default type');
                         return id;
                 }
             }
-            console.log("id 3 = ", id);
+
             return id;
         }
     }
 });
 
+const AppWithAuth = withAuthenticator(App, true);
+
 const WithProvider = () => (
     <ApolloProvider client={client}>
         <Rehydrated>
-            <App />
+            <AppWithAuth />
         </Rehydrated>
     </ApolloProvider>
 );
 
 export default WithProvider;
-

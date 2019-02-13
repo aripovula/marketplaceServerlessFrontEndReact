@@ -93,7 +93,7 @@ class AssemblingCompany extends Component {
     }
 
     componentWillUnmount() {
-        this.productSubscription();
+        // this.productSubscription();
     }
 
     openModal() {

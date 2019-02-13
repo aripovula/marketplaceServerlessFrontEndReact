@@ -9,14 +9,14 @@ import MarketDataTable from './MarketDataTable';
 
 class Offers extends React.Component {
     
-    subscription;
+    offerSubscription;
     
     componentWillMount() {
-        this.subscription = this.props.subscribeToNewOffers();
+        this.offerSubscription = this.props.subscribeToNewOffers();
     }
 
     componentWillUnmount() {
-        this.subscription();
+        // this.offerSubscription();
     }
 
     render() {

@@ -17,7 +17,75 @@ import { LoginPage } from './components/LoginPage';
 import Offers from './components/Offers';
 
 // Amplify init
-Amplify.configure(appSyncConfig);
+Amplify.configure({
+  Auth: {
+
+    // REQUIRED only for Federated Authentication - Amazon Cognito Identity Pool ID
+    identityPoolId: 'us-east-1:76c25d29-c711-4548-98c1-c168faa890ff',
+
+    // REQUIRED - Amazon Cognito Region
+    region: 'us-east-1',
+
+    // OPTIONAL - Amazon Cognito Federated Identity Pool Region 
+    // Required only if it's different from Amazon Cognito Region
+    identityPoolRegion: 'us-east-1',
+
+    // OPTIONAL - Amazon Cognito User Pool ID
+    userPoolId: 'us-east-1_BfCOXB7tr',
+
+    // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
+    userPoolWebClientId: '7d8m9a4koeqv1shkpro8f5lqif',
+
+    // OPTIONAL - Enforce user authentication prior to accessing AWS resources or not
+    mandatorySignIn: true,
+
+  }
+});
+
+// const signIn = async (username, password) => {
+// try {
+//   const user = await Auth.signIn(username, password);
+//   if (user.challengeName === 'SMS_MFA' ||
+//     user.challengeName === 'SOFTWARE_TOKEN_MFA') {
+//     // You need to get the code from the UI inputs
+//     // and then trigger the following function with a button click
+
+//   } else if (user.challengeName === 'NEW_PASSWORD_REQUIRED') {
+//     const { requiredAttributes } = user.challengeParam; // the array of required attributes, e.g ['email', 'phone_number']
+//     // You need to get the new password and required attributes from the UI inputs
+//     // and then trigger the following function with a button click
+//     // For example, the email and phone_number are required attributes
+//   } else if (user.challengeName === 'MFA_SETUP') {
+//     // This happens when the MFA method is TOTP
+//     // The user needs to setup the TOTP before using it
+//     // More info please check the Enabling MFA part
+//     Auth.setupTOTP(user);
+//   } else {
+//     // The user directly signs in
+//     console.log(user)
+//   }
+// } catch (err) {
+//   if (err.code === 'UserNotConfirmedException') {
+//     // The error happens if the user didn't finish the confirmation step when signing up
+//     // In this case you need to resend the code and confirm the user
+//     // About how to resend the code and confirm the user, please check the signUp part
+//   } else if (err.code === 'PasswordResetRequiredException') {
+//     // The error happens when the password is reset in the Cognito console
+//     // In this case you need to call forgotPassword to reset the password
+//     // Please check the Forgot Password part.
+//   } else {
+//     console.log(err);
+//   }
+// }
+// }
+
+// For advanced usage
+// You can pass an object which has the username, password and validationData which is sent to a PreAuthentication Lambda trigger
+Auth.signIn({
+  username: "component", // Required, the username
+  password: "Orchard1!", // Optional, the password
+}).then(user => console.log('Wow', user))
+  .catch(err => console.log('Wow', err));
 
 const Home = () => (
   <div className="ui container">
@@ -96,7 +164,7 @@ const AppWithAuth = withAuthenticator(App, true);
 const WithProvider = () => (
   <ApolloProvider client={client}>
     <Rehydrated>
-      <AppWithAuth />
+      <App />
     </Rehydrated>
   </ApolloProvider>
 );
