@@ -1,9 +1,17 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { Auth } from 'aws-amplify';
+import AppRouter, { history } from './AppRouter';
 // import { startLogout } from '../actions/auth';
 
+
+const signOut = (receivedProps) => {
+    Auth.signOut()
+        .then(data => { console.log(data); receivedProps.checkLoginStatus('Header'); history.push('/login');})
+        .catch(err => console.log(err))
+}
 // export const Header = ({ startLogout }) => (
-export const Header = () => (
+export const Header = (props) => (
     <header className="header fixedElement">
         <div>
             <div className="header__content">
@@ -20,7 +28,7 @@ export const Header = () => (
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>
 
-             {/*    <NavLink
+                 <NavLink
                     to="/onetrader"
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
@@ -30,7 +38,7 @@ export const Header = () => (
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>
 
-                <NavLink
+                {/*   <NavLink
                     to="/dataroom"
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
@@ -40,7 +48,7 @@ export const Header = () => (
                 <span className="horIndent"></span>|<span className="horIndent"></span>
 */}
                 <NavLink
-                    to="#"
+                    to="/source"
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                 >Link to source
@@ -50,7 +58,7 @@ export const Header = () => (
 
                 <NavLink
                     to="#"
-                    // onClick={startLogout}
+                    onClick={() => signOut(props)}
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px', float: 'right' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                 >Logout
