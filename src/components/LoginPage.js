@@ -25,6 +25,23 @@ export class LoginPage extends Component {
     })
       .catch(err => {
         console.log('Wow', err);
+        this.trySignUp();
+      });
+  }
+
+  trySignUp() {
+    Auth.signUp({
+      'username': this.state.userData.username,
+      'password': this.state.userData.password,
+      'attributes': {
+        'email': this.state.userData.username+'@example.com',
+      }
+    }).then(user => {
+      console.log('WowSignUp', user)
+      this.tryLogin();
+    })
+      .catch(err => {
+        console.log('WowSignUp', err);
       });
   }
 
