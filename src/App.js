@@ -86,7 +86,7 @@ const WithProvider = () => (
         // }
         amplifyConfig={appSyncConfigCustom}
       >
-        <AppRouter />
+        <AppRouter client={client}/>
       </Authenticator>
     </Rehydrated>
   </ApolloProvider>

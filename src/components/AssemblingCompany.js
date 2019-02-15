@@ -63,13 +63,14 @@ class AssemblingCompany extends Component {
         console.log('indexed prs from store', productsListFromProps);
         console.log('props in CONSt', this.props);
         const noRuleProducts = this.noRuleProducts(productsListFromProps);
+        const productsAll = this.allProducts(productsListFromProps);
         this.state = {
             modalIsOpen: false,
             order: this.newOrder(),
             orders: (this.props.company && this.props.company.orders) ? this.props.company.orders.items : null,
-            products: noRuleProducts,
+            products: productsAll,
             productsNoRule: noRuleProducts,
-            productsAll: this.allProducts(productsListFromProps),
+            productsAll,
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
@@ -103,7 +104,7 @@ class AssemblingCompany extends Component {
     handleModalClose() {
         this.setState(prevState => ({
             order: this.newOrder(),
-            products: prevState.productsNoRule,
+            products: prevState.productsAll,
             isSubmitValid: false,
             isUpdateAtStart: false,
             isUpdate: false,
@@ -126,7 +127,7 @@ class AssemblingCompany extends Component {
             productID: '',
             product: '',
             status: 'ORDER_PLACED',
-            maxPrice: 20,
+            maxPrice: 1000000,
             quantity: 100,
             bestOfferType: 'OPTIMAL',
             secondBestOfferType: 'CHEAPEST',
@@ -251,8 +252,10 @@ class AssemblingCompany extends Component {
 
     updateModalState() {
         console.log('products[selected]', this.state.products[this.state.selectedOption]);
+        console.log('b4 PR SEL', this.state.order);
         let isFound = false; let xF = -1;
-        if (this.props.company.reOrderRules) {
+        // if re-order rule already exists for this product that re-order rule to update
+        if (this.state.oneOffOrRule === 2 && this.props.company.reOrderRules) {
             for (let x = 0; x < this.props.company.reOrderRules.items.length; x++) {
                 if (this.props.company.reOrderRules.items[x].productID === this.state.products[this.state.selectedOption].details.id) {
                     isFound = true; xF = x;
@@ -261,26 +264,27 @@ class AssemblingCompany extends Component {
         }
         console.log('prods, orders, isF, xF ', this.state.products, this.props.company.reOrderRules.items, isFound, xF);
 
-        if (isFound && this.state.oneOffOrRule === 2) {
+
+        if (isFound) {
             const deepCopyRule = this.props.company.reOrderRules ? JSON.parse(JSON.stringify(this.props.company.reOrderRules.items[xF])) : null;
             console.log('deepCopyRule', deepCopyRule);
             
-            this.setState(prevState => ({
+            this.setState({
                 order: deepCopyRule,
                 isSubmitValid: true,
                 isUpdate: true
-            }))
+            }, () => console.log('after PR SEL', this.state.order))
         } else {
+            console.log('in modal update');
             const orderNew = this.newOrder();
-            this.setState(prevState => ({
+            this.setState({
                 order: {
                     ...orderNew,
-                    productID: prevState.productsAll[this.state.selectedOption].details.id,
-                    modelNo: prevState.productsAll[this.state.selectedOption].details.modelNo
+                    productID: this.state.products[this.state.selectedOption].details.id
                 },
                 isSubmitValid: true,
                 isUpdate: false
-            }))
+            }, () => console.log('after PR SEL', this.state.order));
         }
     }
 
@@ -452,7 +456,7 @@ class AssemblingCompany extends Component {
 
         // this.setState({ loading: true });
 
-        console.log('client.query = ', client.query);
+        // console.log('client.query = ', client.query);
         const coId = this.props.company.id;
 
         await client.query({
@@ -464,12 +468,13 @@ class AssemblingCompany extends Component {
         const productsListFromProps = this.props.products ? this.props.products : null;
         console.log('indexed prs from store', productsListFromProps);
         const noRuleProducts = this.noRuleProducts(productsListFromProps);
+        const productsAll = this.allProducts(productsListFromProps);
         this.setState({
             order: this.newOrder(),
             orders: this.props.company.orders ? this.props.company.orders.items : null,
-            products: noRuleProducts,
+            products: productsAll,
             productsNoRule: noRuleProducts,
-            productsAll: this.allProducts(productsListFromProps),
+            productsAll,
             isSubmitValid: false,
             isUpdate: false,
             isUpdateAtStart: false,
@@ -510,10 +515,11 @@ class AssemblingCompany extends Component {
                                     const fromState = JSON.parse(JSON.stringify(this.state.productsAll));
                                     const productsListFromProps = this.props.products ? this.props.products : null;
                                     const noRuleProducts = this.noRuleProducts(productsListFromProps);
+                                    const productsAll = this.allProducts(productsListFromProps);
                                     this.setState(() => ({
-                                        products: noRuleProducts,
+                                        products: productsAll,
                                         productsNoRule: noRuleProducts,
-                                        productsAll: this.allProducts(productsListFromProps),
+                                        productsAll,
                                         infoModalData: {
                                             type: 'newProds',
                                             mainText: 'New product(s) with followings details were added:',
@@ -528,10 +534,11 @@ class AssemblingCompany extends Component {
                                 onClick={() => {
                                     const productsListFromProps = this.props.products ? this.props.products : null;
                                     const noRuleProducts = this.noRuleProducts(productsListFromProps);
+                                    const productsAll = this.allProducts(productsListFromProps);
                                     this.setState(() => ({
-                                        products: noRuleProducts,
+                                        products: productsAll,
                                         productsNoRule: noRuleProducts,
-                                        productsAll: this.allProducts(productsListFromProps),
+                                        productsAll,
                                     }));
                                 }}>dismiss
                             </span>
@@ -546,10 +553,11 @@ class AssemblingCompany extends Component {
                                 const productsListFromProps = this.props.products ? this.props.products : null;
                                 console.log('products in Store', productsListFromProps);
                                 const noRuleProducts = this.noRuleProducts(productsListFromProps);
+                                const productsAll = this.allProducts(productsListFromProps);
                                 this.setState(() => ({
-                                    products: noRuleProducts,
+                                    products: productsAll,
                                     productsNoRule: noRuleProducts,
-                                    productsAll: this.allProducts(productsListFromProps),
+                                    productsAll,
                                     modalIsOpen: true,
                                     isUpdateAtStart: false
                                 }));
@@ -631,10 +639,10 @@ class AssemblingCompany extends Component {
                                     {!this.state.isUpdateAtStart && 
                                         <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
                                             <label htmlFor="noOrders">products with no re-order rule({this.state.productsNoRule.length})&nbsp;</label>
-                                            <input id="noOrders" type="radio" value="noOrders" name="prodtype" defaultChecked />
+                                            <input id="noOrders" type="radio" value="noOrders" name="prodtype" />
                                             &nbsp;&nbsp;
                                             <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
-                                            <input id="all" type="radio" value="all" name="prodtype" />
+                                            <input id="all" type="radio" value="all" name="prodtype" defaultChecked />
                                         </div>
                                     }
                                         {this.state.isUpdateAtStart && <div>Update re-order rule for '{this.state.order.product.name} - {this.state.order.product.modelNo}' - works only for new orders not yet placed</div>}

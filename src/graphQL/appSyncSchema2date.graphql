@@ -47,7 +47,8 @@ input CreateCompanyInput {
 }
 
 input CreateDealInput {
-	dealID: ID!
+	productID: ID!
+	dealID: String!
 	orderID: String!
 	buyerID: String!
 	producerID: String!
@@ -55,6 +56,8 @@ input CreateDealInput {
 	dealPrice: Float!
 	productRatingByBuyer: Float
 	blockchainBlockID: String!
+	dealStatus: DealStatus!
+	blockchainBlockStatus: BlockchainBlockStatus!
 }
 
 input CreateNotificationInput {
@@ -117,7 +120,8 @@ enum CreditRating {
 }
 
 type Deal {
-	dealID: ID!
+	productID: ID!
+	dealID: String!
 	orderID: String!
 	dealStatus: DealStatus!
 	buyerID: String!
@@ -145,7 +149,8 @@ input DeleteCompanyInput {
 }
 
 input DeleteDealInput {
-	dealID: ID!
+	productID: ID!
+	dealID: String!
 }
 
 input DeleteNotificationInput {
@@ -199,15 +204,15 @@ type Mutation {
 	createReOrderRule(input: CreateReOrderRuleInput!): ReOrderRule
 	updateReOrderRule(input: UpdateReOrderRuleInput!): ReOrderRule
 	deleteReOrderRule(input: DeleteReOrderRuleInput!): ReOrderRule
-	createDeal(input: CreateDealInput!): Deal
-	updateDeal(input: UpdateDealInput!): Deal
-	deleteDeal(input: DeleteDealInput!): Deal
 	createNotification(input: CreateNotificationInput!): Notification
 	updateNotification(input: UpdateNotificationInput!): Notification
 	deleteNotification(input: DeleteNotificationInput!): Notification
 	createOrder(input: CreateOrderInput!): Order
 	updateOrder(input: UpdateOrderInput!): Order
 	deleteOrder(input: DeleteOrderInput!): Order
+	createDeal(input: CreateDealInput!): Deal
+	updateDeal(input: UpdateDealInput!): Deal
+	deleteDeal(input: DeleteDealInput!): Deal
 }
 
 type Notification {
@@ -289,12 +294,12 @@ type Query {
 	listCompanies(filter: TableCompanyFilterInput, limit: Int, nextToken: String): CompanyConnection
 	getReOrderRule(companyID: ID!, reorderRuleID: String!): ReOrderRule
 	listReOrderRules(filter: TableReOrderRuleFilterInput, limit: Int, nextToken: String): ReOrderRuleConnection
-	getDeal(dealID: ID!): Deal
-	listDeals(filter: TableDealFilterInput, limit: Int, nextToken: String): DealConnection
 	getNotification(companyID: ID!, notificationID: String!): Notification
 	listNotifications(filter: TableNotificationFilterInput, limit: Int, nextToken: String): NotificationConnection
 	getOrder(companyID: ID!, orderID: String!): Order
 	listOrders(filter: TableOrderFilterInput, limit: Int, nextToken: String): OrderConnection
+	getDeal(productID: ID!, dealID: String!): Deal
+	listDeals(filter: TableDealFilterInput, limit: Int, nextToken: String): DealConnection
 }
 
 type ReOrderRule {
@@ -403,30 +408,6 @@ type Subscription {
 		minProductRating: Float
 	): ReOrderRule
 		@aws_subscribe(mutations: ["deleteReOrderRule"])
-	onCreateDeal(
-		dealID: ID,
-		orderID: String,
-		buyerID: String,
-		producerID: String,
-		dealTime: AWSTimestamp
-	): Deal
-		@aws_subscribe(mutations: ["createDeal"])
-	onUpdateDeal(
-		dealID: ID,
-		orderID: String,
-		buyerID: String,
-		producerID: String,
-		dealTime: AWSTimestamp
-	): Deal
-		@aws_subscribe(mutations: ["updateDeal"])
-	onDeleteDeal(
-		dealID: ID,
-		orderID: String,
-		buyerID: String,
-		producerID: String,
-		dealTime: AWSTimestamp
-	): Deal
-		@aws_subscribe(mutations: ["deleteDeal"])
 	onCreateNotification(
 		companyID: ID,
 		notificationID: String,
@@ -472,6 +453,30 @@ type Subscription {
 		minProductRating: Float
 	): Order
 		@aws_subscribe(mutations: ["deleteOrder"])
+	onCreateDeal(
+		productID: ID,
+		dealID: String,
+		orderID: String,
+		buyerID: String,
+		producerID: String
+	): Deal
+		@aws_subscribe(mutations: ["createDeal"])
+	onUpdateDeal(
+		productID: ID,
+		dealID: String,
+		orderID: String,
+		buyerID: String,
+		producerID: String
+	): Deal
+		@aws_subscribe(mutations: ["updateDeal"])
+	onDeleteDeal(
+		productID: ID,
+		dealID: String,
+		orderID: String,
+		buyerID: String,
+		producerID: String
+	): Deal
+		@aws_subscribe(mutations: ["deleteDeal"])
 }
 
 input TableBooleanFilterInput {
@@ -492,7 +497,8 @@ input TableCompanyFilterInput {
 }
 
 input TableDealFilterInput {
-	dealID: TableIDFilterInput
+	productID: TableIDFilterInput
+	dealID: TableStringFilterInput
 	orderID: TableStringFilterInput
 	buyerID: TableStringFilterInput
 	producerID: TableStringFilterInput
@@ -615,7 +621,8 @@ input UpdateCompanyInput {
 }
 
 input UpdateDealInput {
-	dealID: ID!
+	productID: ID!
+	dealID: String!
 	orderID: String
 	buyerID: String
 	producerID: String

@@ -67,9 +67,9 @@ export class LoginPage extends Component {
         <span className="horIndent" />
         <span className="postLineList">A random username and password were composed and will be signed up</span>
         <br /><span className="horIndent" />
-        <span className="postLineList">programmatically with Google Firebase Auth when you click 'Login'.</span>
+        <span className="postLineList">programmatically with Amazon Cognito when you click 'Login'.</span>
         <br /><span className="horIndent" />
-        <span className="postLineList">All data will be wiped off from Google Firebase DB as soon as you log out.</span>
+        <span className="postLineList">All data will be wiped off from DynamoDB as soon as you log out.</span>
         <br /><br />
 
         <div style={{ width: 300 }}>
