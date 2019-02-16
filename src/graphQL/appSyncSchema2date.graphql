@@ -54,6 +54,7 @@ input CreateDealInput {
 	producerID: String!
 	dealTime: AWSTimestamp!
 	dealPrice: Float!
+	dealQuantity: Int!
 	productRatingByBuyer: Float
 	blockchainBlockID: String!
 	dealStatus: DealStatus!
@@ -128,6 +129,7 @@ type Deal {
 	producerID: String!
 	dealTime: AWSTimestamp!
 	dealPrice: Float!
+	dealQuantity: Int!
 	productRatingByBuyer: Float
 	blockchainBlockID: String!
 	blockchainBlockStatus: BlockchainBlockStatus!
@@ -504,6 +506,7 @@ input TableDealFilterInput {
 	producerID: TableStringFilterInput
 	dealTime: TableIntFilterInput
 	dealPrice: TableFloatFilterInput
+	dealQuantity: TableIntFilterInput
 	productRatingByBuyer: TableFloatFilterInput
 	blockchainBlockID: TableStringFilterInput
 }
@@ -628,6 +631,7 @@ input UpdateDealInput {
 	producerID: String
 	dealTime: AWSTimestamp
 	dealPrice: Float
+	dealQuantity: Int
 	productRatingByBuyer: Float
 	blockchainBlockID: String
 }

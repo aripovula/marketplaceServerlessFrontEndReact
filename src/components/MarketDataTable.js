@@ -51,33 +51,73 @@ class MarketDataTable extends React.Component {
     render() {
         // const dataTemp = this.props.financialData;
         // console.log('postingsInFinStatementUpdated Render DATA');
-        // console.log(this.props);
+        console.log('mTable props - ', this.props);
         // console.log('data prev');
         // console.log(dataPrev);
         // console.log('BEFORE CallinG findUpdatedOnes');
         // const data = dataPrev != null ? this.findUpdatedOnes(dataTemp, dataPrev) : dataTemp;
         // dataPrev = dataTemp;
-        const data = [{
-            name: 'Tanner - T232',
-            lowPrice: {
-                price: 12345,
-                direction: 1
-            },
-            highPrice: {
-                price: 12345,
-                direction: -1
+        // const data = [{
+        //     name: 'Tanner - T232',
+        //     lowPrice: {
+        //         price: 12345,
+        //         direction: 1
+        //     },
+        //     highPrice: {
+        //         price: 12345,
+        //         direction: -1
+        //     }
+        // }, {
+        //     name: 'Banner - B232',
+        //     lowPrice: {
+        //         price: 12345,
+        //         direction: -1
+        //     },
+        //     highPrice: {
+        //         price: 12345,
+        //         direction: 1
+        //     }
+        // }]
+
+
+        const data = [];
+        this.props.deals.map((deal) => {
+            let isFound = false; let xF =-1;
+            for (let x = 0; x < data.length; x++) {
+                if (data[x].prodID === deal.productID) {
+                    isFound = true; xF = x;
+                }
             }
-        }, {
-            name: 'Banner - B232',
-            lowPrice: {
-                price: 12345,
-                direction: -1
-            },
-            highPrice: {
-                price: 12345,
-                direction: 1
-            }
-        }]
+             
+            if (isFound) {
+                if (data[xF].lowPrice.price > deal.dealPrice) {
+                    data[xF].lowPrice.price = deal.dealPrice
+                }
+                if (data[xF].highPrice.price < deal.dealPrice) {
+                    data[xF].highPrice.price = deal.dealPrice
+                }
+            } else {                
+                let prodName = 'unknown';
+                this.props.products.map((prod) => {
+                    console.log('mTable ', prod.id, deal.productID);
+                    
+                    if (prod.id === deal.productID) prodName = prod.name + '-' + prod.modelNo;
+                });
+                const aDeal = {
+                    prodID: deal.productID,
+                    name: prodName,
+                    lowPrice: {
+                        price: deal.dealPrice,
+                        direction: -1
+                    },
+                    highPrice: {
+                        price: deal.dealPrice,
+                        direction: 1
+                    }
+                };
+                data.push(aDeal);
+            }            
+        });
 
         const columns = [{
             Header: 'item name',

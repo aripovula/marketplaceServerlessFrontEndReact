@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import AllTradersLineOne from './AllTradersLineOne';
 import AllTradersLineTwo from './AllTradersLineTwo';
-import Offers from './Offers';
+import Deals from './Deals';
 import ModalProduct from './ModalProduct';
 
 
@@ -46,7 +46,7 @@ export class AllTrader extends Component {
               &nbsp; &nbsp;
               <span className="responsiveFSize2">hover for more info</span>
 
-            <Offers/>
+            <Deals client={this.props.client}/>
             <span className="verIndent"></span>
             <span className="responsiveFSize2">Data exchange between each company takes place as an end-to-end communication (exclusively through AppSync based serverless back-end). None of companies exchange data locally.</span>
             <span className="responsiveFSize2">Please try opening this app at least in one another browser (better in another computer) logging in with the same user name and password to see how components communicate with each other.</span>

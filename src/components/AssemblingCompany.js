@@ -15,7 +15,7 @@ import MutationUpdateOrder from "../graphQL/mutationUpdateOrder";
 import MutationUpdateReOrderRule from "../graphQL/mutationUpdateReorderRule";
 import MutationDeleteOrder from "../graphQL/mutationDeleteOrder";
 import MutationDeleteReOrderRule from "../graphQL/mutationDeleteReorderRule";
-import NewProductSubscription from '../graphQL/subsriptionProducts';
+import NewProductSubscription from '../graphQL/subscriptionProducts';
 import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
 
