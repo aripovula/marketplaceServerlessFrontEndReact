@@ -570,7 +570,7 @@ class AssemblingCompany extends Component {
                             }}>sync orders</span>
                         &nbsp;&nbsp;*/}
                         
-                        <table className="smalltable">
+                        <table id="tableFM">
                             <tbody>
                                 <tr>
                                     <td>product</td>
@@ -601,7 +601,7 @@ class AssemblingCompany extends Component {
                         </table>
 
                         <span className="verIndent"></span>
-                        <table className="smalltable">
+                        <table id="tableFM">
                             <tbody>
                                 {items && [].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
                                     <tr key={order.orderID}>

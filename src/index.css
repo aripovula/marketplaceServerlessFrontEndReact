@@ -79,6 +79,35 @@ table, th, td, tr {
   border: 1px solid gray;
 }
 
+#tableFM {
+  border-collapse: collapse;
+  width: 90%;
+  font-size: 0.9vw;
+}
+
+#tableFM td,
+#tableFM th {
+  border: 1px solid #ddd;
+  padding: 4px;
+}
+
+#tableFM tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+#tableFM tr:hover {
+  background-color: #ddd;
+}
+
+#tableFM th {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  text-align: center;
+  background-color: rgb(226, 240, 247);
+  color: rgb(76, 137, 187);
+  align-items: center;
+}
+
 button {
   cursor: pointer;
 }

@@ -257,21 +257,31 @@ class PartsCompany extends Component {
         this.handleSync();
     }
 
-    handleSaveUpdate = async (e) => {
+    handleSaveUpdate = (e) => {
         this.setState({ loading: true, modalIsOpen: false });
         e.stopPropagation();
         e.preventDefault();
-
+        console.log('offer b4 save 1 -', this.state.offer);
+        console.log('offer b4 save 1a -', this.state.offer.companyID);
         const { updateOffer } = this.props;
-                
-        const { offer } = this.state;
-        console.log('updateOffer -', this.props.updateOffer);
-        console.log('offer b4 save -', this.state.offer);
+        if (!this.state.offer.companyID) {
+            console.log('offer b4 save 1b id=', this.props.company.id);
+            this.setState(prevState => ({
+                offer: {
+                    ...prevState.offer,
+                    companyID: this.props.company.id
+                }
+            }), async () => {
+                const { offer } = this.state;
+                console.log('updateOffer -', this.props.updateOffer);
+                console.log('offer b4 save 2 -', this.state.offer);
 
-        await updateOffer({ ...offer });
-        // this.setState({ loading: false });
-        console.log('offer after save -', this.state.offer);
-        this.handleSync();
+                await updateOffer({ ...offer });
+                // this.setState({ loading: false });
+                console.log('offer after save -', this.state.offer);
+                this.handleSync();            
+            });
+        }
     }
 
     handleSync = async () => {
@@ -388,7 +398,7 @@ class PartsCompany extends Component {
 
                         <span className="responsiveFSize2">hover for more info</span>
 
-                        <table className="smalltable">
+                        <table id="tableFM">
                             <tbody>
                                 <tr>
                                     <td>&nbsp;</td>
@@ -398,7 +408,7 @@ class PartsCompany extends Component {
                                     <td>available</td>
                                 </tr>
 
-                                {[].concat(items).sort((a, b) => a.offerID.localeCompare(b.offerID)).map((offer) =>
+                                {[].concat(items).sort((a, b) => a.product.name.localeCompare(b.product.name)).map((offer) =>
                                     <tr key={offer.offerID}>
                                         <td>
                                             <span className="addnlightbg notbold cursorpointer"

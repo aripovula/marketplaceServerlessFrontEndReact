@@ -32,7 +32,7 @@ export class AllTrader extends Component {
               <div className="center"><i>Marketplace Board</i></div>
               <hr/>
               Deal prices &nbsp;
-              <span className="responsiveFSize2">(last 10 deals lowest / highest price)</span>
+              <span className="responsiveFSize2">(last 2 days lowest / highest price)</span>
               <br/>
               <span
               className="addnlightbg notbold cursorpointer"
