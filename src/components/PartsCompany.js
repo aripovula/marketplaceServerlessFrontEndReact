@@ -11,6 +11,8 @@ import MutationCreateOffer from "../graphQL/mutationAddOffer";
 import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
 import NewProductSubscription from '../graphQL/subscriptionProducts'
+import NewOfferSubscription from '../graphQL/subsriptionOfferNew'
+import UpdateOfferSubscription from '../graphQL/subsriptionOfferUpdate'
 import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
 
@@ -41,6 +43,8 @@ const customStyles = {
 
 class PartsCompany extends Component {
 
+    offerSubscriptionNew;
+    offerSubscriptionUpdate;
     productSubscription;
 
     static defaultProps = {
@@ -76,6 +80,8 @@ class PartsCompany extends Component {
     }
 
     componentWillMount() {
+        this.offerSubscriptionNew = this.props.subscribeToNewOffers();
+        this.offerSubscriptionUpdate = this.props.subscribeToUpdateOffers();
         this.productSubscription = this.props.subscribeToNewProducts();
         Modal.setAppElement('body');
     }
@@ -528,6 +534,14 @@ class PartsCompany extends Component {
                             />
                         }
                     </div>
+
+                    {
+                        this.props.offers.map((r, i) => (
+                            <div key={i}>
+                                <p className="responsiveFSize2">CoId: {r.companyID} - ${r.price} Av: {r.available} USD</p>
+                            </div>
+                        ))
+                    }
                 </div>
             );
         } else {
@@ -714,6 +728,51 @@ export default compose (
                 })
             }
         })
+    }),
+    graphql(QueryAllOffers, {
+        options: {
+            fetchPolicy: 'cache-and-network'
+        },
+        props: props => ({
+            offers: props.data.listOffers ? props.data.listOffers.items : [],
+            subscribeToNewOffers: params => {
+                props.data.subscribeToMore({
+                    document: NewOfferSubscription,
+                    updateQuery: (prev, { subscriptionData: { data: { onCreateOffer } } }) => {
+                        console.log('onCreateOffer - ', onCreateOffer);
+                        return {
+                            ...prev,
+                            listOffers: {
+                                __typename: 'OfferConnection',
+                                items: [onCreateOffer, ...prev.listOffers.items.filter(offer => offer.offerID !== onCreateOffer.offerID)]
+                            }
+                        }
+                    }
+                })
+            }
+        })
+    }),
+        graphql(QueryAllOffers, {
+        options: {
+            fetchPolicy: 'cache-and-network'
+        },
+        props: props => ({
+            offers: props.data.listOffers ? props.data.listOffers.items : [],
+            subscribeToUpdateOffers: params => {
+                props.data.subscribeToMore({
+                    document: UpdateOfferSubscription,
+                    updateQuery: (prev, { subscriptionData: { data: { onUpdateOffer } } }) => {
+                        console.log('onUpdateOffer - ', onUpdateOffer);
+                        return {
+                            ...prev,
+                            listOffers: {
+                                __typename: 'OfferConnection',
+                                items: [onUpdateOffer, ...prev.listOffers.items.filter(offer => offer.offerID !== onUpdateOffer.offerID)]
+                            }
+                        }
+                    }
+                })
+            }
+        })
     })
-
 )(PartsCompany);
