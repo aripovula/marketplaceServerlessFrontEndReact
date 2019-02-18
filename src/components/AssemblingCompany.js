@@ -16,6 +16,7 @@ import MutationUpdateReOrderRule from "../graphQL/mutationUpdateReorderRule";
 import MutationDeleteOrder from "../graphQL/mutationDeleteOrder";
 import MutationDeleteReOrderRule from "../graphQL/mutationDeleteReorderRule";
 import NewProductSubscription from '../graphQL/subscriptionProducts';
+import UpdateOrderSubscription from '../graphQL/subsriptionOrderUpdate';
 import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
 
@@ -46,6 +47,7 @@ const customStyles = {
 
 class AssemblingCompany extends Component {
 
+    orderUpdateSubscription;
     productSubscription;
 
     static defaultProps = {
@@ -89,6 +91,7 @@ class AssemblingCompany extends Component {
     }
 
     componentWillMount() {
+        this.orderUpdateSubscription = this.props.subscribeToUpdateOrders();
         this.productSubscription = this.props.subscribeToNewProducts();
         Modal.setAppElement('body');
     }
@@ -1221,6 +1224,29 @@ export default compose (
                             listProducts: {
                                 __typename: 'ProductConnection',
                                 items: [onCreateProduct, ...prev.listProducts.items.filter(product => product.id !== onCreateProduct.id)]
+                            }
+                        }
+                    }
+                })
+            }
+        })
+    }),
+    graphql(QueryAllOrders, {
+        options: {
+            fetchPolicy: 'cache-and-network'
+        },
+        props: props => ({
+            orders: props.data.listOrders ? props.data.listOrders.items : [],
+            subscribeToUpdateOrders: params => {
+                props.data.subscribeToMore({
+                    document: UpdateOrderSubscription,
+                    updateQuery: (prev, { subscriptionData: { data: { onUpdateOrder } } }) => {
+                        console.log('onUpdateOrder - ', onUpdateOrder);
+                        return {
+                            ...prev,
+                            listOrders: {
+                                __typename: 'OrderConnection',
+                                items: [onUpdateOrder, ...prev.listOrders.items.filter(order => order.orderID !== onUpdateOrder.orderID)]
                             }
                         }
                     }

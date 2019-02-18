@@ -7,7 +7,14 @@ query {
       companyID
       orderID
       productID
-      product
+      product {
+        id,
+        name
+        modelNo
+        specificationURL
+        imageURL
+        lastTenRatingAverage
+    }
       status
       maxPrice
       quantity
