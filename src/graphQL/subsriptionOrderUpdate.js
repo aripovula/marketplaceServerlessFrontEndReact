@@ -7,6 +7,8 @@ subscription UpdateOrderSub {
     orderID
     productID
     status
+    note
+	  dealPrice
     maxPrice
     quantity
     bestOfferType

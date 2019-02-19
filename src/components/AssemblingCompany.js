@@ -125,7 +125,7 @@ class AssemblingCompany extends Component {
     newOrder() {
         return {
             companyID: this.props.company ? this.props.company.id : null,
-            orderID: uuid(),
+            orderID: new Date() * 1, // uuid(),
             reorderRuleID: uuid(),
             productID: '',
             product: '',
@@ -228,27 +228,29 @@ class AssemblingCompany extends Component {
         return newProducts;
     }
 
-    getThresholdText(orderRule) {
+    getThresholdText(orderRule, isOrderRule) {
         let text = '';
+        if (isOrderRule) {
+            text = `${text} ${orderRule.reorderQnty} @ ${orderRule.reorderLevel}`;
+            text = !orderRule.isRuleEffective ? `( SUSPENDED ) - ${text}` : text;
+        }
+
         switch (orderRule.bestOfferType) {
             case 'OPTIMAL':
-                text = `$: min, R: ${orderRule.minProductRating}-min`;
+                text = `${text}, ${orderRule.minProductRating}-min, min`;
                 break;
             case 'HIGHESTRATING':
-                text = `$: ${orderRule.maxPrice}-max, R: max`;
+                text = `${text}, max, ${orderRule.maxPrice}-max`;
                 break;
             case 'CHEAPEST':
-                text = `$: min, R: any`;
+                text = `${text}, any, min`;
                 break;
             case 'CUSTOM':
-                text = `$: ${orderRule.maxPrice}-max, R: ${orderRule.minProductRating}-min`;
+                text = `${text}, ${orderRule.minProductRating}-min, ${orderRule.maxPrice}-max`;
                 break;
-        
             default:
                 break;
         }
-        text = `${text}, RO: ${orderRule.reorderQnty} @ ${orderRule.reorderLevel}`;
-        text = !orderRule.isRuleEffective ? `( SUSPENDED ) - ${text}` : text;
         console.log('threshold', text);
         return text;
     }
@@ -577,7 +579,7 @@ class AssemblingCompany extends Component {
                             <tbody>
                                 <tr>
                                     <td>product</td>
-                                    <td>reorder rule</td>
+                                    <td>reorder x @ y, rating, price</td>
                                     <td>left</td>
                                 </tr>
 
@@ -593,10 +595,10 @@ class AssemblingCompany extends Component {
                                                         oneOffOrRule: 2,
                                                         modalIsOpen: true
                                                     }));
-                                                }}>&nbsp;{orderRule.product.name} {orderRule.product.modelNo}
+                                                }}>{orderRule.product.name} {orderRule.product.modelNo}
                                             </span>
                                         </td>
-                                        <td>&nbsp;{this.getThresholdText(orderRule)}&nbsp;</td>
+                                            <td>{this.getThresholdText(orderRule, true)}</td>
                                         <td>{orderRule.reorderQnty}</td>
                                     </tr>
                                 )}
@@ -606,19 +608,19 @@ class AssemblingCompany extends Component {
                         <span className="verIndent"></span>
                         <table id="tableFM">
                             <tbody>
-                                {items && [].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
+                                <tr>
+                                    <td>orders: qnty, rating, price-target / actual</td>
+                                    <td>status</td>
+                                </tr>
+                                {items && [].concat(items).sort((a, b) => b.orderID.localeCompare(a.orderID)).map((order) =>
                                     <tr key={order.orderID}>
                                         <td>
-                                            <span className="addnlightbg notbold cursorpointer"
-                                                onClick={() => {
-                                                    this.setState(() => ({
-                                                        isUpdateAtStart: true,
-                                                        order: JSON.parse(JSON.stringify(order)),
-                                                        oneOffOrRule: 1,
-                                                        modalIsOpen: true
-                                                    }));
-                                                }}>&nbsp;{order.quantity} {order.product.name}-{order.product.modelNo} @ {order.maxPrice} $&nbsp;
-                                            </span>
+                                            {order.product.name}-{order.product.modelNo} - {order.quantity}
+                                            {order.status !== "REJECTED" && this.getThresholdText(order, false)}
+                                            / 
+                                            {(order.status !== "ORDER_PLACED" && order.status !== "REJECTED" && order.dealPrice) && ' $'+order.dealPrice}
+                                            {order.status === "ORDER_PLACED" && '  --'}
+                                            {order.status === "REJECTED" && order.note}
                                         </td>
                                         <td>&nbsp;{order.status.toLowerCase()}&nbsp;</td>
                                     </tr>

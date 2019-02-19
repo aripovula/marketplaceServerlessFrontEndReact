@@ -6,6 +6,8 @@ mutation (
     $orderID: String!
     $productID: String!
     $status: OrderStatus!
+    $note: String
+  	$dealPrice: Float
     $maxPrice: Float!
     $quantity: Int!
     $bestOfferType: BestOfferEnum!
@@ -18,6 +20,8 @@ mutation (
     orderID: $orderID,
     productID: $productID,
     status:$status,
+    note: $note,
+	  dealPrice: $dealPrice,
     maxPrice: $maxPrice,
     quantity: $quantity,
     bestOfferType: $bestOfferType,
@@ -29,6 +33,8 @@ mutation (
     orderID
     productID
     status
+    note
+	  dealPrice
     maxPrice
     quantity
     bestOfferType

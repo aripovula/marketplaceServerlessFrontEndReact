@@ -20,13 +20,13 @@ export class AllTradersLineOne extends Component {
         
         <div id="container2a">
           <div id="left2">
-            blockChain part
+            <span className="responsiveFSize2">notifications & blockchain info:</span>
           </div>
           <div id="middle2">
-            blockChain part
+            <span className="responsiveFSize2">notifications & blockchain info:</span>
           </div>
           <div id="right2">
-            blockChain part
+            <span className="responsiveFSize2">notifications & blockchain info:</span>
           </div>
         </div>
 

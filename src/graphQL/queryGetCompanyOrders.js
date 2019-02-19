@@ -13,6 +13,8 @@ query ($id: ID!) {
         orderID
         productID
         status
+        note
+        dealPrice
         maxPrice
         quantity
         bestOfferType

@@ -6,7 +6,7 @@ mutation (
   $modelNo: String!
   $specificationURL: String!
   $imageURL: String
-	$lastTenRatingAverage: Float
+	$lastTenRatingAverage: String
 ) {
   createProduct(input: {
       name: $name,

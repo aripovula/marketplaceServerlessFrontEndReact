@@ -80,6 +80,8 @@ input CreateOrderInput {
 	companyID: ID!
 	orderID: String!
 	productID: String!
+	note: String
+	dealPrice: Float
 	maxPrice: Float!
 	minProductRating: Float!
 	quantity: Int!
@@ -252,6 +254,8 @@ type Order {
 	companyID: ID!
 	orderID: String!
 	productID: String!
+	note: String
+	dealPrice: Float
 	maxPrice: Float!
 	minProductRating: Float!
 	quantity: Int!
@@ -269,7 +273,8 @@ type OrderConnection {
 
 enum OrderStatus {
 	ORDER_PLACED
-	CONFIRMED
+	DEAL_MADE
+	BLOCKCHAINED
 	REJECTED
 }
 
@@ -567,6 +572,8 @@ input TableOrderFilterInput {
 	companyID: TableIDFilterInput
 	orderID: TableStringFilterInput
 	productID: TableStringFilterInput
+	note: String
+	dealPrice: Float
 	maxPrice: TableFloatFilterInput
 	minProductRating: TableFloatFilterInput
 	quantity: TableIntFilterInput
@@ -655,6 +662,8 @@ input UpdateOrderInput {
 	companyID: ID!
 	orderID: String!
 	productID: String
+	note: String
+	dealPrice: Float
 	maxPrice: Float
 	minProductRating: Float
 	quantity: Int

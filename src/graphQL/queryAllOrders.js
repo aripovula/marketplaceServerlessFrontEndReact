@@ -7,6 +7,15 @@ query {
       companyID
       orderID
       productID
+      status
+      note
+    	dealPrice
+      maxPrice
+      quantity
+      bestOfferType
+      secondBestOfferType
+      minProductRating
+      isCashPayment
       product {
         id,
         name
@@ -14,14 +23,7 @@ query {
         specificationURL
         imageURL
         lastTenRatingAverage
-    }
-      status
-      maxPrice
-      quantity
-      bestOfferType
-      secondBestOfferType
-      minProductRating
-      isCashPayment
+      }
     }
   }
 }

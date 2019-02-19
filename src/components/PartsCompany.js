@@ -7,6 +7,7 @@ import QueryGetCompany from "../graphQL/queryGetCompany";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryAllOffers from "../graphQL/queryAllOffers";
 import QueryGetOffer from "../graphQL/queryGetOffer";
+import QueryAllDeals from "../graphQL/queryAllDeals";
 import MutationCreateOffer from "../graphQL/mutationAddOffer";
 import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
@@ -155,6 +156,26 @@ class PartsCompany extends Component {
         } else {
             return this.allProducts(productsListFromProps);
         }
+    }
+
+    // find product name from listProducts and assign to deals array
+    dealsFromStore() {
+        const dealsTemp = this.props.client.readQuery({
+            query: QueryAllDeals
+        });
+        const deals = dealsTemp.listDeals.items;
+        const theProducts = this.props.products;
+        if (theProducts) {
+            for (let x = 0; x < deals.length; x++) {
+                for (let y = 0; y < theProducts.length; y++) {
+                    if (theProducts[y].id === deals[x].productID) {
+                        deals[x]["productName"] = `${theProducts[y].name}-${theProducts[y].modelNo}`;
+                    }
+                }
+            }
+        }
+        console.log('dealz in fn-', deals);
+        return deals;
     }
 
     // update array of products when 'all' or 'no-oder' radio buttons are selected
@@ -323,8 +344,10 @@ class PartsCompany extends Component {
     render() {
         console.log('this.props COT - ', this.props);
         console.log('props.products', this.props.products);
+        console.log('dealz', this.dealsFromStore());
         const { company, loading } = this.props;
         const loadingState = this.state.loading;
+        const deals = this.dealsFromStore();
         if (this.props.company) {
             const { company: { offers: { items } } } = this.props;
             return (
@@ -447,6 +470,27 @@ class PartsCompany extends Component {
                             </tbody>
                         </table>
                     </div>}
+                    <div className="responsiveFSize">Recent sales:</div>
+                    {deals && 
+                        <table id="tableFM">
+                            <tbody>
+                                <tr>
+                                    <td>&nbsp;</td>
+                                    <td>price</td>
+                                    <td>quantity</td>
+                                    <td>status</td>
+                                </tr>
+
+                                {[].concat(deals).sort((a, b) => b.dealID.localeCompare(a.dealID)).map((deal) =>
+                                    <tr key={deal.dealID}>
+                                        <td>{deal.productName}</td>
+                                        <td>{deal.dealPrice}</td>
+                                        <td>{deal.dealQuantity}</td>
+                                        <td>{deal.dealStatus.toLowerCase()}</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>}
 
                     <div>
                         <Modal

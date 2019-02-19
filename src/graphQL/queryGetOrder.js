@@ -7,6 +7,8 @@ query($companyID: ID!, $orderID: String!) {
     orderID
     productID
     status
+    note
+	  dealPrice
     maxPrice
     quantity
     bestOfferType
