@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import AssemblingCompany from './AssemblingCompany';
 import { OrderStatus } from './OrderStatus';
+import Search from './Search';
 
 export class AllTradersLineOne extends Component {
   render() {

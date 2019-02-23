@@ -125,7 +125,7 @@ class AssemblingCompany extends Component {
     newOrder() {
         return {
             companyID: this.props.company ? this.props.company.id : null,
-            orderID: new Date() * 1, // uuid(),
+            orderID: new Date('January 1, 2022 00:00:00') - new Date(), // uuid(),
             reorderRuleID: uuid(),
             productID: '',
             product: '',
@@ -461,12 +461,14 @@ class AssemblingCompany extends Component {
 
         // this.setState({ loading: true });
 
-        // console.log('client.query = ', client.query);
+        console.log('client.query = ', client.query);
         const coId = this.props.company.id;
+        const nextToken = this.props.company.orders.nextToken;
+        console.log('nextTokenSync', nextToken)
 
         await client.query({
             query,
-            variables: { id: coId },
+            variables: { id: coId, nextToken },
             fetchPolicy: 'network-only',
         });
 
@@ -499,6 +501,7 @@ class AssemblingCompany extends Component {
         if (this.props.company) {
             // const { company: { orders: { items } } } = this.props;
             const items = this.props.company.orders ? this.props.company.orders.items : null;
+            console.log('this.ITEMS COT - ', items);
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
@@ -566,7 +569,8 @@ class AssemblingCompany extends Component {
                                     modalIsOpen: true,
                                     isUpdateAtStart: false
                                 }));
-                            }}>&nbsp;&nbsp;add order / order rule</span>
+                            }}>&nbsp;&nbsp;add order / order rule
+                        </span>
                         &nbsp;&nbsp;
                         {/*<span
                             className="addnlightbg notbold cursorpointer"
@@ -606,13 +610,33 @@ class AssemblingCompany extends Component {
                         </table>
 
                         <span className="verIndent"></span>
+                        Orders ( prev 5 ) ____ ( next 5 )
+                        <span
+                            className="addnlightbg notbold cursorpointer"
+                            onClick={() => {
+                                // const productsListFromProps = this.props.products ? this.props.products : null;
+                                // console.log('products in Store', productsListFromProps);
+                                // const noRuleProducts = this.noRuleProducts(productsListFromProps);
+                                // const productsAll = this.allProducts(productsListFromProps);
+                                // this.setState(() => ({
+                                //     products: productsAll,
+                                //     productsNoRule: noRuleProducts,
+                                //     productsAll,
+                                //     modalIsOpen: true,
+                                //     isUpdateAtStart: false
+                                // }));
+                                this.handleSync();
+                            }}>&nbsp;&nbsp;PREV_2
+                        </span>
+
                         <table id="tableFM">
                             <tbody>
                                 <tr>
-                                    <td>orders: qnty, rating, price-target / actual</td>
+                                    <td>qnty, rating, price (target / actual)</td>
                                     <td>status</td>
                                 </tr>
-                                {items && [].concat(items).sort((a, b) => b.orderID.localeCompare(a.orderID)).map((order) =>
+                                {console.log('ordersb4table', items)}
+                                {items && [].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
                                     <tr key={order.orderID}>
                                         <td>
                                             {order.product.name}-{order.product.modelNo} - {order.quantity}
@@ -861,10 +885,11 @@ export default compose (
     graphql(
         QueryGetCompany,
         {
-            options: function ({ id }) {
+            options: function ({ id, nextToken }) {
                 console.log('in BBB1 id ', id);
+                console.log('in BBB1 nextToken ', nextToken);
                 return ({
-                    variables: { id },
+                    variables: { id, nextToken },
                     fetchPolicy: 'cache-and-network',
                 })
             },

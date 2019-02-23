@@ -5,9 +5,11 @@
     }
 
     type BlockchainBlock {
-        id: ID!
+        userID: ID!
+        blockchainID: String!
         dealID: String!
         marketplaceSignatureOnDeal: String!
+        blockchainIndex:String!
         previousHashOnDeal: String!
         hashOnDeal: String!
         nonce: Int!

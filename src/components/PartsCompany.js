@@ -178,6 +178,54 @@ class PartsCompany extends Component {
         return deals;
     }
 
+    addAverageRatingToOffers(offers, deals, companyID) {
+        // const { offers } = this.props;
+        // const deals = this.dealsFromStore();
+        for (let x = 0; x < offers.length; x++) {
+            // for (let y = 0; y < deals.length; y++) {
+            //     if (offers[x].companyID === deals[y].producerID && offers[x].productID === deals[y].productID) {
+            offers[x]["lastTenAverageRating"] = this.getLastTenAverageRating(companyID, offers[x].productID, deals);
+            //     }
+            // }
+        }
+        console.log('dealz rating in offers', offers);
+        return offers;
+    }
+
+    getLastTenAverageRating(coID, productID, dealsForRating) {
+        console.log('getLastTenAverageRating -coID, dealsForRating -', coID, productID, dealsForRating);
+        let theRating = 0; // 0 is an initial rating for a product that does not have a rating.
+        // sort out deals for this coID
+            let count = 0,
+                total = 0;
+            let allCompanyProductRatings = [];
+            dealsForRating.map((deal) => {
+                console.log('assignRating', deal.producerID.S == coID, deal.producerID.S, coID)
+                if (deal.producerID == coID && deal.productID == productID) {
+                    allCompanyProductRatings.push({
+                        rating: parseFloat(deal.productRatingByBuyer),
+                        time: parseInt(deal.dealTime)
+                    });
+                }
+            });
+            console.log('allCompanyProductRatings ', allCompanyProductRatings);
+            console.log('allCompanyProductRatings sorted', allCompanyProductRatings.sort((a, b) => b.time - a.time));
+            // sort result by time
+            // calculate average rating
+
+            allCompanyProductRatings.sort((a, b) => b.time - a.time).map((deal) => {
+                count++;
+                console.log('count++', count);
+                if (count < 11) {
+                    total = total + deal.rating;
+                    console.log('in count<11 total -', total, deal.rating);
+                }
+            });
+            console.log('total, rating ', total, theRating);
+            theRating = total ? (total / count).toFixed(2) : 'n.a.';
+        return theRating;
+    }
+
     // update array of products when 'all' or 'no-oder' radio buttons are selected
     updateProductOptions(e) {
         if (e.target.value === 'all') {
@@ -344,12 +392,13 @@ class PartsCompany extends Component {
     render() {
         console.log('this.props COT - ', this.props);
         console.log('props.products', this.props.products);
-        console.log('dealz', this.dealsFromStore());
+        // console.log('dealz', this.dealsFromStore());
         const { company, loading } = this.props;
         const loadingState = this.state.loading;
         const deals = this.dealsFromStore();
         if (this.props.company) {
-            const { company: { offers: { items } } } = this.props;
+            let { company: { offers: { items } } } = this.props;
+            items = this.addAverageRatingToOffers(items, deals, this.props.company.id);
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
@@ -463,7 +512,7 @@ class PartsCompany extends Component {
                                                     }}>&nbsp;{offer.product.modelNo}&nbsp;</span>
                                         </td>
                                         <td>&nbsp;{offer.price}&nbsp;</td>
-                                        <td>&nbsp;{offer.product.lastTenRatingAverage}&nbsp;</td>
+                                        <td>&nbsp;{offer.lastTenAverageRating}&nbsp;</td>
                                         <td>&nbsp;{offer.available}&nbsp;</td>
                                     </tr>
                                 )}
