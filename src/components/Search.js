@@ -27,6 +27,7 @@ const SearchIceCreams = gql`
       }
     }) {
       items {
+        orderID
         dealPrice
         bestOfferType
       }
@@ -38,6 +39,7 @@ const ListIceCreams = gql`
   query listOrders {
     listOrders {
       items {
+        orderID
         dealPrice
         bestOfferType
       }
@@ -59,7 +61,8 @@ class Search extends Component {
     render() {
         console.log('props - ', this.props);
         const { loading } = this.props.data
-        const { items } = this.props.data.listOrders
+        if (this.props.data.listOrders && this.props.data.listOrders.items) {
+            const { items }  = this.props.data.listOrders;
 
         return (
             <div className="App">
@@ -87,7 +90,11 @@ class Search extends Component {
                     ))
                 }
             </div>
-        );
+        ) } else {
+            return (
+                <div>No orders are found</div>
+            )
+        }
     }
 }
 

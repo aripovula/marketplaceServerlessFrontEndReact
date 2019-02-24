@@ -24,7 +24,7 @@ export const Header = (props) => (
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                     exact={true}
                 >Trade room - multi trader
-        </NavLink>
+                </NavLink>
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>
 
@@ -63,7 +63,6 @@ export const Header = (props) => (
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                 >Logout
         </NavLink>
-
 
                 <span className="horIndent"></span><span className="horIndent"></span>
                 {/*<button className="button button--link" onClick={startLogout}>Logout</button>*/}

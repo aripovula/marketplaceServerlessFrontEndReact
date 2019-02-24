@@ -160,10 +160,16 @@ class PartsCompany extends Component {
 
     // find product name from listProducts and assign to deals array
     dealsFromStore() {
-        const dealsTemp = this.props.client.readQuery({
-            query: QueryAllDeals
-        });
-        const deals = dealsTemp.listDeals.items;
+        let dealsTemp;
+        try {
+            dealsTemp = this.props.client.readQuery({
+                query: QueryAllDeals
+            });
+        } catch(e) {
+            console.log('readQuery error-', e);
+            dealsTemp = null;
+        }
+        const deals = (dealsTemp && dealsTemp.listDeals && dealsTemp.listDeals.items) ? dealsTemp.listDeals.items : [];
         const theProducts = this.props.products;
         if (theProducts) {
             for (let x = 0; x < deals.length; x++) {
@@ -637,7 +643,7 @@ class PartsCompany extends Component {
             );
         } else {
             return (
-                <div>Loading ...</div>
+                <div>Company is not defined ...</div>
             )
         }
     }

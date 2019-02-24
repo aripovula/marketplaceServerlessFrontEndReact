@@ -52,26 +52,34 @@ class Deals extends React.Component {
                 }                
             } else {
                 let prodName = 'unknown';
-                const productsFromStore = this.props.client.readQuery({
-                    query: QueryAllProducts
-                });
+                let productsFromStore;
+                try {
+                    productsFromStore = this.props.client.readQuery({
+                        query: QueryAllProducts
+                    });
+                } catch(e) {
+                    console.log('prodReadQueryError-', e);
+                    productsFromStore = null;
+                }
 
-                productsFromStore.listProducts.items.map((prod) => {
-                    if (prod.id === deal.productID) prodName = prod.name + '-' + prod.modelNo;
-                });
-                const aDeal = {
-                    prodID: deal.productID,
-                    name: prodName,
-                    lowPrice: {
-                        price: deal.dealPrice,
-                        direction: 0
-                    },
-                    highPrice: {
-                        price: deal.dealPrice,
-                        direction: 0
-                    }
-                };
-                dataTemp.push(aDeal);
+                if (productsFromStore && productsFromStore.listProducts && productsFromStore.listProducts.items) {
+                    productsFromStore.listProducts.items.map((prod) => {
+                        if (prod.id === deal.productID) prodName = prod.name + '-' + prod.modelNo;
+                    });
+                    const aDeal = {
+                        prodID: deal.productID,
+                        name: prodName,
+                        lowPrice: {
+                            price: deal.dealPrice,
+                            direction: 0
+                        },
+                        highPrice: {
+                            price: deal.dealPrice,
+                            direction: 0
+                        }
+                    };
+                    dataTemp.push(aDeal);
+                }
             }
         });
 

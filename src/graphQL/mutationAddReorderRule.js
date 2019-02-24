@@ -5,6 +5,7 @@ mutation (
     $companyID: ID!
     $reorderRuleID: String!
     $productID: String!
+    $product: String!
     $maxPrice: Float!
     $minProductRating: Float!
     $isRuleEffective: Boolean!
@@ -19,6 +20,7 @@ mutation (
       companyID: $companyID,
       reorderRuleID: $reorderRuleID,
       productID: $productID,
+      product: $product,
       maxPrice: $maxPrice,
       minProductRating: $minProductRating,
       isRuleEffective: $isRuleEffective,
@@ -40,5 +42,14 @@ mutation (
       isCashPayment
       reorderLevel
       reorderQnty
+      product {
+          id,
+          name
+          modelNo
+          specificationURL
+          imageURL
+          lastTenRatingAverage
+      }
+
   }
 }`);

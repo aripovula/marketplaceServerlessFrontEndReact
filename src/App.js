@@ -37,38 +37,39 @@ const client = new AWSAppSyncClient({
   region: appSyncConfigCustom.aws_appsync_region,
   auth: {
     type: appSyncConfigCustom.aws_appsync_authenticationType,
-    // apiKey: appSyncConfig.aws_appsync_apiKey,
-    credentials: () => Auth.currentCredentials(),
+// apiKey: appSyncConfig.aws_appsync_apiKey,
+credentials: () => Auth.currentCredentials(),
   },
   cacheOptions: {
-    dataIdFromObject: (obj) => {
-      let id = defaultDataIdFromObject(obj);
+dataIdFromObject: (obj) => {
+let id = defaultDataIdFromObject(obj);
+// console.log('defaultDataIdFromObject OBJ ID', obj, id);
 
-      if (!id) {
-        const { __typename: typename } = obj;
-        switch (typename) {
-          case 'Company':
-            const cos = `${typename}:${obj.id}`;
-            console.log('in COMPANIES S -', cos);
-            return `${typename}:${obj.id}`;
-          case 'Offer':
-            const offers = `${typename}:${obj.price}`;
-            console.log('in OFFER S -',  offers);
-            return `${typename}:${obj.offerID}`;
-          case 'Order':
-            const orders = `${typename}:${obj.price}`;
-            console.log('in ORDER S -', orders);
-            return `${typename}:${obj.orderID}`;
-          case 'Product':
-            const products = `${typename}:${obj.name}`;;
-            console.log('in PRODUCT S - ', products);
-            return `${typename}:${obj.id}`;
-          default:
-            console.log('in default type');
-            return id;
+if (!id) {
+const { __typename: typename } = obj;
+switch (typename) {
+case 'Company':
+  return `${typename}:${obj.id}`;
+case 'Offer':
+  return `${typename}:${obj.companyID}${obj.offerID}`;
+case 'Order':
+  return `${typename}:${obj.companyID}${obj.orderID}`;
+case 'ReOrderRule':
+  return `${typename}:${obj.companyID}${obj.reorderRuleID}`;
+case 'Product':
+  return `${typename}:${obj.id}`;
+case 'BlockchainBlock':
+  return `${typename}:${obj.userID}${obj.blockchainID}`;
+case 'Deal':
+  return `${typename}:${obj.productID}${obj.dealID}`;
+case 'Notification':
+  return `${typename}:${obj.companyID}${obj.notificationID}`;
+default:
+  console.log('in default type', typename);
+  return id;
         }
       }
-      return id;
+return id;
     }
   }
 });

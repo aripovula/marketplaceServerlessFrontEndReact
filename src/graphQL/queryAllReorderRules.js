@@ -7,7 +7,6 @@ query {
       companyID
       reorderRuleID
       productID
-      product
       maxPrice
       bestOfferType
       secondBestOfferType
@@ -16,6 +15,14 @@ query {
       isCashPayment
       reorderLevel
       reorderQnty
+      product {
+          id,
+          name
+          modelNo
+          specificationURL
+          imageURL
+          lastTenRatingAverage
+      }
     }
   }
 }

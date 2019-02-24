@@ -5,6 +5,7 @@ mutation (
     $companyID: ID!
     $orderID: String!
     $productID: String!
+    $product: String!
     $status: OrderStatus!
     $note: String
   	$dealPrice: Float
@@ -19,6 +20,7 @@ mutation (
     companyID: $companyID,
     orderID: $orderID,
     productID: $productID,
+    product: $product,
     status:$status,
     note: $note,
 	  dealPrice: $dealPrice,
@@ -41,5 +43,13 @@ mutation (
     secondBestOfferType
     minProductRating
     isCashPayment
+    product {
+        id,
+        name
+        modelNo
+        specificationURL
+        imageURL
+        lastTenRatingAverage
+    }
   }
 }`);

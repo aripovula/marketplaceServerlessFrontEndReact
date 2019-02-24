@@ -70,18 +70,25 @@ class ModalProduct extends Component {
         let isExisting = false;
         const { client } = this.props;
         const { product } = this.state;
-        const productsInStore = client.readQuery({
-            query: QueryAllProducts
-        });
-        console.log('productsInStore', productsInStore);
+        let productsInStore;
         
-        productsInStore.listProducts.items.forEach((aProduct) => {
-            console.log('aProduct.name model - ', aProduct.name, aProduct.modelNo);
-            
-            if (aProduct.name === product.name && aProduct.modelNo === product.modelNo) {
-                isExisting = true;
-            }
-        });
+        try {
+            productsInStore = client.readQuery({
+                query: QueryAllProducts
+            });
+        } catch(e) {
+            productsInStore = null;
+        }
+
+        console.log('productsInStore', productsInStore);
+        if (productsInStore && productsInStore.listProducts && productsInStore.listProducts.items) {
+            productsInStore.listProducts.items.forEach((aProduct) => {
+                console.log('aProduct.name model - ', aProduct.name, aProduct.modelNo);        
+                if (aProduct.name === product.name && aProduct.modelNo === product.modelNo) {
+                    isExisting = true;
+                }
+            });
+        }
 
         if (isExisting) {
             this.setState({ isExistingProduct: true})
@@ -96,9 +103,7 @@ class ModalProduct extends Component {
                     ...prevState.product,
                     id: uuid()
                 }
-            }))
-    
-            
+            }));  
             console.log('createProduct -', this.props.createProduct);
             console.log('product b4 save -', this.state.product);
     

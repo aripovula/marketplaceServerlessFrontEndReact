@@ -128,7 +128,7 @@ class AssemblingCompany extends Component {
             orderID: new Date('January 1, 2022 00:00:00') - new Date(), // uuid(),
             reorderRuleID: uuid(),
             productID: '',
-            product: '',
+            product: 'abc',
             status: 'ORDER_PLACED',
             maxPrice: 1000000,
             quantity: 100,
@@ -918,11 +918,14 @@ export default compose (
                             console.log('data after read = ', data);
                             console.log('data.listOrders.items LEN after read = ', data.listOrders.items.length);
                             console.log('data.listOrders.items after read = ', data.listOrders.items);
+                            console.log('props', props);
+                            console.log('props.ownProps', props.ownProps);
+                            
                             console.log('createOrder = ', createOrder);
 
                             // get latest orders from getCompany
                             data.listOrders.items = [
-                            ...props.ownProps.orders.items, 
+                            ...props.ownProps.company.orders.items, 
                             createOrder];
 
                             // filter out old one if it is an update

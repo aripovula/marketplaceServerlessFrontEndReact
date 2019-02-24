@@ -7,7 +7,7 @@ query ($id: ID!, $nextToken: String) {
     name
     creditRating
     status
-    orders(limit: 2, nextToken: $nextToken){
+    orders(limit: 5, nextToken: $nextToken){
       items {
         companyID
         orderID
