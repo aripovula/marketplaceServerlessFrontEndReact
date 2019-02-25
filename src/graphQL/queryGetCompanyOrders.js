@@ -1,13 +1,13 @@
 import gql from "graphql-tag";
 
 export default gql(`
-query ($id: ID!, $nextToken: String) {
+query ($id: ID!) {
   getCompany(id: $id) {
     id
     name
     creditRating
     status
-    orders(limit: 5, nextToken: $nextToken){
+    orders {
       items {
         companyID
         orderID
@@ -29,8 +29,7 @@ query ($id: ID!, $nextToken: String) {
           imageURL
           lastTenRatingAverage
         }
-      },
-      nextToken
+      }
     },
     reOrderRules {
       items {
@@ -55,7 +54,6 @@ query ($id: ID!, $nextToken: String) {
         }
       }
     }
-
   }
 }
 `);

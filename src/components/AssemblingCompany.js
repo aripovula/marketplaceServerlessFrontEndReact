@@ -128,7 +128,7 @@ class AssemblingCompany extends Component {
             orderID: new Date('January 1, 2022 00:00:00') - new Date(), // uuid(),
             reorderRuleID: uuid(),
             productID: '',
-            product: 'abc',
+            product: 'ph',
             status: 'ORDER_PLACED',
             maxPrice: 1000000,
             quantity: 100,
@@ -461,14 +461,12 @@ class AssemblingCompany extends Component {
 
         // this.setState({ loading: true });
 
-        console.log('client.query = ', client.query);
+        // console.log('client.query = ', client.query);
         const coId = this.props.company.id;
-        const nextToken = this.props.company.orders.nextToken;
-        console.log('nextTokenSync', nextToken)
 
         await client.query({
             query,
-            variables: { id: coId, nextToken },
+            variables: { id: coId },
             fetchPolicy: 'network-only',
         });
 
@@ -885,11 +883,10 @@ export default compose (
     graphql(
         QueryGetCompany,
         {
-            options: function ({ id, nextToken }) {
+            options: function ({ id }) {
                 console.log('in BBB1 id ', id);
-                console.log('in BBB1 nextToken ', nextToken);
                 return ({
-                    variables: { id, nextToken },
+                    variables: { id },
                     fetchPolicy: 'cache-and-network',
                 })
             },
