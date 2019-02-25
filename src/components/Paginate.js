@@ -67,6 +67,10 @@ class Paginate extends Component {
     state = {
         nextToken: ''
     };
+    
+    showPrevious(token) {
+        this.handleFilter(token)
+    }
 
     onChange = (e) => {
         const value = e.target.value
@@ -109,7 +113,10 @@ class Paginate extends Component {
                         </div>
                     ))
                 }
-                {!loading && this.props.data.listOrders.nextToken}
+                <button className="button button1" 
+                onClick={() => this.showPrevious(this.props.data.listOrders.nextToken)}
+                >Previous 2</button>
+                {console.log(this.props.data.listOrders.nextToken)}
             </div>
         ) } else {
             return (
@@ -136,7 +143,8 @@ export default compose(
                         ...previousResult,
                         listOrders: {
                             ...previousResult.listOrders,
-                            items: fetchMoreResult.listOrders.items
+                            items: fetchMoreResult.listOrders.items,
+                            nextToken: fetchMoreResult.listOrders.nextToken
                         }
                     })
                 })
