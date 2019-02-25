@@ -1,10 +1,12 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
+import Paginate from './Paginate';
 
 export class Source extends Component {
   render() {
     return (
-      <div>
+      <div className="margintop">
         Source code links
+        <Paginate/>
       </div>
     )
   }
