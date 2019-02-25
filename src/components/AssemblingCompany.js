@@ -49,6 +49,7 @@ class AssemblingCompany extends Component {
 
     orderUpdateSubscription;
     productSubscription;
+    prevCompany;
 
     static defaultProps = {
         company: null,
@@ -128,6 +129,8 @@ class AssemblingCompany extends Component {
             orderID: new Date('January 1, 2022 00:00:00') - new Date(), // uuid(),
             reorderRuleID: uuid(),
             productID: '',
+            note: 'ph',
+            dealPrice: 0,
             product: 'ph',
             status: 'ORDER_PLACED',
             maxPrice: 1000000,
@@ -464,11 +467,11 @@ class AssemblingCompany extends Component {
         // console.log('client.query = ', client.query);
         const coId = this.props.company.id;
 
-        await client.query({
-            query,
-            variables: { id: coId },
-            fetchPolicy: 'network-only',
-        });
+        // await client.query({
+        //     query,
+        //     variables: { id: coId },
+        //     fetchPolicy: 'network-only',
+        // });
 
         const productsListFromProps = this.props.products ? this.props.products : null;
         console.log('indexed prs from store', productsListFromProps);
@@ -494,11 +497,13 @@ class AssemblingCompany extends Component {
         console.log('this.props COT - ', this.props);
         console.log('this.state COT - ', this.state);
         console.log('props.products', this.props.products);
-        const { company, loading } = this.props;
+        const { loading } = this.props;
+        const company = this.props.company ? this.props.company : this.prevCompany;
+        this.prevCompany = company ? company : this.prevCompany;
         const loadingState = this.state.loading;
-        if (this.props.company) {
+        if (company) {
             // const { company: { orders: { items } } } = this.props;
-            const items = this.props.company.orders ? this.props.company.orders.items : null;
+            const items = company.orders.items;
             console.log('this.ITEMS COT - ', items);
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
@@ -585,7 +590,7 @@ class AssemblingCompany extends Component {
                                     <td>left</td>
                                 </tr>
 
-                                {this.props.company.reOrderRules.items && [].concat(this.props.company.reOrderRules.items).sort((a, b) => 
+                                {company.reOrderRules.items && [].concat(company.reOrderRules.items).sort((a, b) => 
                                     a.product.name.localeCompare(b.product.name)).map((orderRule) =>
                                         <tr key={orderRule.reorderRuleID}>
                                         <td>
@@ -908,6 +913,7 @@ export default compose (
                     return props.mutate({
                         update: (proxy, { data: { createOrder } }) => {
                             console.log('point L2 proxy - ', proxy);
+                            console.log('point L2 ORDER - ', order);
                             // Update QueryAllOrders
                             console.log('QueryAllOrders = ', QueryAllOrders);
                             const query = QueryAllOrders;
@@ -915,11 +921,8 @@ export default compose (
                             console.log('data after read = ', data);
                             console.log('data.listOrders.items LEN after read = ', data.listOrders.items.length);
                             console.log('data.listOrders.items after read = ', data.listOrders.items);
-                            console.log('props', props);
-                            console.log('props.ownProps', props.ownProps);
-                            
                             console.log('createOrder = ', createOrder);
-
+                            console.log('createOrder PROPS = ', props);
                             // get latest orders from getCompany
                             data.listOrders.items = [
                             ...props.ownProps.company.orders.items, 
@@ -937,6 +940,32 @@ export default compose (
                             console.log('data after filter = ', data);
                             console.log('data.listOrders.items after filter = ', data.listOrders.items);
                             proxy.writeQuery({ query, data });
+
+                            // update cache - Company data 
+                            const queryC = QueryGetCompany;
+                            const dataC = proxy.readQuery(
+                                  { 
+                                      query: queryC,
+                                      variables: {id: props.ownProps.company.id},
+                                  });
+                            console.log('data after read Co = ', dataC);
+
+                            dataC.getCompany.orders.items = [
+                            ...props.ownProps.company.orders.items, 
+                            createOrder];
+
+                            // filter out old one if it is an update
+                            dataC.getCompany.orders.items = [
+                                ...dataC.getCompany.orders.items.filter(e => {
+                                    console.log('e = ', e);
+                                    console.log('e.orderID = ', e.orderID);
+                                    return e.orderID !== createOrder.orderID
+                                })
+                                , createOrder];
+
+                            console.log('dataC after filter = ', dataC);
+                            console.log('dataC.listOrders.items after filter = ', dataC.getCompany.orders.items);
+                            proxy.writeQuery({ query: queryC, data: dataC });
 
                             // Create cache entry for QueryGetOrder
                             const query2 = QueryGetOrder;

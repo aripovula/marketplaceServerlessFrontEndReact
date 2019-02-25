@@ -29,6 +29,7 @@ const SearchIceCreams = gql`
       items {
         orderID
         dealPrice
+        quantity
         bestOfferType
       }
     }
@@ -41,6 +42,7 @@ const ListIceCreams = gql`
       items {
         orderID
         dealPrice
+        quantity
         bestOfferType
       }
     }
@@ -85,6 +87,7 @@ class Search extends Component {
                     !loading && items.map((item, index) => (
                         <div key={index} style={styles.container}>
                             <p style={styles.title}>{item.dealPrice}</p>
+                            <p style={styles.title}>{item.quantity}</p>
                             <p style={styles.description}>{item.bestOfferType}</p>
                         </div>
                     ))

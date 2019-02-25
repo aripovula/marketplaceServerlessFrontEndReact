@@ -43,16 +43,18 @@ credentials: () => Auth.currentCredentials(),
   cacheOptions: {
 dataIdFromObject: (obj) => {
 let id = defaultDataIdFromObject(obj);
-// console.log('defaultDataIdFromObject OBJ ID', obj, id);
+console.log('defaultDataIdFromObject OBJ ID', obj, id);
 
 if (!id) {
 const { __typename: typename } = obj;
 switch (typename) {
 case 'Company':
+  console.log(`${typename}:${obj.id}`)
   return `${typename}:${obj.id}`;
 case 'Offer':
   return `${typename}:${obj.companyID}${obj.offerID}`;
 case 'Order':
+  console.log(`${typename}:${obj.orderID}`)
   return `${typename}:${obj.companyID}${obj.orderID}`;
 case 'ReOrderRule':
   return `${typename}:${obj.companyID}${obj.reorderRuleID}`;
@@ -65,7 +67,8 @@ case 'Deal':
 case 'Notification':
   return `${typename}:${obj.companyID}${obj.notificationID}`;
 default:
-  console.log('in default type', typename);
+  const typ = `${typename}`;
+  console.log('in default type', typ);
   return id;
         }
       }
