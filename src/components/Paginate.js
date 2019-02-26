@@ -19,40 +19,48 @@ import debounce from 'lodash/debounce';
 //   }
 // `
 
-const SearchIceCreams = gql`
-  query($searchQuery: String) {
-    listOrders(filter: {
-      bestOfferType: {
-        contains: $searchQuery
-      }
-    }) {
-      items {
-        orderID
-        dealPrice
-        quantity
-        bestOfferType
-      }
-    }
-  }
-`
+// const SearchIceCreams = gql`
+//   query($searchQuery: String) {
+//     listOrders(filter: {
+//       bestOfferType: {
+//         contains: $searchQuery
+//       }
+//     }) {
+//       items {
+//         orderID
+//         dealPrice
+//         quantity
+//         bestOfferType
+//       }
+//     }
+//   }
+// `
 
-const ListIceCreams = gql`
-  query listOrders {
-    listOrders {
-      items {
-        orderID
-        dealPrice
-        quantity
-        bestOfferType
-      }
-    }
-  }
-`
+// const ListIceCreams = gql`
+//   query listOrders {
+//     listOrders {
+//       items {
+//         orderID
+//         dealPrice
+//         quantity
+//         bestOfferType
+//       }
+//     }
+//   }
+// `
 
 const PaginateOrders = gql`
-  query($nextToken: String) {
-    listOrders(limit: 2, nextToken: $nextToken) {
+  query($nextToken: String, $companyID: ID) {
+    listOrders(limit: 2,
+    nextToken: $nextToken, 
+    filter: {
+      companyID: {
+        eq: $companyID
+      }
+    }
+    ) {
       items {
+        companyID
         orderID
         dealPrice
         quantity
@@ -64,22 +72,55 @@ const PaginateOrders = gql`
 `
 
 class Paginate extends Component {
-    prevToken;
+
     state = {
-        nextToken: ''
+        nextToken: '',
+        allTokens: [null],
+        currentPosition: 0
     };
     
+    componentDidMount() {
+        this.handleFilter(null, "d20cde2e-b0a4-441b-a8be-5a31e0eb09e8");
+    }
+
     showPrevious(token) {
-        this.handleFilter(token)
+        if (token) {
+          const tokensTemp = JSON.parse(JSON.stringify(this.state.allTokens));
+          tokensTemp.push(token);
+          this.setState({allTokens: tokensTemp, currentPosition: (tokensTemp.length - 1)});
+        } else {
+            this.setState(prevState => ({allTokens: [null], currentPosition: 0}));
+        }
+
+        this.handleFilter(token, "d20cde2e-b0a4-441b-a8be-5a31e0eb09e8")
+    }
+    
+    showNext() {
+        if (this.state.allTokens[this.state.currentPosition - 1]) {
+            this.setState(prevState => ({currentPosition: prevState.currentPosition - 1}),
+               () => {
+                   const token = this.state.allTokens[this.state.currentPosition];
+                   this.handleFilter(token, "d20cde2e-b0a4-441b-a8be-5a31e0eb09e8");
+            });
+        } else {
+            this.setState({allTokens: [null], currentPosition: 0},
+                () => {
+                    const token = this.state.allTokens[this.state.currentPosition];
+                    this.handleFilter(token, "d20cde2e-b0a4-441b-a8be-5a31e0eb09e8");
+            });
+        }
     }
 
     onChange = (e) => {
         const value = e.target.value
-        this.handleFilter(value)
+        this.handleFilter(value, "d20cde2e-b0a4-441b-a8be-5a31e0eb09e8")
     };
 
-    handleFilter = debounce((val) => {
-        this.props.onSearch(val)
+    handleFilter = debounce((val, companyID) => {
+        
+        console.log('tokenz-1', this.state.currentPosition, this.state.allTokens);
+        console.log('token', val);
+        this.props.onSearch(val, companyID)
     }, 250);
 
     render() {
@@ -119,10 +160,15 @@ class Paginate extends Component {
                 onClick={() => this.showPrevious(this.props.data.listOrders.nextToken)}
                 disabled={!this.props.data.listOrders.nextToken}
                 >Previous 2</button>
+
+                <button className="button button1" 
+                onClick={() => this.showNext()}
+                disabled={this.state.currentPosition === 0}
+                >Next 2</button>
+
                 <button className="button button1" 
                 onClick={() => this.showPrevious(null)}
                 >Show latest 2</button>
-                {console.log(this.props.data.listOrders.nextToken)}
             </div>
         ) } else {
             return (
@@ -138,12 +184,12 @@ export default compose(
             fetchPolicy: 'cache-and-network'
         }),
         props: props => ({
-            onSearch: nextToken => {
+            onSearch: (nextToken, companyID) => {
                 // searchQuery = searchQuery.toLowerCase()
                 return props.data.fetchMore({
                     query: PaginateOrders, // searchQuery === '' ? ListIceCreams : SearchIceCreams,
                     variables: {
-                        nextToken
+                        nextToken, companyID
                     },
                     updateQuery: (previousResult, { fetchMoreResult }) => ({
                         ...previousResult,

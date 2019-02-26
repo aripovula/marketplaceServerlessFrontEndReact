@@ -30,6 +30,7 @@ const SearchIceCreams = gql`
       }
     }) {
       items {
+        companyID
         orderID
         dealPrice
         quantity
@@ -47,6 +48,7 @@ const ListIceCreams = gql`
       }
     }){
       items {
+        companyID
         orderID
         dealPrice
         quantity
@@ -57,6 +59,8 @@ const ListIceCreams = gql`
 `
 
 class Search extends Component {
+
+
     state = {
         searchQuery: ''
     }
