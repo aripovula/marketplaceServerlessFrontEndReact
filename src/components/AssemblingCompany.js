@@ -966,6 +966,7 @@ export default compose (
                             console.log('dataC after filter = ', dataC);
                             console.log('dataC.listOrders.items after filter = ', dataC.getCompany.orders.items);
                             proxy.writeQuery({ query: queryC, data: dataC });
+                            console.log('createOrder PROPS C = ', props);
 
                             // Create cache entry for QueryGetOrder
                             const query2 = QueryGetOrder;

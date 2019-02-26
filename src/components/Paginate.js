@@ -64,6 +64,7 @@ const PaginateOrders = gql`
 `
 
 class Paginate extends Component {
+    prevToken;
     state = {
         nextToken: ''
     };
@@ -86,6 +87,7 @@ class Paginate extends Component {
         const { loading } = this.props.data
         if (this.props.data.listOrders && this.props.data.listOrders.items) {
             const { items }  = this.props.data.listOrders;
+            const {nextToken} = this.props.data.listOrders;
 
         return (
             <div className="App">
@@ -115,7 +117,11 @@ class Paginate extends Component {
                 }
                 <button className="button button1" 
                 onClick={() => this.showPrevious(this.props.data.listOrders.nextToken)}
+                disabled={!this.props.data.listOrders.nextToken}
                 >Previous 2</button>
+                <button className="button button1" 
+                onClick={() => this.showPrevious(null)}
+                >Show latest 2</button>
                 {console.log(this.props.data.listOrders.nextToken)}
             </div>
         ) } else {

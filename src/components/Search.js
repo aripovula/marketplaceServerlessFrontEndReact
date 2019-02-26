@@ -20,10 +20,13 @@ import debounce from 'lodash/debounce';
 // `
 
 const SearchIceCreams = gql`
-  query($searchQuery: String) {
+  query($searchQuery: String, $companyID: ID) {
     listOrders(filter: {
       bestOfferType: {
-        contains: $searchQuery
+        contains: $searchQuery,
+      },
+      companyID: {
+        eq: $companyID
       }
     }) {
       items {
@@ -37,8 +40,12 @@ const SearchIceCreams = gql`
 `
 
 const ListIceCreams = gql`
-  query listOrders {
-    listOrders {
+  query($companyID: ID) {
+    listOrders (filter: {
+      companyID: {
+        eq: $companyID
+      }
+    }){
       items {
         orderID
         dealPrice
@@ -58,7 +65,8 @@ class Search extends Component {
         this.handleFilter(value)
     }
     handleFilter = debounce((val) => {
-        this.props.onSearch(val)
+        const val2 = "d20cde2e-b0a4-441b-a8be-5a31e0eb09e8";
+        this.props.onSearch(val, val2)
     }, 250)
     render() {
         console.log('props - ', this.props);
@@ -107,12 +115,15 @@ export default compose(
             fetchPolicy: 'cache-and-network'
         }),
         props: props => ({
-            onSearch: searchQuery => {
+            onSearch: (searchQuery, companyID) => {
                 // searchQuery = searchQuery.toLowerCase()
+                console.log('inputs', searchQuery, companyID);
+                
                 return props.data.fetchMore({
                     query: searchQuery === '' ? ListIceCreams : SearchIceCreams,
                     variables: {
-                        searchQuery
+                        searchQuery,
+                        companyID
                     },
                     updateQuery: (previousResult, { fetchMoreResult }) => ({
                         ...previousResult,
