@@ -100,7 +100,7 @@ class AssemblingCo extends React.Component {
             this.setState(prevState => ({ allTokens: [null], currentPosition: 0 }));
         }
 
-        this.handleFilter(token, "6e11abc1-5d3f-41f8-8167-32b1efb7edcf")
+        this.handleFilter(token, this.props.companyID)
     }
 
     showNext() {
@@ -108,13 +108,13 @@ class AssemblingCo extends React.Component {
             this.setState(prevState => ({ currentPosition: prevState.currentPosition - 1 }),
                 () => {
                     const token = this.state.allTokens[this.state.currentPosition];
-                    this.handleFilter(token, "6e11abc1-5d3f-41f8-8167-32b1efb7edcf");
+                    this.handleFilter(token, this.props.companyID);
                 });
         } else {
             this.setState({ allTokens: [null], currentPosition: 0 },
                 () => {
                     const token = this.state.allTokens[this.state.currentPosition];
-                    this.handleFilter(token, "6e11abc1-5d3f-41f8-8167-32b1efb7edcf");
+                    this.handleFilter(token, this.props.companyID);
                 });
         }
     }
@@ -163,23 +163,20 @@ class AssemblingCo extends React.Component {
                     </span>
 
                     <span
-                        className="addnlightbg notbold cursorpointer"
-                        onClick={() => {
-                            // this.handleSync();
-                        }}>prev 2 &nbsp; &nbsp;
+                        className={this.props.data.listOrders.nextToken ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
+                        onClick={this.props.data.listOrders.nextToken ? () => this.showPrevious(this.props.data.listOrders.nextToken) : null}
+                    >prev 2 &nbsp; &nbsp;
                     </span>
                     <span
-                        className="addnlightbg notbold cursorpointer"
-                        onClick={() => {
-                            // this.handleSync();
-                        }}>next 2 &nbsp; &nbsp;
+                        className={this.state.currentPosition !== 0 ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
+                        onClick={this.state.currentPosition !== 0 ? () => this.showNext(this.props.data.listOrders.nextToken) : null}
+                    >next 2 &nbsp; &nbsp;
                     </span>
 
                     <span
                         className="addnlightbg notbold cursorpointer"
-                        onClick={() => {
-                            // this.handleSync();
-                        }}>latest 2
+                        onClick={() => this.showPrevious(null)}
+                    >latest 2
                     </span>
 
                     <table id="tableFM">

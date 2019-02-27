@@ -436,6 +436,17 @@ a.addnlightbg:active {
   font-size: 1vw;
 }
 
+.addnlightbgoff,
+a.addnlightbg {
+  color: rgb(194, 202, 211);
+  font-size: 1vw;
+}
+
+a.addnlightbgoff:link {
+  text-decoration: none;
+  font-size: 1vw;
+}
+
 .black {
   color: black
 }
