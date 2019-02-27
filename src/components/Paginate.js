@@ -3,73 +3,29 @@ import gql from 'graphql-tag'
 import { graphql, compose } from 'react-apollo'
 
 import debounce from 'lodash/debounce';
+import PaginateOrders from "../graphQL/queryOrders";
 
-// const SearchIceCreams = gql`
-//   query($searchQuery: String) {
-//     listIceCreams(filter: {
-//       searchField: {
-//         contains: $searchQuery
-//       }
-//     }) {
-//       items {
-//         name
-//         description
+// const PaginateOrders = gql`
+//   query($nextToken: String, $companyID: ID) {
+//     listOrders(limit: 2,
+//     nextToken: $nextToken, 
+//     filter: {
+//       companyID: {
+//         eq: $companyID
 //       }
 //     }
-//   }
-// `
-
-// const SearchIceCreams = gql`
-//   query($searchQuery: String) {
-//     listOrders(filter: {
-//       bestOfferType: {
-//         contains: $searchQuery
-//       }
-//     }) {
+//     ) {
 //       items {
+//         companyID
 //         orderID
 //         dealPrice
 //         quantity
 //         bestOfferType
 //       }
+//       nextToken
 //     }
 //   }
 // `
-
-// const ListIceCreams = gql`
-//   query listOrders {
-//     listOrders {
-//       items {
-//         orderID
-//         dealPrice
-//         quantity
-//         bestOfferType
-//       }
-//     }
-//   }
-// `
-
-const PaginateOrders = gql`
-  query($nextToken: String, $companyID: ID) {
-    listOrders(limit: 2,
-    nextToken: $nextToken, 
-    filter: {
-      companyID: {
-        eq: $companyID
-      }
-    }
-    ) {
-      items {
-        companyID
-        orderID
-        dealPrice
-        quantity
-        bestOfferType
-      }
-      nextToken
-    }
-  }
-`
 
 class Paginate extends Component {
 
@@ -120,7 +76,7 @@ class Paginate extends Component {
         
         console.log('tokenz-1', this.state.currentPosition, this.state.allTokens);
         console.log('token', val);
-        this.props.onSearch(val, companyID)
+        this.props.getOrdersBatch(2, val, companyID)
     }, 250);
 
     render() {
@@ -184,12 +140,14 @@ export default compose(
             fetchPolicy: 'cache-and-network'
         }),
         props: props => ({
-            onSearch: (nextToken, companyID) => {
+            getOrdersBatch: (theLimit, nextToken, companyID) => {
+                console.log('nextToken, companyID', nextToken, companyID);
+                
                 // searchQuery = searchQuery.toLowerCase()
                 return props.data.fetchMore({
                     query: PaginateOrders, // searchQuery === '' ? ListIceCreams : SearchIceCreams,
                     variables: {
-                        nextToken, companyID
+                        theLimit, nextToken, companyID
                     },
                     updateQuery: (previousResult, { fetchMoreResult }) => ({
                         ...previousResult,

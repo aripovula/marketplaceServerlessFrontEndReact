@@ -6,6 +6,7 @@ import Modal from 'react-modal';
 import QueryGetCompany from "../graphQL/queryGetCompanyOrders";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryAllOrders from "../graphQL/queryAllOrders";
+import PaginateOrders from "../graphQL/queryOrders";
 import QueryAllReOrderRules from "../graphQL/queryAllReorderRules";
 import QueryGetOrder from "../graphQL/queryGetOrder";
 import QueryGetReOrderRule from "../graphQL/queryGetReorderRule";
@@ -95,6 +96,11 @@ class AssemblingCompany extends Component {
         this.orderUpdateSubscription = this.props.subscribeToUpdateOrders();
         this.productSubscription = this.props.subscribeToNewProducts();
         Modal.setAppElement('body');
+    }
+    
+    componentDidMount() {
+        console.log('itemsNew company.id', this.props.company.id);
+        this.props.getOrdersBatch(null, this.props.company.id);
     }
 
     componentWillUnmount() {
@@ -501,6 +507,12 @@ class AssemblingCompany extends Component {
         const company = this.props.company ? this.props.company : this.prevCompany;
         this.prevCompany = company ? company : this.prevCompany;
         const loadingState = this.state.loading;
+
+        const itemsNew  = (this.props.data && this.props.data.listOrders) ? this.props.data.listOrders.items : null;
+        // const nextTokenNew = this.props.data.listOrders.nextToken;
+        console.log('itemsNew', itemsNew);
+        
+
         if (company) {
             // const { company: { orders: { items } } } = this.props;
             const items = company.orders.items;
@@ -624,17 +636,24 @@ class AssemblingCompany extends Component {
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
                                 // this.handleSync();
-                            }}>next 2
+                            }}>next 2 &nbsp; &nbsp;
                         </span>
-                        
+                        <span
+                            className="addnlightbg notbold cursorpointer"
+                            onClick={() => {
+                                // this.handleSync();
+                            }}>latest 2
+                        </span>
+
                         <table id="tableFM">
                             <tbody>
                                 <tr>
                                     <td>qnty, rating, price (target / actual)</td>
                                     <td>status</td>
                                 </tr>
-                                {console.log('ordersb4table', items)}
-                                {items && [].concat(items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
+                                {console.log('ordersb4table-', items)}
+                                {console.log('ordersb4tableNew-', itemsNew)}
+                                {items && [].concat(itemsNew).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
                                     <tr key={order.orderID}>
                                         <td>
                                             {order.product.name}-{order.product.modelNo} - {order.quantity}
@@ -899,6 +918,31 @@ export default compose (
             },
         },
     ),
+    graphql(PaginateOrders, {
+        options: data => ({
+            fetchPolicy: 'cache-and-network'
+        }),
+        props: props => ({
+            getOrdersBatch: (nextToken, companyID) => {
+                // searchQuery = searchQuery.toLowerCase()
+                return props.data.fetchMore({
+                    query: PaginateOrders, // searchQuery === '' ? ListIceCreams : SearchIceCreams,
+                    variables: {
+                        nextToken, companyID
+                    },
+                    updateQuery: (previousResult, { fetchMoreResult }) => ({
+                        ...previousResult,
+                        listOrders: {
+                            ...previousResult.listOrders,
+                            items: fetchMoreResult.listOrders.items,
+                            nextToken: fetchMoreResult.listOrders.nextToken
+                        }
+                    })
+                })
+            },
+            data: props.data
+        })
+    }),
     graphql(
         MutationCreateOrder,
         {
@@ -935,6 +979,9 @@ export default compose (
                             console.log('data after filter = ', data);
                             console.log('data.listOrders.items after filter = ', data.listOrders.items);
                             proxy.writeQuery({ query, data });
+
+                            const dataNew = proxy.readQuery({ query });
+                            console.log('dataNew after read = ', dataNew);
 
                             // update cache - Company data 
                             const queryC = QueryGetCompany;
@@ -975,6 +1022,7 @@ export default compose (
                         variables: order,
                         optimisticResponse: () => (
                             {
+                                __typename: 'Order',
                                 createOrder: {
                                     ...order, __typename: 'Order'
                                 }
