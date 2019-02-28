@@ -570,7 +570,7 @@ class AssemblingCo extends React.Component {
 
     render() {
         console.log('newAssemblyPROPS-', this.props);
-        
+
         return (
             <div>
                 {/*<div>
@@ -650,7 +650,7 @@ class AssemblingCo extends React.Component {
                                     </td>
                                     <td>
                                         {parseInt(order.orderID) < 0 && <span style={{ color: 'red' }}>
-                                    {order.status.toLowerCase()}&nbsp;</span>}
+                                            {order.status.toLowerCase()}&nbsp;</span>}
                                         {parseInt(order.orderID) > 0 && <span style={{ color: 'black' }}>
                                             {order.status.toLowerCase()}&nbsp;</span>}
 
@@ -902,17 +902,17 @@ class AssemblingCo extends React.Component {
 
 export default compose(
     graphql(ListOrders, {
-        options: ({limit, nextToken, companyID}) => {
+        options: () => {
             return ({
-            variables: { limit, nextToken, companyID },
-              fetchPolicy: 'cache-and-network'
+                // variables: { limit, nextToken, companyID },
+                fetchPolicy: 'cache-and-network'
             });
         },
         props: props => ({
-            data: { 
+            data: {
                 listOrders: {
                     items: props.data.listOrders ? props.data.listOrders.items : [],
-                    nextToken: props.data.listOrders ? props.data.listOrders.nextToken : null,
+                    // nextToken: props.data.listOrders ? props.data.listOrders.nextToken : null,
                 }
             },
             subscribeToNewOrders: params => {
@@ -1092,7 +1092,7 @@ export default compose(
                         variables: {
                             limit: props.ownProps.limit,
                             nextToken: null,
-                            companyID: props.ownProps.companyID 
+                            companyID: props.ownProps.companyID
                         }
                     });
                     console.log('data2 b4', data2.listOrders.items.length, JSON.stringify(data2));
@@ -1107,7 +1107,7 @@ export default compose(
 
                     console.log('data2 after', data2.listOrders.items.length, JSON.stringify(data2));
                     proxy.writeQuery({ query: ListOrders, data: data2 });
-                    
+
                     // 2
                     // const data = proxy.readQuery({ query: QueryAllOrders });
                     // data.listOrders.items.push(createOrder);

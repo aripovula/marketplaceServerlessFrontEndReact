@@ -2,7 +2,7 @@ import gql from "graphql-tag";
 
 export default gql(`
 query {
-  listOrders(limit: 100) {
+  listOrders {
     items {
       companyID
       orderID

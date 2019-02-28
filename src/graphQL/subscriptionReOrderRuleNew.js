@@ -1,16 +1,14 @@
-import gql from "graphql-tag";
+import gql from 'graphql-tag'
 
-export default gql(`
-query ($limit: Int, $nextToken: String, $companyID: ID) {
-  listReOrderRules(limit: $limit,
-    nextToken: $nextToken, 
+export default gql`
+subscription ($companyID: ID) {
+  onCreateReOrderRule(
     filter: {
       companyID: {
         eq: $companyID
       }
     }
-    ) {
-    items {
+    )  {
       companyID
       reorderRuleID
       productID
@@ -30,8 +28,5 @@ query ($limit: Int, $nextToken: String, $companyID: ID) {
           imageURL
           lastTenRatingAverage
       }
-    }
-    nextToken
   }
-}
-`);
+}`;

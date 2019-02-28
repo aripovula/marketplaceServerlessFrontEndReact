@@ -1,8 +1,15 @@
 import gql from "graphql-tag";
 
 export default gql(`
-  query ListOrders {
-    listOrders {
+  query($limit: Int, $nextToken: String, $companyID: ID) {
+    listOrders(limit: $limit,
+    nextToken: $nextToken, 
+    filter: {
+      companyID: {
+        eq: $companyID
+      }
+    }
+    ) {
       items {
         companyID
         orderID

@@ -12,7 +12,7 @@ import MutationCreateOffer from "../graphQL/mutationAddOffer";
 import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
 import NewProductSubscription from '../graphQL/subscriptionProducts'
-import UpdateOfferSubscription from '../graphQL/subsriptionOfferUpdate'
+import UpdateOfferSubscription from '../graphQL/subscriptionOfferUpdate'
 import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
 
