@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import AssemblingCompany from './AssemblingCompany';
 import AssemblingCompany2 from './AssemblingCompany2';
+import AssemblingCo from './AssemblingCo';
 import { OrderStatus } from './OrderStatus';
 import Search from './Search';
 
@@ -14,6 +15,13 @@ export class AllTradersLineOne extends Component {
           </div>
           <div id="middle2">
             {/*<AssemblingCompany2 id='6e11abc1-5d3f-41f8-8167-32b1efb7edcf' client={this.props.client} />*/}
+            <AssemblingCo
+        limit={4}
+          companyID="6e11abc1-5d3f-41f8-8167-32b1efb7edcf"
+        client={this.props.client}
+        nextToken={null}
+        />
+
           </div>
           <div id="right2">
             

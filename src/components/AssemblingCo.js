@@ -8,7 +8,7 @@ import QueryGetCompany from "../graphQL/queryGetCompanyOrders";
 import QueryAllOrders from "../graphQL/queryAllOrders";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryAllReOrderRules from "../graphQL/queryAllReorderRules";
-import ListOrders from "../graphQL/queryOrders";
+import ListOrders from "../graphQL/queryOrdersWithData";
 import NewOrderSubscription from '../graphQL/subscriptionOrderNew';
 import NewReOrderRuleSubscription from '../graphQL/subscriptionReOrderRuleNew';
 import UpdateOrderSubscription from '../graphQL/subscriptionOrderUpdate';
@@ -464,7 +464,7 @@ class AssemblingCo extends React.Component {
             // this.setState({ loading: false });
         }
         console.log('order after save -', this.state.order);
-        // this.handleSync();
+        this.handleSync();
     }
 
     handleSaveUpdate = async (e) => {
@@ -504,7 +504,7 @@ class AssemblingCo extends React.Component {
         // this.setState({ loading: true });
 
         // console.log('client.query = ', client.query);
-        const coId = this.props.company.id;
+        // const coId = this.props.company.id;
 
         // await client.query({
         //     query,
@@ -565,7 +565,7 @@ class AssemblingCo extends React.Component {
     handleFilter = (val, companyID) => {
         console.log('tokenz-1', this.state.currentPosition, this.state.allTokens);
         console.log('token', val);
-        this.props.getOrdersBatch(4, val, companyID)
+        this.props.getOrdersBatch(this.props.limit, val, companyID)
     };
 
     render() {
@@ -595,6 +595,37 @@ class AssemblingCo extends React.Component {
                         <p>Add Order</p>
                     </div>
                     </div>*/}
+
+                <table id="tableFM">
+                    <tbody>
+                        <tr>
+                            <td>product</td>
+                            <td>reorder x @ y, rating, price</td>
+                            <td>left</td>
+                        </tr>
+
+                        {this.props.listReOrderRules.items && [].concat(this.props.listReOrderRules.items).sort((a, b) =>
+                            a.product.name.localeCompare(b.product.name)).map((orderRule) =>
+                                <tr key={orderRule.reorderRuleID}>
+                                    <td>
+                                        <span className="addnlightbg notbold cursorpointer"
+                                            onClick={() => {
+                                                this.setState(() => ({
+                                                    isUpdateAtStart: true,
+                                                    order: JSON.parse(JSON.stringify(orderRule)),
+                                                    oneOffOrRule: 2,
+                                                    modalIsOpen: true
+                                                }));
+                                            }}>{orderRule.product.name} {orderRule.product.modelNo}
+                                        </span>
+                                    </td>
+                                    <td>{this.getThresholdText(orderRule, true)}</td>
+                                    <td>{orderRule.reorderQnty}</td>
+                                </tr>
+                            )}
+                    </tbody>
+                </table>
+
                 <div>
                     <span className="verIndent"></span>
                     <span className="responsiveFSize">Orders</span>&nbsp; &nbsp;
@@ -660,7 +691,7 @@ class AssemblingCo extends React.Component {
                         </tbody>
                     </table>
 
-                    <button className="button button1"
+                    {/*<button className="button button1"
                         onClick={() => this.showPrevious(this.props.data.listOrders.nextToken)}
                         disabled={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? !this.props.data.listOrders.nextToken : false}
                     >Previous 2</button>
@@ -672,7 +703,7 @@ class AssemblingCo extends React.Component {
 
                     <button className="button button1"
                         onClick={() => this.showPrevious(null)}
-                    >Show latest 2</button>
+                        >Show latest 2</button>*/}
 
                 </div>
 
@@ -934,6 +965,9 @@ export default compose(
         })
     }),
     graphql(QueryAllReOrderRules, {
+        // options: {
+        //     fetchPolicy: 'cache-and-network'
+        // },
         options: ({ limit, nextToken, companyID }) => {
             return ({
                 variables: { limit, nextToken, companyID },
@@ -941,23 +975,22 @@ export default compose(
             });
         },
         props: props => ({
-            data: {
-                listReOrderRules: {
-                    items: props.data.listReOrderRules ? props.data.listReOrderRules.items : [],
-                    nextToken: props.data.listReOrderRules ? props.data.listReOrderRules.nextToken : null,
-                }
+            listReOrderRules: {
+                items: props.data.listReOrderRules ? props.data.listReOrderRules.items : [],
+                nextToken: props.data.listReOrderRules ? props.data.listReOrderRules.nextToken : [],
             },
             subscribeToNewReOrderRules: params => {
                 props.data.subscribeToMore({
                     document: NewReOrderRuleSubscription,
-                    // variables: "6e11abc1-5d3f-41f8-8167-32b1efb7edcf",
                     updateQuery: (prev, { subscriptionData: { data: { onCreateReOrderRule } } }) => {
+                        console.log('onCreateReOrderRule - ', onCreateReOrderRule);
                         return {
                             ...prev,
                             listReOrderRules: {
                                 __typename: 'ReOrderRuleConnection',
-                                items: [onCreateReOrderRule, ...prev.listReOrderRules.items.filter(order => order.reorderRuleID !== onCreateReOrderRule.reorderRuleID)],
-                                nextToken: onCreateReOrderRule.nextToken
+                                items: [onCreateReOrderRule, ...prev.listReOrderRules.items.filter(
+                                    rule => rule.reorderRuleID !== onCreateReOrderRule.reorderRuleID
+                                )]
                             }
                         }
                     }
