@@ -1173,34 +1173,45 @@ export default compose(
                 //     __typename: 'Mutation',
                 //     createOrder: { ...order, orderID: Math.round(Math.random() * -1000000), __typename: 'Order' }
                 // },
-                update: (proxy, { data: { createOrder } }) => {
-                    // 1
-                    const data2 = proxy.readQuery({
+                // update: (proxy, { data: { createOrder } }) => {
+                //     // 1
+                //     const data2 = proxy.readQuery({
+                //         query: ListOrders,
+                //         variables: {
+                //             limit: props.ownProps.limit,
+                //             nextToken: null,
+                //             companyID: props.ownProps.companyID 
+                //         }
+                //     });
+                //     console.log('data2 b4', data2.listOrders.items.length, JSON.stringify(data2));
+                //     // data2.listOrders.items.push(createOrder);
+                //     data2.listOrders.items = [
+                //         ...data2.listOrders.items.filter(e => {
+                //             // console.log('e = ', e);
+                //             // console.log('e.orderID = ', e.orderID);
+                //             return e.orderID !== createOrder.orderID
+                //         })
+                //         , createOrder];
+
+                //     console.log('data2 after', data2.listOrders.items.length, JSON.stringify(data2));
+                //     proxy.writeQuery({ query: ListOrders, data: data2 });
+                    
+                //     // 2
+                //     // const data = proxy.readQuery({ query: QueryAllOrders });
+                //     // data.listOrders.items.push(createOrder);
+                //     // proxy.writeQuery({ query: QueryAllOrders, data });
+                // },
+                refetchQueries: [
+                    {
                         query: ListOrders,
                         variables: {
                             limit: props.ownProps.limit,
                             nextToken: null,
-                            companyID: props.ownProps.companyID 
-                        }
-                    });
-                    console.log('data2 b4', data2.listOrders.items.length, JSON.stringify(data2));
-                    // data2.listOrders.items.push(createOrder);
-                    data2.listOrders.items = [
-                        ...data2.listOrders.items.filter(e => {
-                            // console.log('e = ', e);
-                            // console.log('e.orderID = ', e.orderID);
-                            return e.orderID !== createOrder.orderID
-                        })
-                        , createOrder];
+                            companyID: props.ownProps.companyID
+                        },
+                    },
+                ],
 
-                    console.log('data2 after', data2.listOrders.items.length, JSON.stringify(data2));
-                    proxy.writeQuery({ query: ListOrders, data: data2 });
-                    
-                    // 2
-                    // const data = proxy.readQuery({ query: QueryAllOrders });
-                    // data.listOrders.items.push(createOrder);
-                    // proxy.writeQuery({ query: QueryAllOrders, data });
-                }
             })
         }),
     }),
@@ -1212,22 +1223,32 @@ export default compose(
                 //     __typename: 'Mutation',
                 //     createReOrderRule: { ...rule, id: Math.round(Math.random() * -1000000), __typename: 'ReOrderRule' }
                 // },
-                update: (proxy, { data: { createReOrderRule } }) => {
-                    const data = proxy.readQuery({
+                // update: (proxy, { data: { createReOrderRule } }) => {
+                //     const data = proxy.readQuery({
+                //         query: ListReOrderRules,
+                //         variables: {
+                //             limit: props.ownProps.limit,
+                //             nextToken: null,
+                //             companyID: props.ownProps.companyID
+                //         }
+                //     });
+                //     data.listReOrderRules.items = [
+                //         ...data.listReOrderRules.items.filter(e => {
+                //             return e.reorderRuleID !== createReOrderRule.reorderRuleID
+                //         })
+                //         , createReOrderRule];
+                //     proxy.writeQuery({ query: ListReOrderRules, data });
+                // },
+                refetchQueries: [
+                    {
                         query: ListReOrderRules,
                         variables: {
                             limit: props.ownProps.limit,
                             nextToken: null,
                             companyID: props.ownProps.companyID
-                        }
-                    });
-                    data.listReOrderRules.items = [
-                        ...data.listReOrderRules.items.filter(e => {
-                            return e.reorderRuleID !== createReOrderRule.reorderRuleID
-                        })
-                        , createReOrderRule];
-                    proxy.writeQuery({ query: ListReOrderRules, data });
-                }
+                        },
+                    },
+                ],
             })
         }),
     }),
@@ -1248,13 +1269,15 @@ export default compose(
                             companyID: props.ownProps.companyID
                         }
                     });
+                    data.listReOrderRules.nextToken = null;
                     data.listReOrderRules.items = [
                         ...data.listReOrderRules.items.filter(e => {
                             return e.reorderRuleID !== updateReOrderRule.reorderRuleID
                         })
                         , updateReOrderRule];
+                    
                     proxy.writeQuery({ query: ListReOrderRules, data });
-                }
+                },
             })
         }),
     }),
