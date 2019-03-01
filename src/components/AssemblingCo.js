@@ -11,6 +11,7 @@ import QueryGetCompany from "../graphQL/queryGetCompany";
 import ListOrders from "../graphQL/queryOrdersWithData";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import ListReOrderRules from "../graphQL/queryAllReorderRules";
+import MutationDeleteReOrderRule from "../graphQL/mutationDeleteReorderRule";
 import NewOrderSubscription from '../graphQL/subscriptionOrderNew';
 import NewReOrderRuleSubscription from '../graphQL/subscriptionReOrderRuleNew';
 import UpdateOrderSubscription from '../graphQL/subscriptionOrderUpdate';
@@ -70,7 +71,10 @@ class AssemblingCo extends React.Component {
             infoModalData: '',
             nextToken: '',
             allTokens: [null],
-            currentPosition: 0
+            currentPosition: 0,
+            nextTokenROR: '',
+            allTokensROR: [null],
+            currentPositionROR: 0
         };
 
         this.openModal = this.openModal.bind(this);
@@ -80,54 +84,6 @@ class AssemblingCo extends React.Component {
         this.updateSettlementType = this.updateSettlementType.bind(this);
         this.handleChange = this.handleChange.bind(this);
     }
-
-    // state = {
-    //     name: '',
-    //     ingredient: '',
-    //     ingredients: [],
-    //     instruction: '',
-    //     instructions: [],
-    // }
-    // componentWillMount() {
-    //     this.props.subscribeToNewOrders();
-    // }
-    // onChange = (key, value) => {
-    //     this.setState({ [key]: value })
-    // }
-    // addInstruction = () => {
-    //     if (this.state.instruction === '') return
-    //     const instructions = this.state.instructions
-    //     instructions.push(this.state.instruction)
-    //     this.setState({
-    //         instructions,
-    //         instruction: ''
-    //     })
-    // }
-    // addIngredient = () => {
-    //     if (this.state.ingredient === '') return
-    //     const ingredients = this.state.ingredients
-    //     ingredients.push(this.state.ingredient)
-    //     this.setState({
-    //         ingredients,
-    //         ingredient: ''
-    //     })
-    // }
-    // addOrder = () => {
-    //     const { name, ingredients, instructions } = this.state
-    //     this.props.onAdd({
-    //         id: new Date('January 1, 2022 00:00:00') - new Date(),
-    //         ingredients,
-    //         instructions,
-    //         name
-    //     })
-    //     this.setState({
-    //         name: '',
-    //         ingredient: '',
-    //         ingredients: [],
-    //         instruction: '',
-    //         instructions: [],
-    //     })
-    // }
 
     componentWillMount() {
         this.orderUpdateSubscription = this.props.subscribeToUpdateOrders();
@@ -202,9 +158,9 @@ class AssemblingCo extends React.Component {
     // prepares array of products (for which company did not set a re-order rule) recorded in store for options drop-down
     noRuleProducts(productsListFromProps) {
 
-        if (productsListFromProps.length > 0 && this.props.company && this.props.listReOrderRules && this.props.listReOrderRules.items.length > 0) {
+        if (productsListFromProps.length > 0 && this.props.company && this.props.listReOrderRules && this.props.dataRules.listReOrderRules.items.length > 0) {
             let coOrders;
-            this.props.listReOrderRules.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
+            this.props.dataRules.listReOrderRules.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
             const l = productsListFromProps.length;
             let indexedproductsNoRule = [];
             let count = 0;
@@ -282,7 +238,8 @@ class AssemblingCo extends React.Component {
                 text = `${text}, ${orderRule.minProductRating}-min, min`;
                 break;
             case 'HIGHESTRATING':
-                text = `${text}, max, ${orderRule.maxPrice}-max`;
+                text = `${text}, max, `;
+                text = orderRule.maxPrice < 1000000 ? `${text}${orderRule.maxPrice}-max` : `${text}any`;
                 break;
             case 'CHEAPEST':
                 text = `${text}, any, min`;
@@ -303,17 +260,17 @@ class AssemblingCo extends React.Component {
         let isFound = false; let xF = -1;
         // if re-order rule already exists for this product that re-order rule to update
         if (this.state.oneOffOrRule === 2 && this.props.listReOrderRules) {
-            for (let x = 0; x < this.props.listReOrderRules.items.length; x++) {
-                if (this.props.listReOrderRules.items[x].productID === this.state.products[this.state.selectedOption].details.id) {
+            for (let x = 0; x < this.props.dataRules.listReOrderRules.items.length; x++) {
+                if (this.props.dataRules.listReOrderRules.items[x].productID === this.state.products[this.state.selectedOption].details.id) {
                     isFound = true; xF = x;
                 }
             }
         }
-        // console.log('prods, orders, isF, xF ', this.state.products, this.props.listReOrderRules.items, isFound, xF);
+        // console.log('prods, orders, isF, xF ', this.state.products, this.props.dataRules.listReOrderRules.items, isFound, xF);
 
 
         if (isFound) {
-            const deepCopyRule = this.props.listReOrderRules ? JSON.parse(JSON.stringify(this.props.listReOrderRules.items[xF])) : null;
+            const deepCopyRule = this.props.listReOrderRules ? JSON.parse(JSON.stringify(this.props.dataRules.listReOrderRules.items[xF])) : null;
             console.log('deepCopyRule', deepCopyRule);
 
             this.setState({
@@ -405,10 +362,11 @@ class AssemblingCo extends React.Component {
                 modalIsOpen: false
             }), async () => {
                 const { order } = this.state;
-                const { updateReOrderRule } = this.props;
+                // const { updateReOrderRule } = this.props;
                 console.log('updateReOrderRule -', this.props.updateOrder);
                 console.log('order b4 save -', this.state.order);
-                await updateReOrderRule({ ...order });
+                // await updateReOrderRule({ ...order });
+                this.props.onUpdateRule({ ...order });
                 console.log('order after save -', this.state.order);
                 this.handleSync();
             })
@@ -419,20 +377,21 @@ class AssemblingCo extends React.Component {
         e.preventDefault();
         console.log('order - ', order);
         if (this.state.oneOffOrRule === 1) {
-            if (window.confirm(`Are you sure you want to delete this order ?`)) {
-                this.setState({ loading: true, modalIsOpen: false });
-                const { deleteOrder } = this.props;
-                console.log('deleteOrder = ', this.props.deleteOrder);
-                await deleteOrder(order);
-                // this.setState({ loading: false });
-                this.handleSync();
-            }
+            // orders can not be deleted
+            // if (window.confirm(`Are you sure you want to delete this order ?`)) {
+            //     this.setState({ loading: true, modalIsOpen: false });
+            //     const { deleteOrder } = this.props;
+            //     console.log('deleteOrder = ', this.props.deleteOrder);
+            //     await deleteOrder(order);
+            //     // this.setState({ loading: false });
+            //     this.handleSync();
+            // }
         } else if (this.state.oneOffOrRule === 2) {
             if (window.confirm(`Are you sure you want to delete this re-order rule ?`)) {
                 this.setState({ loading: true, modalIsOpen: false });
-                const { deleteReOrderRule } = this.props;
-                console.log('deleteOrder = ', deleteReOrderRule);
-                await deleteReOrderRule(order);
+                // const { deleteReOrderRule } = this.props;
+                // console.log('deleteOrder = ', deleteReOrderRule);
+                this.props.deleteReOrderRule(order);
                 // this.setState({ loading: false });
                 this.handleSync();
             }
@@ -550,6 +509,18 @@ class AssemblingCo extends React.Component {
         this.handleFilter(token, this.props.companyID)
     }
 
+    showPreviousROR(token) {
+        if (token) {
+            const tokensTemp = JSON.parse(JSON.stringify(this.state.allTokensROR));
+            tokensTemp.push(token);
+            this.setState({ allTokensROR: tokensTemp, currentPositionROR: (tokensTemp.length - 1) });
+        } else {
+            this.setState(prevState => ({ allTokensROR: [null], currentPositionROR: 0 }));
+        }
+
+        this.handleFilterROR(token, this.props.companyID)
+    }
+
     showNext() {
         if (this.state.allTokens[this.state.currentPosition - 1]) {
             this.setState(prevState => ({ currentPosition: prevState.currentPosition - 1 }),
@@ -566,10 +537,28 @@ class AssemblingCo extends React.Component {
         }
     }
 
+    showNextROR() {
+        if (this.state.allTokensROR[this.state.currentPositionROR - 1]) {
+            this.setState(prevState => ({ currentPositionROR: prevState.currentPositionROR - 1 }),
+                () => {
+                    const token = this.state.allTokensROR[this.state.currentPositionROR];
+                    this.handleFilterROR(token, this.props.companyID);
+                });
+        } else {
+            this.setState({ allTokensROR: [null], currentPositionROR: 0 },
+                () => {
+                    const token = this.state.allTokensROR[this.state.currentPositionROR];
+                    this.handleFilterROR(token, this.props.companyID);
+                });
+        }
+    }
+
     handleFilter = (val, companyID) => {
-        console.log('tokenz-1', this.state.currentPosition, this.state.allTokens);
-        console.log('token', val);
-        this.props.getOrdersBatch(this.props.limit, val, companyID)
+        this.props.getOrdersBatch(this.props.limit, val, companyID);
+    };
+
+    handleFilterROR = (val, companyID) => {
+        this.props.getReOrderRulesBatch(this.props.limit, val, companyID);
     };
 
     render() {
@@ -577,29 +566,86 @@ class AssemblingCo extends React.Component {
         
         return (
             <div>
-                {/*<div>
-                    <input
-                        value={this.state.name}
-                        onChange={evt => this.onChange('name', evt.target.value)}
-                        placeholder='Order name'
-                    />
-                    <div>
-                        {
-                            this.state.ingredients.map((ingredient, i) => <p key={i}>{ingredient}</p>)
-                        }
+                {this.props.products.length !== this.state.productsAll.length &&
+                    <div className="responsiveFSizeRed">
+                        {this.props.products.length !== 0 && this.state.productsAll.length !== 0 &&
+                            (this.props.products.length - this.state.productsAll.length) > 0 &&
+                            this.props.products.length - this.state.productsAll.length}&nbsp;
+                        new product(s) added&nbsp;&nbsp;
+                            <span className="addnlightbg notbold cursorpointer"
+                            onClick={() => {
+                                const fromProps = JSON.parse(JSON.stringify(this.props.products));
+                                const fromState = JSON.parse(JSON.stringify(this.state.productsAll));
+                                const productsListFromProps = this.props.products ? this.props.products : null;
+                                const noRuleProducts = this.noRuleProducts(productsListFromProps);
+                                const productsAll = this.allProducts(productsListFromProps);
+                                this.setState(() => ({
+                                    products: productsAll,
+                                    productsNoRule: noRuleProducts,
+                                    productsAll,
+                                    infoModalData: {
+                                        type: 'newProds',
+                                        mainText: 'New product(s) with followings details were added:',
+                                        shortText: 'Summary',
+                                        newProducts: this.filterNewProducts(fromProps, fromState)
+                                    }
+                                }));
+                            }}>&nbsp;details&nbsp;&nbsp;&nbsp;
+                            </span>
+                        <span
+                            className="addnlightbg notbold cursorpointer"
+                            onClick={() => {
+                                const productsListFromProps = this.props.products ? this.props.products : null;
+                                const noRuleProducts = this.noRuleProducts(productsListFromProps);
+                                const productsAll = this.allProducts(productsListFromProps);
+                                this.setState(() => ({
+                                    products: productsAll,
+                                    productsNoRule: noRuleProducts,
+                                    productsAll,
+                                }));
+                            }}>dismiss
+                            </span>
+                        <hr />
                     </div>
-                    <input
-                        value={this.state.ingredient}
-                        onChange={evt => this.onChange('ingredient', evt.target.value)}
-                        placeholder='Ingredient'
-                    />
-                    <button onClick={this.addIngredient}>Add Ingredient</button>
+                }
+                <span className="responsiveFSize">{this.props.companyName}</span>
+                <br/>
+                <span className="responsiveFSize">Re-order rules ({this.props.dataRules.listReOrderRules.items.length})</span>&nbsp; &nbsp;
+                        <span
+                    className="addnlightbg notbold cursorpointer"
+                    onClick={() => {
+                        const productsListFromProps = this.props.products ? this.props.products : null;
+                        console.log('products in Store', productsListFromProps);
+                        const noRuleProducts = this.noRuleProducts(productsListFromProps);
+                        const productsAll = this.allProducts(productsListFromProps);
+                        this.setState(() => ({
+                            products: productsAll,
+                            productsNoRule: noRuleProducts,
+                            productsAll,
+                            modalIsOpen: true,
+                            isUpdateAtStart: false
+                        }));
+                    }}>new &nbsp;
+                    </span>
 
-                    <div onClick={this.addOrder}>
-                        <p>Add Order</p>
-                    </div>
-                    </div>*/}
-
+                <span
+                    className={(this.props.dataRules.listReOrderRules && this.props.dataRules.listReOrderRules.nextToken) ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
+                    onClick={(this.props.dataRules.listReOrderRules && 
+                        this.props.dataRules.listReOrderRules.nextToken) 
+                        ? () => this.showPreviousROR(this.props.dataRules.listReOrderRules.nextToken) : null}
+                >prev 2 &nbsp;
+                    </span>
+                <span
+                    className={this.state.currentPositionROR !== 0 
+                        ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
+                    onClick={this.state.currentPositionROR !== 0 ? () => this.showNextROR(this.props.dataRules.listReOrderRules.nextToken) : null}
+                >next 2 &nbsp;
+                    </span>
+                <span
+                    className="addnlightbg notbold cursorpointer"
+                    onClick={() => this.showPreviousROR(null)}
+                >latest 2
+                </span>
                 <table id="tableFM">
                     <tbody>
                         <tr>
@@ -608,7 +654,7 @@ class AssemblingCo extends React.Component {
                             <td>left</td>
                         </tr>
 
-                        {this.props.listReOrderRules.items && [].concat(this.props.listReOrderRules.items).sort((a, b) =>
+                        {this.props.dataRules.listReOrderRules.items && [].concat(this.props.dataRules.listReOrderRules.items).sort((a, b) =>
                             a.product.name.localeCompare(b.product.name)).map((orderRule) =>
                                 <tr key={orderRule.reorderRuleID}>
                                     <td>
@@ -631,8 +677,8 @@ class AssemblingCo extends React.Component {
                 </table>
 
                 <div>
-                    <span className="verIndent"></span>
-                    <span className="responsiveFSize">Orders</span>&nbsp; &nbsp;
+                    <span className="verIndentFive"></span>
+                    <span className="responsiveFSize">Orders ({this.props.data.listOrders.items.length})</span>&nbsp; &nbsp;
                         <span
                         className="addnlightbg notbold cursorpointer"
                         onClick={() => {
@@ -647,18 +693,18 @@ class AssemblingCo extends React.Component {
                                 modalIsOpen: true,
                                 isUpdateAtStart: false
                             }));
-                        }}>new &nbsp; &nbsp;
+                        }}>new &nbsp;
                     </span>
 
                     <span
                         className={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
                         onClick={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? () => this.showPrevious(this.props.data.listOrders.nextToken) : null}
-                    >prev 2 &nbsp; &nbsp;
+                    >prev 2 &nbsp;
                     </span>
                     <span
                         className={this.state.currentPosition !== 0 ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
                         onClick={this.state.currentPosition !== 0 ? () => this.showNext(this.props.data.listOrders.nextToken) : null}
-                    >next 2 &nbsp; &nbsp;
+                    >next 2 &nbsp;  
                     </span>
 
                     <span
@@ -979,9 +1025,11 @@ export default compose(
             });
         },
         props: props => ({
-            listReOrderRules: {
-                items: props.data.listReOrderRules ? props.data.listReOrderRules.items : [],
-                nextToken: props.data.listReOrderRules ? props.data.listReOrderRules.nextToken : [],
+            dataRules: {
+                listReOrderRules: {
+                    items: props.data.listReOrderRules ? props.data.listReOrderRules.items : [],
+                    nextToken: props.data.listReOrderRules ? props.data.listReOrderRules.nextToken : [],
+                }
             },
             subscribeToNewReOrderRules: params => {
                 props.data.subscribeToMore({
@@ -1002,6 +1050,7 @@ export default compose(
             }
         })
     }),
+    // subscription to order change - user can not update order- but AWS Lambda changes status of orders
     graphql(ListOrders, {
         options: ({ limit, nextToken, companyID }) => {
             return ({
@@ -1084,43 +1133,45 @@ export default compose(
             data: props.data
         })
     }),
-    // graphql(ListReOrderRules, {
-    //     options: ({ limit, nextToken, companyID }) => {
-    //         return ({
-    //             variables: { limit, nextToken, companyID },
-    //             fetchPolicy: 'cache-and-network'
-    //         });
-    //     },
-    //     props: props => ({
-    //         getOrdersBatch: (limit, nextToken, companyID) => {
-    //             console.log('nextToken, companyID', nextToken, companyID);
+    graphql(ListReOrderRules, {
+        options: ({ limit, nextToken, companyID }) => {
+            return ({
+                variables: { limit, nextToken, companyID },
+                fetchPolicy: 'cache-and-network'
+            });
+        },
+        props: props => ({
+            getReOrderRulesBatch: (limit, nextToken, companyID) => {
+                console.log('nextToken, companyID', nextToken, companyID);
 
-    //             // searchQuery = searchQuery.toLowerCase()
-    //             return props.data.fetchMore({
-    //                 query: ListReOrderRules, // searchQuery === '' ? ListIceCreams : SearchIceCreams,
-    //                 variables: {
-    //                     limit, nextToken, companyID
-    //                 },
-    //                 updateQuery: (previousResult, { fetchMoreResult }) => ({
-    //                     ...previousResult,
-    //                     listReOrderRules: {
-    //                         ...previousResult.listReOrderRules,
-    //                         items: fetchMoreResult.listReOrderRules.items,
-    //                         nextToken: fetchMoreResult.listReOrderRules.nextToken
-    //                     }
-    //                 })
-    //             })
-    //         },
-    //         data: props.data
-    //     })
-    // }),
+                // searchQuery = searchQuery.toLowerCase()
+                return props.data.fetchMore({
+                    query: ListReOrderRules, // searchQuery === '' ? ListIceCreams : SearchIceCreams,
+                    variables: {
+                        limit, nextToken, companyID
+                    },
+                    updateQuery: (previousResult, { fetchMoreResult }) => ({
+                        ...previousResult,
+                        listReOrderRules: {
+                            ...previousResult.listReOrderRules,
+                            items: fetchMoreResult.listReOrderRules.items,
+                            nextToken: fetchMoreResult.listReOrderRules.nextToken
+                        }
+                    })
+                })
+            },
+            dataRules: props.data
+        })
+    }),
     graphql(CreateOrder, {
         props: props => ({
             onAdd: order => props.mutate({
                 variables: order,
+                // Optimistic Update worked when I used queries without using limit, nextToken and companyID
+                // but with these variables I could not make them work. I implemented it manually and custom based
                 // optimisticResponse: {
                 //     __typename: 'Mutation',
-                //     createOrder: { ...order, id: Math.round(Math.random() * -1000000), __typename: 'Order' }
+                //     createOrder: { ...order, orderID: Math.round(Math.random() * -1000000), __typename: 'Order' }
                 // },
                 update: (proxy, { data: { createOrder } }) => {
                     // 1
@@ -1206,5 +1257,31 @@ export default compose(
                 }
             })
         }),
-    })
+    }),
+    graphql(MutationDeleteReOrderRule, {
+        props: props => ({
+            deleteReOrderRule: rule => props.mutate({
+                variables: rule,
+                // optimisticResponse: {
+                //     __typename: 'Mutation',
+                //     deleteReOrderRule: { ...rule, id: Math.round(Math.random() * -1000000), __typename: 'ReOrderRule' }
+                // },
+                update: (proxy, { data: { deleteReOrderRule } }) => {
+                    const data = proxy.readQuery({
+                        query: ListReOrderRules,
+                        variables: {
+                            limit: props.ownProps.limit,
+                            nextToken: null,
+                            companyID: props.ownProps.companyID
+                        }
+                    });
+                    data.listReOrderRules.items = [
+                        ...data.listReOrderRules.items.filter(e => {
+                            return e.reorderRuleID !== deleteReOrderRule.reorderRuleID
+                        })];
+                    proxy.writeQuery({ query: ListReOrderRules, data });
+                }
+            })
+        }),
+    }),
 )(AssemblingCo)
