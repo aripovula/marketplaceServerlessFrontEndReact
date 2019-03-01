@@ -38,6 +38,7 @@ class AssemblingCo extends React.Component {
     orderUpdateSubscription;
     reOrderRuleCreateSubscription;
     productSubscription;
+    is2simulateUpdate = false;
 
     static defaultProps = {
         company: null,
@@ -58,7 +59,7 @@ class AssemblingCo extends React.Component {
         this.state = {
             modalIsOpen: false,
             order: this.newOrder(),
-            orders: (this.props.data && this.props.data.listOrders) ? this.props.data.listOrders.items : null,
+            listOrders: (this.props.data && this.props.data.listOrders) ? this.props.data.listOrders.items : null,
             products: productsAll,
             productsNoRule: noRuleProducts,
             productsAll,
@@ -122,7 +123,7 @@ class AssemblingCo extends React.Component {
         return {
             companyID: this.props.companyID,
             orderID: new Date('January 1, 2022 00:00:00') - new Date(), // uuid(),
-            reorderRuleID: uuid(),
+            reorderRuleID: new Date('January 1, 2022 00:00:00') - new Date(),
             productID: '',
             note: 'ph',
             dealPrice: 0,
@@ -401,15 +402,29 @@ class AssemblingCo extends React.Component {
     handleSaveNew = async (e) => {
         e.stopPropagation();
         e.preventDefault();
-        this.setState({ loading: true, modalIsOpen: false });
         console.log('handle save state', this.state);
         console.log('oneOffOrRule', this.state.oneOffOrRule);
-
+        
         if (this.state.oneOffOrRule === 1) {
-            const { createOrder } = this.props;
             const { order } = this.state;
+            let orderTemp = JSON.parse(JSON.stringify(order));
+            orderTemp.orderID = -1;
+            this.state.productsAll.map((item) => {
+                console.log(item.details.id === orderTemp.productID, item, orderTemp.productID);
+                if (item.details.id === orderTemp.productID) orderTemp.product = item.details;
+            });
+            const listOrders = [orderTemp, ...this.props.data.listOrders.items];
+            console.log('listOrders', listOrders);
+            this.is2simulateUpdate = true;
+            this.setState({
+                loading: true,
+                modalIsOpen: false,
+                listOrders
+            });
 
-            console.log('createOrder -', createOrder);
+            // const { createOrder } = this.props;
+
+            // console.log('createOrder -', createOrder);
             console.log('order b4 save -', order);
             this.props.onAdd({ ...order });
             // await createOrder({ ...order });
@@ -481,7 +496,6 @@ class AssemblingCo extends React.Component {
         const productsAll = this.allProducts(productsListFromProps);
         this.setState({
             order: this.newOrder(),
-            orders: this.props.data.listOrders ? this.props.data.listOrders.items : null,
             products: productsAll,
             productsNoRule: noRuleProducts,
             productsAll,
@@ -563,6 +577,17 @@ class AssemblingCo extends React.Component {
 
     render() {
         console.log('newAssemblyPROPS-', this.props);
+        console.log('listOrders is2simulateUpdate', this.is2simulateUpdate);
+        console.log('listOrders listOrders', this.state.listOrders);
+        let listOrders;
+        if (this.is2simulateUpdate) {
+            listOrders = this.state.listOrders;
+            this.is2simulateUpdate = false;
+        } else {
+            listOrders = this.props.data.listOrders.items;
+        };
+
+        console.log('listOrders in render', listOrders);
         
         return (
             <div>
@@ -610,7 +635,7 @@ class AssemblingCo extends React.Component {
                 }
                 <span className="responsiveFSize">{this.props.companyName}</span>
                 <br/>
-                <span className="responsiveFSize">Re-order rules ({this.props.dataRules.listReOrderRules.items.length})</span>&nbsp; &nbsp;
+                <span className="responsiveFSize">Re-order rules</span>&nbsp; &nbsp;
                         <span
                     className="addnlightbg notbold cursorpointer"
                     onClick={() => {
@@ -633,18 +658,18 @@ class AssemblingCo extends React.Component {
                     onClick={(this.props.dataRules.listReOrderRules && 
                         this.props.dataRules.listReOrderRules.nextToken) 
                         ? () => this.showPreviousROR(this.props.dataRules.listReOrderRules.nextToken) : null}
-                >prev 2 &nbsp;
+                >prev 4 &nbsp;
                     </span>
                 <span
                     className={this.state.currentPositionROR !== 0 
                         ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
                     onClick={this.state.currentPositionROR !== 0 ? () => this.showNextROR(this.props.dataRules.listReOrderRules.nextToken) : null}
-                >next 2 &nbsp;
+                >next 4 &nbsp;
                     </span>
                 <span
                     className="addnlightbg notbold cursorpointer"
                     onClick={() => this.showPreviousROR(null)}
-                >latest 2
+                >latest 4
                 </span>
                 <table id="tableFM">
                     <tbody>
@@ -678,7 +703,7 @@ class AssemblingCo extends React.Component {
 
                 <div>
                     <span className="verIndentFive"></span>
-                    <span className="responsiveFSize">Orders ({this.props.data.listOrders.items.length})</span>&nbsp; &nbsp;
+                    <span className="responsiveFSize">Orders</span>&nbsp; &nbsp;
                         <span
                         className="addnlightbg notbold cursorpointer"
                         onClick={() => {
@@ -699,18 +724,18 @@ class AssemblingCo extends React.Component {
                     <span
                         className={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
                         onClick={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? () => this.showPrevious(this.props.data.listOrders.nextToken) : null}
-                    >prev 2 &nbsp;
+                    >prev 4 &nbsp;
                     </span>
                     <span
                         className={this.state.currentPosition !== 0 ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
                         onClick={this.state.currentPosition !== 0 ? () => this.showNext(this.props.data.listOrders.nextToken) : null}
-                    >next 2 &nbsp;  
+                    >next 4 &nbsp;  
                     </span>
 
                     <span
                         className="addnlightbg notbold cursorpointer"
                         onClick={() => this.showPrevious(null)}
-                    >latest 2
+                    >latest 4
                     </span>
 
                     <table id="tableFM">
@@ -719,8 +744,8 @@ class AssemblingCo extends React.Component {
                                 <td>qnty, rating, price (target / actual)</td>
                                 <td>status</td>
                             </tr>
-                            {this.props.data.listOrders && this.props.data.listOrders.items && [].concat(this.props.data.listOrders.items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
-                                <tr key={order.orderID}>
+                            {listOrders && [].concat(listOrders).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
+                                <tr key={order.orderID} style={order.orderID === -1 ? { color: 'red' } : { color: 'black' } }>
                                     <td>
                                         {order.product.name}-{order.product.modelNo} - {order.quantity}
                                         {order.status !== "REJECTED" && this.getThresholdText(order, false)}
@@ -730,11 +755,7 @@ class AssemblingCo extends React.Component {
                                         {order.status === "REJECTED" && order.note}
                                     </td>
                                     <td>
-                                        {parseInt(order.orderID) < 0 && <span style={{ color: 'red' }}>
-                                    {order.status.toLowerCase()}&nbsp;</span>}
-                                        {parseInt(order.orderID) > 0 && <span style={{ color: 'black' }}>
-                                            {order.status.toLowerCase()}&nbsp;</span>}
-
+                                        {order.status.toLowerCase()}
                                     </td>
                                 </tr>
                             )}
