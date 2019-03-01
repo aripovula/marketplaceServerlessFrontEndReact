@@ -4,16 +4,16 @@ export default gql(`
 mutation (
     $companyID: ID!
     $reorderRuleID: String!
-    $productID: String!
-    $product: String!
-    $maxPrice: Float!
-    $minProductRating: Float!
-    $isRuleEffective: Boolean!
-    $isCashPayment: Boolean!
-    $reorderLevel: Int!
-    $reorderQnty: Int!
+    $productID: String
+    $product: String
+    $maxPrice: Float
+    $minProductRating: Float
+    $isRuleEffective: Boolean
+    $isCashPayment: Boolean
+    $reorderLevel: Int
+    $reorderQnty: Int
     $bestOfferType: BestOfferEnum
-    $secondBestOfferType: BestOfferEnum!
+    $secondBestOfferType: BestOfferEnum
 
 ) {
     updateReOrderRule(input: {

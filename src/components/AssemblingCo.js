@@ -3,17 +3,18 @@ import { v4 as uuid } from "uuid";
 import Modal from 'react-modal';
 import { graphql, compose } from 'react-apollo'
 
-import CreateOrder from '../graphQL/mutationAddOrder'
-import QueryGetCompany from "../graphQL/queryGetCompanyOrders";
-import QueryAllOrders from "../graphQL/queryAllOrders";
-import QueryAllProducts from "../graphQL/queryAllProducts";
-import QueryAllReOrderRules from "../graphQL/queryAllReorderRules";
+import CreateOrder from '../graphQL/mutationAddOrder';
+import CreateReOrderRule from '../graphQL/mutationAddReorderRule';
+import UpdateReOrderRule from "../graphQL/mutationUpdateReorderRule";
+import QueryGetCompany from "../graphQL/queryGetCompany";
+// import QueryAllOrders from "../graphQL/queryAllOrders";
 import ListOrders from "../graphQL/queryOrdersWithData";
+import QueryAllProducts from "../graphQL/queryAllProducts";
+import ListReOrderRules from "../graphQL/queryAllReorderRules";
 import NewOrderSubscription from '../graphQL/subscriptionOrderNew';
 import NewReOrderRuleSubscription from '../graphQL/subscriptionReOrderRuleNew';
 import UpdateOrderSubscription from '../graphQL/subscriptionOrderUpdate';
 import NewProductSubscription from '../graphQL/subscriptionProducts';
-import MutationUpdateReOrderRule from "../graphQL/mutationUpdateReorderRule";
 import ModalInfo from "./ModalInfo";
 
 // style for modal
@@ -201,9 +202,9 @@ class AssemblingCo extends React.Component {
     // prepares array of products (for which company did not set a re-order rule) recorded in store for options drop-down
     noRuleProducts(productsListFromProps) {
 
-        if (productsListFromProps.length > 0 && this.props.company && this.props.company.reOrderRules && this.props.data.reOrderRules.items.length > 0) {
+        if (productsListFromProps.length > 0 && this.props.company && this.props.listReOrderRules && this.props.listReOrderRules.items.length > 0) {
             let coOrders;
-            this.props.data.reOrderRules.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
+            this.props.listReOrderRules.items.forEach((item) => { coOrders = coOrders + item.productID + ';;' });
             const l = productsListFromProps.length;
             let indexedproductsNoRule = [];
             let count = 0;
@@ -301,18 +302,18 @@ class AssemblingCo extends React.Component {
         console.log('b4 PR SEL', this.state.order);
         let isFound = false; let xF = -1;
         // if re-order rule already exists for this product that re-order rule to update
-        if (this.state.oneOffOrRule === 2 && this.props.company.reOrderRules) {
-            for (let x = 0; x < this.props.data.reOrderRules.items.length; x++) {
-                if (this.props.data.reOrderRules.items[x].productID === this.state.products[this.state.selectedOption].details.id) {
+        if (this.state.oneOffOrRule === 2 && this.props.listReOrderRules) {
+            for (let x = 0; x < this.props.listReOrderRules.items.length; x++) {
+                if (this.props.listReOrderRules.items[x].productID === this.state.products[this.state.selectedOption].details.id) {
                     isFound = true; xF = x;
                 }
             }
         }
-        // console.log('prods, orders, isF, xF ', this.state.products, this.props.data.reOrderRules.items, isFound, xF);
+        // console.log('prods, orders, isF, xF ', this.state.products, this.props.listReOrderRules.items, isFound, xF);
 
 
         if (isFound) {
-            const deepCopyRule = this.props.company.reOrderRules ? JSON.parse(JSON.stringify(this.props.data.reOrderRules.items[xF])) : null;
+            const deepCopyRule = this.props.listReOrderRules ? JSON.parse(JSON.stringify(this.props.listReOrderRules.items[xF])) : null;
             console.log('deepCopyRule', deepCopyRule);
 
             this.setState({
@@ -460,6 +461,7 @@ class AssemblingCo extends React.Component {
 
             console.log('createReOrderRule -', createReOrderRule);
             console.log('order b4 save -', order);
+            this.props.onAddRule({ ...order });
             // await createReOrderRule({ ...order });
             // this.setState({ loading: false });
         }
@@ -478,19 +480,21 @@ class AssemblingCo extends React.Component {
         console.log('oneOffOrRule', this.state.oneOffOrRule);
 
         if (this.state.oneOffOrRule === 1) {
+            // orders are not editable
 
-            const { updateOrder } = this.props;
+            // const { updateOrder } = this.props;
 
             console.log('updateOrder -', this.props.updateOrder);
             console.log('order b4 save -', this.state.order);
 
-            await updateOrder({ ...order });
+            // await updateOrder({ ...order });
 
         } else if (this.state.oneOffOrRule === 2) {
-            const { updateReOrderRule } = this.props;
+            // const { updateReOrderRule } = this.props;
             console.log('updateReOrderRule -', this.props.updateOrder);
             console.log('order b4 save -', this.state.order);
-            await updateReOrderRule({ ...order });
+            // await updateReOrderRule({ ...order });
+            this.props.onUpdateRule({ ...order });
         }
         // this.setState({ loading: false });
         console.log('order after save -', this.state.order);
@@ -498,8 +502,8 @@ class AssemblingCo extends React.Component {
     }
 
     handleSync = async () => {
-        const { client } = this.props;
-        const query = QueryGetCompany;
+        // const { client } = this.props;
+        // const query = QueryGetCompany;
 
         // this.setState({ loading: true });
 
@@ -964,7 +968,7 @@ export default compose(
             }
         })
     }),
-    graphql(QueryAllReOrderRules, {
+    graphql(ListReOrderRules, {
         // options: {
         //     fetchPolicy: 'cache-and-network'
         // },
@@ -1080,7 +1084,7 @@ export default compose(
             data: props.data
         })
     }),
-    // graphql(QueryAllReOrderRules, {
+    // graphql(ListReOrderRules, {
     //     options: ({ limit, nextToken, companyID }) => {
     //         return ({
     //             variables: { limit, nextToken, companyID },
@@ -1093,7 +1097,7 @@ export default compose(
 
     //             // searchQuery = searchQuery.toLowerCase()
     //             return props.data.fetchMore({
-    //                 query: QueryAllReOrderRules, // searchQuery === '' ? ListIceCreams : SearchIceCreams,
+    //                 query: ListReOrderRules, // searchQuery === '' ? ListIceCreams : SearchIceCreams,
     //                 variables: {
     //                     limit, nextToken, companyID
     //                 },
@@ -1114,10 +1118,10 @@ export default compose(
         props: props => ({
             onAdd: order => props.mutate({
                 variables: order,
-                optimisticResponse: {
-                    __typename: 'Mutation',
-                    createOrder: { ...order, id: Math.round(Math.random() * -1000000), __typename: 'Order' }
-                },
+                // optimisticResponse: {
+                //     __typename: 'Mutation',
+                //     createOrder: { ...order, id: Math.round(Math.random() * -1000000), __typename: 'Order' }
+                // },
                 update: (proxy, { data: { createOrder } }) => {
                     // 1
                     const data2 = proxy.readQuery({
@@ -1145,6 +1149,60 @@ export default compose(
                     // const data = proxy.readQuery({ query: QueryAllOrders });
                     // data.listOrders.items.push(createOrder);
                     // proxy.writeQuery({ query: QueryAllOrders, data });
+                }
+            })
+        }),
+    }),
+    graphql(CreateReOrderRule, {
+        props: props => ({
+            onAddRule: rule => props.mutate({
+                variables: rule,
+                // optimisticResponse: {
+                //     __typename: 'Mutation',
+                //     createReOrderRule: { ...rule, id: Math.round(Math.random() * -1000000), __typename: 'ReOrderRule' }
+                // },
+                update: (proxy, { data: { createReOrderRule } }) => {
+                    const data = proxy.readQuery({
+                        query: ListReOrderRules,
+                        variables: {
+                            limit: props.ownProps.limit,
+                            nextToken: null,
+                            companyID: props.ownProps.companyID
+                        }
+                    });
+                    data.listReOrderRules.items = [
+                        ...data.listReOrderRules.items.filter(e => {
+                            return e.reorderRuleID !== createReOrderRule.reorderRuleID
+                        })
+                        , createReOrderRule];
+                    proxy.writeQuery({ query: ListReOrderRules, data });
+                }
+            })
+        }),
+    }),
+    graphql(UpdateReOrderRule, {
+        props: props => ({
+            onUpdateRule: rule => props.mutate({
+                variables: rule,
+                // optimisticResponse: {
+                //     __typename: 'Mutation',
+                //     updateReOrderRule: { ...rule, id: Math.round(Math.random() * -1000000), __typename: 'ReOrderRule' }
+                // },
+                update: (proxy, { data: { updateReOrderRule } }) => {
+                    const data = proxy.readQuery({
+                        query: ListReOrderRules,
+                        variables: {
+                            limit: props.ownProps.limit,
+                            nextToken: null,
+                            companyID: props.ownProps.companyID
+                        }
+                    });
+                    data.listReOrderRules.items = [
+                        ...data.listReOrderRules.items.filter(e => {
+                            return e.reorderRuleID !== updateReOrderRule.reorderRuleID
+                        })
+                        , updateReOrderRule];
+                    proxy.writeQuery({ query: ListReOrderRules, data });
                 }
             })
         }),
