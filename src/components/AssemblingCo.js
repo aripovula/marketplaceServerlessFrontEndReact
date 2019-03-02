@@ -40,6 +40,9 @@ class AssemblingCo extends React.Component {
     productSubscription;
     is2simulateUpdate = false;
     is2simulateUpdateRule = false;
+    listOrdersPrev;
+    listReOrderRulesPrev;
+    keepTillItTimesOut = [];
 
     static defaultProps = {
         company: null,
@@ -77,7 +80,8 @@ class AssemblingCo extends React.Component {
             currentPosition: 0,
             nextTokenROR: '',
             allTokensROR: [null],
-            currentPositionROR: 0
+            currentPositionROR: 0,
+            is2reRender: false
         };
 
         this.openModal = this.openModal.bind(this);
@@ -616,16 +620,118 @@ class AssemblingCo extends React.Component {
         this.props.getReOrderRulesBatch(this.props.limit, val, companyID);
     };
 
+    fromTimer(id, field) {
+        const z = this.getZ(id);
+        console.log("ID12", id, field, z);
+        if (field === "price") this.keepTillItTimesOut[z].price_ = 0;
+        if (field === "status") this.keepTillItTimesOut[z].status_ = 0;
+        if (field === "note") this.keepTillItTimesOut[z].note_ = 0;
+        if (field === "left") this.keepTillItTimesOut[z].left_ = 0;
+        this.setState(prevState => ({is2reRender: !prevState.is2reRender}));
+        console.log("ID12-keep-", JSON.stringify(this.keepTillItTimesOut));
+    }
+
+    getZ(orderID){
+        let isFound = false; let Z;
+        const size = this.keepTillItTimesOut.length;
+        for (let z = 0; z < size; z++) {
+            if (this.keepTillItTimesOut[z].orderID === orderID) {isFound = true; Z = z;}
+        }
+        if (!isFound) {
+            this.keepTillItTimesOut.push({ orderID, price_: 0, status_: 0, note_: 0, left_: 0 });
+            Z = size;
+        }
+        return Z;
+    }
+
+    markChangedOnes(listOrders) {
+        const dataTemp = JSON.parse(JSON.stringify(listOrders));
+        const dataPrev = this.listOrdersPrev === null ? dataTemp : this.listOrdersPrev;
+
+        if (dataPrev) {
+            for (let x = 0; x < dataTemp.length; x++) {
+                let price, prevPrice, status, prevStatus, note, prevNote, left, prevLeft;
+
+                for (let y = 0; y < dataPrev.length; y++) {
+                    if (dataPrev[y].orderID === dataTemp[x].orderID) {
+                        prevPrice = dataPrev[y].dealPrice;
+                        prevStatus = dataPrev[y].status;
+                        prevNote = dataPrev[y].note;
+                        prevLeft = dataPrev[y].left ? dataPrev[y].prevLeft : null;
+                        price = dataTemp[x].dealPrice;
+                        status = dataTemp[x].status;
+                        note = dataTemp[x].note;
+                        left = dataTemp[x].left ? dataTemp[x].left : null;
+                        
+                        const z = this.getZ(dataTemp[x].orderID);
+                        let temp, tempTriggerTimer;
+
+
+                        if (price !== prevPrice) {
+                            temp = 1;
+                            tempTriggerTimer = 1;
+                            this.keepTillItTimesOut[z].price_ = 1;
+                        } else {
+                            temp = this.keepTillItTimesOut[z].price_;
+                            tempTriggerTimer = 0;
+                        }
+                        dataTemp[x].price_ ? dataTemp[x].price_ = temp : dataTemp[x]["price_"] = temp;
+                        dataTemp[x].price_T ? dataTemp[x].price_T = tempTriggerTimer : dataTemp[x]["price_T"] = tempTriggerTimer;
+
+
+                        if (status !== prevStatus) {
+                            temp = 1;
+                            tempTriggerTimer = 1;
+                            this.keepTillItTimesOut[z].status_ = 1;
+                        } else {
+                            temp = this.keepTillItTimesOut[z].status_;
+                            tempTriggerTimer = 0;
+                        }
+                        dataTemp[x].status_ ? dataTemp[x].status_ = temp : dataTemp[x]["status_"] = temp;
+                        dataTemp[x].status_T ? dataTemp[x].status_T = tempTriggerTimer : dataTemp[x]["status_T"] = tempTriggerTimer;
+
+                        console.log('ID12-', note !== prevNote, note, prevNote, JSON.stringify(dataPrev));
+                        if (note !== prevNote) {
+                            temp = 1;
+                            tempTriggerTimer = 1;
+                            this.keepTillItTimesOut[z].note_ = 1;
+                        } else {
+                            temp = this.keepTillItTimesOut[z].note_;
+                            tempTriggerTimer = 0;
+                        }
+                        dataTemp[x].note_ ? dataTemp[x].note_ = temp : dataTemp[x]["note_"] = temp;
+                        dataTemp[x].note_T ? dataTemp[x].note_T = tempTriggerTimer : dataTemp[x]["note_T"] = tempTriggerTimer;
+
+                        if (left !== prevLeft) {
+                            temp = 1;
+                            tempTriggerTimer = 1;
+                            this.keepTillItTimesOut[z].left_ = 1;
+                        } else {
+                            temp = this.keepTillItTimesOut[z].left_;
+                            tempTriggerTimer = 0;
+                        }
+                        dataTemp[x].left_ ? dataTemp[x].left_ = temp : dataTemp[x]["left_"] = temp;
+                        dataTemp[x].left_T ? dataTemp[x].left_T = tempTriggerTimer : dataTemp[x]["left_T"] = tempTriggerTimer;
+                    }
+                }
+            }
+        }
+        console.log('dataTemp', dataTemp, this.keepTillItTimesOut);
+        
+        this.listOrdersPrev = dataTemp;
+        return dataTemp;
+    }
+
     render() {
         console.log('newAssemblyPROPS-', this.props);
         console.log('listOrders is2simulateUpdate', this.is2simulateUpdate);
         console.log('listOrders listOrders', this.state.listOrders);
         let listOrders;
         if (this.is2simulateUpdate) {
-            listOrders = this.state.listOrders;
+            listOrders = this.markChangedOnes(this.state.listOrders);
             this.is2simulateUpdate = false;
         } else {
-            listOrders = this.props.data.listOrders.items;
+            listOrders = this.markChangedOnes(this.props.data.listOrders.items);
         };
         let listReOrderRules;
         if (this.is2simulateUpdateRule) {
@@ -792,7 +898,7 @@ class AssemblingCo extends React.Component {
                                 <td>qnty, rating, price (target / actual)</td>
                                 <td>status</td>
                             </tr>
-                            {listOrders && [].concat(listOrders).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
+                            {listOrders && [].concat(listOrders).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order, i) =>
                                 <tr key={order.orderID} style={order.orderID === '-10' ? { color: 'red' } : { color: 'black' } }>
                                     <td>
                                         {order.product.name}-{order.product.modelNo} - {order.quantity}
@@ -800,10 +906,13 @@ class AssemblingCo extends React.Component {
                                         /
                                         {(order.status !== "ORDER_PLACED" && order.status !== "REJECTED" && order.dealPrice) && ' $' + order.dealPrice}
                                         {order.status === "ORDER_PLACED" && '  --'}
-                                        {order.status === "REJECTED" && order.note}
+                                        {order.status === "REJECTED" && <span style={order.note_ === 0 ? { color: 'black' } : { color: '#4CAF50' }}>{order.note}</span>}
+                                        {order.status === "REJECTED" && order.note_T === 1 && 
+                                            setTimeout(() => this.fromTimer(order.orderID, 'note'), 2000 )}
                                     </td>
                                     <td>
-                                        {order.status.toLowerCase()}
+                                        {<span style={order.status_ === 0 ? { color: 'black' } : { color: '#4CAF50' }}>{order.status.toLowerCase()}</span>}
+                                        {order.status_T === 1 && setTimeout(() => this.fromTimer(order.orderID, 'status'), 2000)}
                                     </td>
                                 </tr>
                             )}

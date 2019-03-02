@@ -24,7 +24,7 @@ export class AllTradersLineOne extends Component {
               limit={4}
               nextToken={null}
             />
-            
+              
           </div>
         </div>
         
