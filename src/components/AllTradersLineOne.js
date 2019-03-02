@@ -15,6 +15,8 @@ export class AllTradersLineOne extends Component {
           </div>
           <div id="middle2">
             {/*<AssemblingCompany2 id='6e11abc1-5d3f-41f8-8167-32b1efb7edcf' client={this.props.client} />*/}
+          </div>
+          <div id="right2">
             <AssemblingCo
               companyID="6e11abc1-5d3f-41f8-8167-32b1efb7edcf"
               companyName="Finisher Ltd."
@@ -22,8 +24,6 @@ export class AllTradersLineOne extends Component {
               limit={4}
               nextToken={null}
             />
-          </div>
-          <div id="right2">
             
           </div>
         </div>

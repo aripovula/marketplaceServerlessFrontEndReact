@@ -391,11 +391,9 @@ class AssemblingCo extends React.Component {
             // }
         } else if (this.state.oneOffOrRule === 2) {
             if (window.confirm(`Are you sure you want to delete this re-order rule ?`)) {
-                const listReOrderRules = JSON.parse(JSON.stringify(this.props.dataRules.listReOrderRules.items));
+                let listReOrderRules = JSON.parse(JSON.stringify(this.props.dataRules.listReOrderRules.items));
                 
-                listReOrderRules.map((item) => {
-                    if (item.reorderRuleID === order.reorderRuleID) item.reorderRuleID = '-1';
-                });
+                listReOrderRules = listReOrderRules.filter((item) => item.reorderRuleID !== order.reorderRuleID);
                 // const prevThree = []; let count = 0;
                 // [].concat(this.props.dataRules.listReOrderRules.items).sort((a, b) => a.reorderRuleID.localeCompare(b.reorderRuleID)).map((order) => {
                 //     count++; if (count < 4) prevThree.push(order);
@@ -428,7 +426,7 @@ class AssemblingCo extends React.Component {
         if (this.state.oneOffOrRule === 1) {
             const { order } = this.state;
             let orderTemp = JSON.parse(JSON.stringify(order));
-            orderTemp.orderID = -1;
+            orderTemp.orderID = '-10';
             this.state.productsAll.map((item) => {
                 console.log(item.details.id === orderTemp.productID, item, orderTemp.productID);
                 if (item.details.id === orderTemp.productID) orderTemp.product = item.details;
@@ -457,7 +455,7 @@ class AssemblingCo extends React.Component {
             // const { createReOrderRule } = this.props;
             const { order } = this.state;
             let orderTemp = JSON.parse(JSON.stringify(order));
-            orderTemp.reorderRuleID = -1;
+            orderTemp.reorderRuleID = '-10';
             this.state.productsAll.map((item) => {
                 console.log(item.details.id === orderTemp.productID, item, orderTemp.productID);
                 if (item.details.id === orderTemp.productID) orderTemp.product = item.details;
@@ -731,7 +729,7 @@ class AssemblingCo extends React.Component {
 
                         {listReOrderRules && [].concat(listReOrderRules).sort((a, b) =>
                             a.reorderRuleID.localeCompare(b.reorderRuleID)).map((orderRule) =>
-                                <tr key={orderRule.reorderRuleID} style={(orderRule.reorderRuleID === -1 || orderRule.reorderRuleID === '-1') ? { color: 'red' } : { color: 'black' }}>
+                                <tr key={orderRule.reorderRuleID} style={orderRule.reorderRuleID === '-10' ? { color: 'red' } : { color: 'black' }}>
                                     <td>
                                         <span className="addnlightbg notbold cursorpointer"
                                             onClick={() => {
@@ -795,7 +793,7 @@ class AssemblingCo extends React.Component {
                                 <td>status</td>
                             </tr>
                             {listOrders && [].concat(listOrders).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) =>
-                                <tr key={order.orderID} style={order.orderID === -1 ? { color: 'red' } : { color: 'black' } }>
+                                <tr key={order.orderID} style={order.orderID === '-10' ? { color: 'red' } : { color: 'black' } }>
                                     <td>
                                         {order.product.name}-{order.product.modelNo} - {order.quantity}
                                         {order.status !== "REJECTED" && this.getThresholdText(order, false)}
