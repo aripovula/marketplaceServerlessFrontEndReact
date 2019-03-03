@@ -375,6 +375,18 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
   font-size: 1vw;
 }
 
+.responsiveGreen {
+  color: #4CAF50;
+}
+
+.responsiveBlue {
+  color: rgb(43, 191, 250);
+}
+
+.responsiveBlack {
+  color: #000000;
+}
+
 .plan {
   color: rgb(43, 191, 250);
   font-size: 12px

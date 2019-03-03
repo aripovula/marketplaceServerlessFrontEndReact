@@ -899,20 +899,31 @@ class AssemblingCo extends React.Component {
                                 <td>status</td>
                             </tr>
                             {listOrders && [].concat(listOrders).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order, i) =>
-                                <tr key={order.orderID} style={order.orderID === '-10' ? { color: 'red' } : { color: 'black' } }>
+                                <tr key={order.orderID} className={order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack'}> 
+                                {/* style={order.orderID === '-10' ? { color: 'red' } : { color: 'black' } }*/}
                                     <td>
                                         {order.product.name}-{order.product.modelNo} - {order.quantity}
                                         {order.status !== "REJECTED" && this.getThresholdText(order, false)}
                                         /
-                                        {(order.status !== "ORDER_PLACED" && order.status !== "REJECTED" && order.dealPrice) && ' $' + order.dealPrice}
+                                        {(order.status !== "ORDER_PLACED" && order.status !== "REJECTED" && order.dealPrice) &&
+                                            <span className={(order.price_ === 1 && order.orderID !== '-10') 
+                                            ? 'responsiveGreen' : (order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                            ${order.dealPrice}</span>}
+                                        {order.price_T === 1 && order.orderID !== '-10'
+                                            && setTimeout(() => this.fromTimer(order.orderID, 'price'), 3000)}
                                         {order.status === "ORDER_PLACED" && '  --'}
-                                        {order.status === "REJECTED" && <span style={order.note_ === 0 ? { color: 'black' } : { color: '#4CAF50' }}>{order.note}</span>}
-                                        {order.status === "REJECTED" && order.note_T === 1 && 
-                                            setTimeout(() => this.fromTimer(order.orderID, 'note'), 2000 )}
+                                        {order.status === "REJECTED" && <span className={(order.note_ === 1 && order.orderID !== '-10') 
+                                            ? 'responsiveGreen' : (order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                            {order.note}</span>}
+                                        {order.status === "REJECTED" && order.note_T === 1 && order.orderID !== '-10' && 
+                                            setTimeout(() => this.fromTimer(order.orderID, 'note'), 3000 )}
                                     </td>
                                     <td>
-                                        {<span style={order.status_ === 0 ? { color: 'black' } : { color: '#4CAF50' }}>{order.status.toLowerCase()}</span>}
-                                        {order.status_T === 1 && setTimeout(() => this.fromTimer(order.orderID, 'status'), 2000)}
+                                        {<span className={(order.status_ === 1 && order.orderID !== '-10') 
+                                            ? 'responsiveGreen' : (order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                            {order.status.toLowerCase()}</span>}
+                                        {order.status_T === 1 && order.orderID !== '-10' && 
+                                        setTimeout(() => this.fromTimer(order.orderID, 'status'), 3000)}
                                     </td>
                                 </tr>
                             )}
