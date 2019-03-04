@@ -43,7 +43,7 @@ class AssemblingCo extends React.Component {
     listOrdersPrev;
     listReOrderRulesPrev;
     keepTillItTimesOut = [];
-    keepTillItIsReOrdered = [];
+    productLeft = [];
 
     static defaultProps = {
         company: null,
@@ -654,7 +654,10 @@ class AssemblingCo extends React.Component {
         if (field === "status") this.keepTillItTimesOut[z].status_ = 0;
         if (field === "note") this.keepTillItTimesOut[z].note_ = 0;
         if (field === "left") this.keepTillItTimesOut[z].left_ = 0;
+        if (field === "left_T") this.keepTillItTimesOut[z].left_T = 0;
         if (field === "leftCheck") this.keepTillItTimesOut[z].leftCheck_ = 0;
+        if (field === "leftCheck_T") this.keepTillItTimesOut[z].leftCheck_T = 0;
+        console.log('ID12 left_ fromTimer', this.keepTillItTimesOut[z].left_, this.keepTillItTimesOut[z].leftCheck_);
         this.setState(prevState => ({is2reRender: !prevState.is2reRender}));
         // console.log("ID12-keep-", JSON.stringify(this.keepTillItTimesOut));
     }
@@ -663,13 +666,31 @@ class AssemblingCo extends React.Component {
         let isFound = false; let Z;
         const size = this.keepTillItTimesOut.length;
         for (let z = 0; z < size; z++) {
-            if (this.keepTillItTimesOut[z].orderID === orderID) {isFound = true; Z = z;}
+            if (this.keepTillItTimesOut[z].orderID === orderID) {isFound = true; Z = z; break; }
         }
         if (!isFound) {
             this.keepTillItTimesOut.push({ orderID, price_: 0, status_: 0, note_: 0, left_: 0, leftCheck_: 0 });
             Z = size;
         }
         return Z;
+    }
+
+    getLeft(productID, delta = 0, initialIfNull = null){
+        let p = null, isFound = false;
+        for (let i = 0; i < this.productLeft.length; i++) {
+            if (this.productLeft[i].id === productID) { p = i; isFound = true; break; }
+        }
+        if (!isFound) {
+            this.productLeft.push({ id: productID, left: initialIfNull });
+            p = this.productLeft.length - 1;
+        } else {
+            this.productLeft[p].left = this.productLeft[p].left + delta;
+        }
+        console.log('ID12 others-', productID, delta, initialIfNull, isFound);
+        
+        console.log('ID12 productLeft-', this.productLeft[p]);
+        // console.log('ID12 productsLeft-', this.productLeft);
+        return this.productLeft[p].left;
     }
 
     markChangedOnes(listOrders) {
@@ -729,8 +750,8 @@ class AssemblingCo extends React.Component {
                         dataTemp[x].note_T ? dataTemp[x].note_T = tempTriggerTimer : dataTemp[x]["note_T"] = tempTriggerTimer;
 
                         if (dataPrev[y].orderID === '-10' && dataTemp[x].orderID !== '-10') {
-                            const left = dataTemp[x].quantity + localStorage.getItem('balanceOf' + dataTemp[x].productID);;
-                            localStorage.setItem('balanceOf' + dataTemp[x].productID, left);
+                            const left = this.getLeft(dataTemp[x].productID, dataTemp[x].quantity, dataTemp[x].quantity);
+                            console.log('ID12 left after new order - set', left);
                         }
                     }
                 }
@@ -747,68 +768,42 @@ class AssemblingCo extends React.Component {
         const dataPrev = this.listReOrderRulesPrev === null ? dataTemp : this.listReOrderRulesPrev;
         if (dataPrev) {
             for (let x = 0; x < dataTemp.length; x++) {
-                let left, prevLeft;
                 for (let y = 0; y < dataPrev.length; y++) {
                     if (dataPrev[y].reorderRuleID === dataTemp[x].reorderRuleID) {
-                        prevLeft = dataPrev[y].left ? dataPrev[y].left : null;
-                        left = localStorage.getItem('balanceOf' + dataTemp[x].productID);
-                        dataTemp[x]['left'] = left;
 
                         const z = this.getZ(dataTemp[x].reorderRuleID);
-                        let temp, tempTriggerTimer;
+                        let temp, temp2, tempTriggerTimer;
 
-                        if (left !== prevLeft) {
-                            temp = 1;
-                            tempTriggerTimer = 1;
-                            this.keepTillItTimesOut[z].left_ = 1;
-                        } else {
-                            temp = this.keepTillItTimesOut[z].left_;
-                            tempTriggerTimer = 0;
-                        }
-                        dataTemp[x].left_ ? dataTemp[x].left_ = temp : dataTemp[x]["left_"] = temp;
-                        dataTemp[x].left_T ? dataTemp[x].left_T = tempTriggerTimer : dataTemp[x]["left_T"] = tempTriggerTimer;
-
-                        // if leftCheck_T === 1 immediately change it to 0 to prevent duplicate timer invocations
-                        // if (dataTemp[x].leftCheck_T && dataTemp[x].leftCheck_T === 1) dataTemp[x].leftCheck_T = 0;
-
+                        let left = this.getLeft(dataTemp[x].productID, 0, dataTemp[x].reorderQnty);
                         
-                        if (!left) {
-                            left = dataTemp[x].reorderQnty;
-                            localStorage.setItem('balanceOf' + dataTemp[x].productID, left);
-                            dataTemp[x]['left'] = left;
-                        }
-                        
-                        console.log('ID12 left, reorderLevel, leftCheck_, isJustOrdered', dataTemp[x].left, dataTemp[x].reorderLevel, this.keepTillItTimesOut[z].leftCheck_, dataPrev[y].isJustOrdered);
+                        console.log('ID12 left, reorderLevel, leftCheck_, isJustOrdered', left, dataTemp[x].reorderLevel, this.keepTillItTimesOut[z].leftCheck_, dataPrev[y].isJustOrdered);
 
                         if (left > dataTemp[x].reorderLevel && this.keepTillItTimesOut[z].leftCheck_ === 0) {
-                            temp = 1;
-                            tempTriggerTimer = 1;
-                            const left = localStorage.getItem('balanceOf' + dataTemp[x].productID) - 
-                                ((dataTemp[x].reorderQnty - dataTemp[x].reorderLevel)/4);
-                            localStorage.setItem('balanceOf' + dataTemp[x].productID, left);
-                            dataTemp[x]['left'] = left;
+                            left = this.getLeft(dataTemp[x].productID, ((dataTemp[x].reorderQnty - dataTemp[x].reorderLevel) / 4) * -1);
+                            this.keepTillItTimesOut[z].left_ = 1;
+                            this.keepTillItTimesOut[z].left_T = 1;
                             this.keepTillItTimesOut[z].leftCheck_ = 1;
-                            dataTemp[x]["isJustOrdered"] = false;
-                        } else if (left <= dataTemp[x].reorderLevel && this.keepTillItTimesOut[z].leftCheck_ === 0 && !dataPrev[y].isJustOrdered) {
-                            // dataTemp[x].left = dataTemp[x].reorderLevel;
-                            dataTemp[x]["isJustOrdered"] = true;
-                            const orderNew = JSON.parse(JSON.stringify(dataTemp[x]));
-                            orderNew.orderID = new Date('January 1, 2022 00:00:00') - new Date();
-                            orderNew.note = 'ph';
-                            orderNew.dealPrice = 0;
-                            orderNew.status = 'ORDER_PLACED';
-                            orderNew.quantity = dataTemp[x].reorderQnty;
-                            console.log('ID12 orderNew - ', orderNew);
-                            
-                            this.addNewOrder(orderNew);
+                            this.keepTillItTimesOut[z].leftCheck_T = 1;
+                            // dataTemp[x]["isJustOrdered"] = false;
+                            if (left <= dataTemp[x].reorderLevel) { // && !dataPrev[y].isJustOrdered) {
+                                dataTemp[x]["isJustOrdered"] = true;
+                                const orderNew = JSON.parse(JSON.stringify(dataTemp[x]));
+                                orderNew.orderID = new Date('January 1, 2022 00:00:00') - new Date();
+                                orderNew.note = 'ph';
+                                orderNew.dealPrice = 0;
+                                orderNew.status = 'ORDER_PLACED';
+                                orderNew.quantity = dataTemp[x].reorderQnty;
+                                console.log('ID12 orderNew b4 add - ', orderNew);
+                                this.addNewOrder(orderNew);
+                            }
                         } else {
-                            temp = this.keepTillItTimesOut[z].leftCheck_;
-                            tempTriggerTimer = 0;
                             dataTemp[x]["isJustOrdered"] = true;
                         }
-                        dataTemp[x].leftCheck_ ? dataTemp[x].leftCheck_ = temp : dataTemp[x]["leftCheck_"] = temp;
-                        dataTemp[x].leftCheck_T ? dataTemp[x].leftCheck_T = tempTriggerTimer : dataTemp[x]["leftCheck_T"] = tempTriggerTimer;
-
+                        dataTemp[x]["left_"] = this.keepTillItTimesOut[z].left_;
+                        dataTemp[x]["left_T"] = this.keepTillItTimesOut[z].left_T;
+                        dataTemp[x]["leftCheck_"] = this.keepTillItTimesOut[z].leftCheck_;
+                        dataTemp[x]["leftCheck_T"] = this.keepTillItTimesOut[z].leftCheck_T;
+                        dataTemp[x]["left"] = this.getLeft(dataTemp[x].productID);
                     }
                 }
             }
@@ -821,6 +816,7 @@ class AssemblingCo extends React.Component {
 
     render() {
         console.log('newAssemblyPROPS-', this.props);
+        console.log('newAssemblySTATE-', this.state);
         console.log('listOrders is2simulateUpdate', this.is2simulateUpdate);
         console.log('listOrders listOrders', this.state.listOrders);
         let listOrders;
@@ -952,10 +948,11 @@ class AssemblingCo extends React.Component {
                                         ? 'responsiveGreen' : (orderRule.reorderRuleID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
                                         {orderRule.left}</span>}
                                     {orderRule.left_T === 1 && orderRule.reorderRuleID !== '-10' &&
-                                        setTimeout(() => this.fromTimer(orderRule.reorderRuleID, 'left'), 3000)}
-                                      
-                                        {orderRule.leftCheck_T === 1 && orderRule.reorderRuleID !== '-10' &&
-                                    setTimeout(() => this.fromTimer(orderRule.reorderRuleID, 'leftCheck'), 4000)}
+                                        setTimeout(() => this.fromTimer(orderRule.reorderRuleID, 'left'), 2500)}
+                                    {orderRule.left_T === 1 && orderRule.reorderRuleID !== '-10' && this.fromTimer(orderRule.reorderRuleID, 'left_T')}
+                                    {orderRule.leftCheck_T === 1 && orderRule.reorderRuleID !== '-10' &&
+                                            setTimeout(() => this.fromTimer(orderRule.reorderRuleID, 'leftCheck'), Math.round(Math.random() * 2000) + 4000)}
+                                    {orderRule.leftCheck_T === 1 && orderRule.reorderRuleID !== '-10' && this.fromTimer(orderRule.reorderRuleID, 'leftCheck_T')}
                                     </td>
 
                                 </tr>
