@@ -675,7 +675,7 @@ class AssemblingCo extends React.Component {
         return Z;
     }
 
-    getLeft(productID, delta = 0, initialIfNull = null){
+    getLeft(productID, delta = 0, initialIfNull = null, reOrderLevel = 0){
         let p = null, isFound = false;
         for (let i = 0; i < this.productLeft.length; i++) {
             if (this.productLeft[i].id === productID) { p = i; isFound = true; break; }
@@ -685,10 +685,11 @@ class AssemblingCo extends React.Component {
             p = this.productLeft.length - 1;
         } else {
             this.productLeft[p].left = this.productLeft[p].left + delta;
+            if (this.productLeft[p].left < reOrderLevel) this.productLeft[p].left = reOrderLevel + 1;
         }
-        console.log('ID12 others-', productID, delta, initialIfNull, isFound);
+        console.log('ID123 others-', productID, delta, initialIfNull, isFound);
         
-        console.log('ID12 productLeft-', this.productLeft[p]);
+        console.log('ID123 productLeft-', this.productLeft[p]);
         // console.log('ID12 productsLeft-', this.productLeft);
         return this.productLeft[p].left;
     }
@@ -696,13 +697,28 @@ class AssemblingCo extends React.Component {
     markChangedOnes(listOrders) {
         const dataTemp = JSON.parse(JSON.stringify(listOrders));
         const dataPrev = this.listOrdersPrev === null ? dataTemp : this.listOrdersPrev;
-
+        console.log('ID123 dataTemp', dataTemp);
+        console.log('ID123 dataPrev', dataPrev);
         if (dataPrev) {
             for (let x = 0; x < dataTemp.length; x++) {
                 let price, prevPrice, status, prevStatus, note, prevNote;
 
                 for (let y = 0; y < dataPrev.length; y++) {
+                    console.log('ID123 dataTemp[x], dataPrev[y]', dataTemp[x], dataPrev[y]);
+                    // if new order addition is complete update balance of left items
+                    if (dataPrev[y].orderID === '-10' && dataTemp[x].orderID !== '-10' && !dataPrev[y].isAdded) {
+                        // check if dataTemp[x].orderID is new one and add to left only if new one (not found among prev orders)
+                        let isFound2 = false;
+                        for (let y2 = 0; y2 < dataPrev.length; y2++) {
+                            if (dataPrev[y2].orderID === dataTemp[x].orderID) isFound2 = true;
+                        }
+                        if (!isFound2) this.getLeft(dataTemp[x].productID, dataTemp[x].quantity, dataTemp[x].quantity);
+                        // console.log('ID123 left after new order - set', left, dataTemp[x], dataPrev[y]);
+                        // dataTemp[x]["isAdded"] = true;
+                    }
+
                     if (dataPrev[y].orderID === dataTemp[x].orderID) {
+                        // dataTemp[x]["isAdded"] = dataPrev[y].isAdded;
                         prevPrice = dataPrev[y].dealPrice;
                         prevStatus = dataPrev[y].status;
                         prevNote = dataPrev[y].note;
@@ -749,10 +765,6 @@ class AssemblingCo extends React.Component {
                         dataTemp[x].note_ ? dataTemp[x].note_ = temp : dataTemp[x]["note_"] = temp;
                         dataTemp[x].note_T ? dataTemp[x].note_T = tempTriggerTimer : dataTemp[x]["note_T"] = tempTriggerTimer;
 
-                        if (dataPrev[y].orderID === '-10' && dataTemp[x].orderID !== '-10') {
-                            const left = this.getLeft(dataTemp[x].productID, dataTemp[x].quantity, dataTemp[x].quantity);
-                            console.log('ID12 left after new order - set', left);
-                        }
                     }
                 }
             }
@@ -778,8 +790,8 @@ class AssemblingCo extends React.Component {
                         
                         console.log('ID12 left, reorderLevel, leftCheck_, isJustOrdered', left, dataTemp[x].reorderLevel, this.keepTillItTimesOut[z].leftCheck_, dataPrev[y].isJustOrdered);
 
-                        if (left > dataTemp[x].reorderLevel && this.keepTillItTimesOut[z].leftCheck_ === 0) {
-                            left = this.getLeft(dataTemp[x].productID, ((dataTemp[x].reorderQnty - dataTemp[x].reorderLevel) / 4) * -1);
+                        if (left > dataTemp[x].reorderLevel && this.keepTillItTimesOut[z].leftCheck_ === 0 && dataTemp[x].isRuleEffective) {
+                            left = this.getLeft(dataTemp[x].productID, ((dataTemp[x].reorderQnty - dataTemp[x].reorderLevel) / 4) * -1, dataTemp[x].reorderLevel);
                             this.keepTillItTimesOut[z].left_ = 1;
                             this.keepTillItTimesOut[z].left_T = 1;
                             this.keepTillItTimesOut[z].leftCheck_ = 1;
