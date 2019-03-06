@@ -44,6 +44,7 @@ class AssemblingCo extends React.Component {
     listReOrderRulesPrev;
     keepTillItTimesOut = [];
     productLeft = [];
+    orders2keepRetrying = [];
 
     static defaultProps = {
         company: null,
@@ -238,7 +239,7 @@ class AssemblingCo extends React.Component {
         let text = '';
         if (isOrderRule) {
             text = `${text} ${orderRule.reorderQnty} @ ${orderRule.reorderLevel}`;
-            text = !orderRule.isRuleEffective ? `( SUSPENDED ) - ${text}` : text;
+            // text = !orderRule.isRuleEffective ? `( SUSPENDED ) - ${text}` : text;
         }
 
         switch (orderRule.bestOfferType) {
@@ -378,6 +379,16 @@ class AssemblingCo extends React.Component {
                 console.log('order after save -', this.state.order);
                 this.handleSync();
             })
+        }
+    }
+
+    handleSuspendResumeWithButton(order) {
+        const suspendOrResume = order.isRuleEffective ? 'suspend' : 'resume';
+        if (window.confirm(`Are you sure you want to ${suspendOrResume} this re-order rule ?`)) {
+            order.isRuleEffective = !order.isRuleEffective;
+            console.log('order2 - ', order);
+            this.props.onUpdateRule({ ...order });
+            this.handleSync();
         }
     }
 
@@ -685,7 +696,6 @@ class AssemblingCo extends React.Component {
             p = this.productLeft.length - 1;
         } else {
             this.productLeft[p].left = this.productLeft[p].left + delta;
-            if (this.productLeft[p].left < reOrderLevel) this.productLeft[p].left = reOrderLevel + 1;
         }
         console.log('ID123 others-', productID, delta, initialIfNull, isFound);
         
@@ -706,64 +716,67 @@ class AssemblingCo extends React.Component {
                 for (let y = 0; y < dataPrev.length; y++) {
                     console.log('ID123 dataTemp[x], dataPrev[y]', dataTemp[x], dataPrev[y]);
                     // if new order addition is complete update balance of left items
-                    if (dataPrev[y].orderID === '-10' && dataTemp[x].orderID !== '-10' && !dataPrev[y].isAdded) {
+                    if (dataPrev[y].orderID === '-10' && dataTemp[x].orderID !== '-10' && dataPrev[y].productID === dataTemp[x].productID) {
                         // check if dataTemp[x].orderID is new one and add to left only if new one (not found among prev orders)
                         let isFound2 = false;
                         for (let y2 = 0; y2 < dataPrev.length; y2++) {
-                            if (dataPrev[y2].orderID === dataTemp[x].orderID) isFound2 = true;
+                            if (dataPrev[y2].orderID === dataTemp[x].orderID) { isFound2 = true; break; }
                         }
-                        if (!isFound2) this.getLeft(dataTemp[x].productID, dataTemp[x].quantity, dataTemp[x].quantity);
+                        let isDealMade = false; let x1 = x; let latest = dataTemp[x].orderID;
+                        if (!isFound2) {
+                            for (let x2 = 0; x2 < dataTemp.length; x2++) {
+                                if (dataTemp[x2].orderID < latest) { latest = dataTemp[x2].orderID; x1 = x2; }
+                            }
+                            if (dataTemp[x1].status !== "REJECTED") isDealMade = true;
+                            if (dataTemp[x1].status === "ORDER_PLACED") {isDealMade = false; dataTemp[x1].orderID = '-10';}
+                            console.log('id123 dataTemp[x1]-', dataTemp[x1].status);
+                            if (dataTemp[x1].status === "DEAL_MADE") {
+                                const z2 = this.getZ(dataTemp[x].orderID)
+                                this.keepTillItTimesOut[z2].price_ = 1;
+                                this.keepTillItTimesOut[z2].status_ = 1;
+                                dataTemp[x]["price_T"] = 1;
+                                dataTemp[x]["status_T"] = 1;
+                            }
+                        }
+                        if (!isFound2 && isDealMade) this.getLeft(dataTemp[x].productID, dataTemp[x].quantity, dataTemp[x].quantity);
                         // console.log('ID123 left after new order - set', left, dataTemp[x], dataPrev[y]);
-                        // dataTemp[x]["isAdded"] = true;
                     }
 
                     if (dataPrev[y].orderID === dataTemp[x].orderID) {
-                        // dataTemp[x]["isAdded"] = dataPrev[y].isAdded;
                         prevPrice = dataPrev[y].dealPrice;
                         prevStatus = dataPrev[y].status;
-                        prevNote = dataPrev[y].note;
+                        // prevNote = dataPrev[y].note;
                         price = dataTemp[x].dealPrice;
                         status = dataTemp[x].status;
-                        note = dataTemp[x].note;
+                        // note = dataTemp[x].note;
                         
                         const z = this.getZ(dataTemp[x].orderID);
-                        let temp, tempTriggerTimer;
-
+                        let tempTriggerTimer;
 
                         if (price !== prevPrice) {
-                            temp = 1;
-                            tempTriggerTimer = 1;
                             this.keepTillItTimesOut[z].price_ = 1;
                         } else {
-                            temp = this.keepTillItTimesOut[z].price_;
                             tempTriggerTimer = 0;
                         }
-                        dataTemp[x].price_ ? dataTemp[x].price_ = temp : dataTemp[x]["price_"] = temp;
-                        dataTemp[x].price_T ? dataTemp[x].price_T = tempTriggerTimer : dataTemp[x]["price_T"] = tempTriggerTimer;
-
+                        dataTemp[x]["price_"] = this.keepTillItTimesOut[z].price_;
+                        dataTemp[x]["price_T"] = tempTriggerTimer;
 
                         if (status !== prevStatus) {
-                            temp = 1;
-                            tempTriggerTimer = 1;
                             this.keepTillItTimesOut[z].status_ = 1;
                         } else {
-                            temp = this.keepTillItTimesOut[z].status_;
                             tempTriggerTimer = 0;
                         }
-                        dataTemp[x].status_ ? dataTemp[x].status_ = temp : dataTemp[x]["status_"] = temp;
-                        dataTemp[x].status_T ? dataTemp[x].status_T = tempTriggerTimer : dataTemp[x]["status_T"] = tempTriggerTimer;
+                        dataTemp[x]["status_"] = this.keepTillItTimesOut[z].status_;
+                        dataTemp[x]["status_T"] = tempTriggerTimer;
 
                         // console.log('ID12-', note !== prevNote, note, prevNote, JSON.stringify(dataPrev));
-                        if (note !== prevNote) {
-                            temp = 1;
-                            tempTriggerTimer = 1;
-                            this.keepTillItTimesOut[z].note_ = 1;
-                        } else {
-                            temp = this.keepTillItTimesOut[z].note_;
-                            tempTriggerTimer = 0;
-                        }
-                        dataTemp[x].note_ ? dataTemp[x].note_ = temp : dataTemp[x]["note_"] = temp;
-                        dataTemp[x].note_T ? dataTemp[x].note_T = tempTriggerTimer : dataTemp[x]["note_T"] = tempTriggerTimer;
+                        // if (note !== prevNote) {
+                        //     this.keepTillItTimesOut[z].note_ = 1;
+                        // } else {
+                        //     tempTriggerTimer = 0;
+                        // }
+                        // dataTemp[x]["note_"] = this.keepTillItTimesOut[z].note_;
+                        // dataTemp[x]["note_T"] = tempTriggerTimer;
 
                     }
                 }
@@ -790,8 +803,10 @@ class AssemblingCo extends React.Component {
                         
                         console.log('ID12 left, reorderLevel, leftCheck_, isJustOrdered', left, dataTemp[x].reorderLevel, this.keepTillItTimesOut[z].leftCheck_, dataPrev[y].isJustOrdered);
 
-                        if (left > dataTemp[x].reorderLevel && this.keepTillItTimesOut[z].leftCheck_ === 0 && dataTemp[x].isRuleEffective) {
+                        if (left >= dataTemp[x].reorderLevel && this.keepTillItTimesOut[z].leftCheck_ === 0 && dataTemp[x].isRuleEffective) {
                             left = this.getLeft(dataTemp[x].productID, ((dataTemp[x].reorderQnty - dataTemp[x].reorderLevel) / 4) * -1, dataTemp[x].reorderLevel);
+                            
+                            // if (left < dataTemp[x].reOrderLevel) left = this.getLeft(dataTemp[x].productID, dataTemp[x].reOrderLevel - left);
                             this.keepTillItTimesOut[z].left_ = 1;
                             this.keepTillItTimesOut[z].left_T = 1;
                             this.keepTillItTimesOut[z].leftCheck_ = 1;
@@ -806,6 +821,8 @@ class AssemblingCo extends React.Component {
                                 orderNew.status = 'ORDER_PLACED';
                                 orderNew.quantity = dataTemp[x].reorderQnty;
                                 console.log('ID12 orderNew b4 add - ', orderNew);
+                                // const retry1 = setTimeout( function () { this.setState({ position: 1 }); }.bind(this), 3000 );
+                                this.orders2keepRetrying.push({orderNew, timeAdded: new Date()*1, });
                                 this.addNewOrder(orderNew);
                             }
                         } else {
@@ -816,6 +833,7 @@ class AssemblingCo extends React.Component {
                         dataTemp[x]["leftCheck_"] = this.keepTillItTimesOut[z].leftCheck_;
                         dataTemp[x]["leftCheck_T"] = this.keepTillItTimesOut[z].leftCheck_T;
                         dataTemp[x]["left"] = this.getLeft(dataTemp[x].productID);
+                        // if (dataTemp[x].left < dataTemp[x].reOrderLevel) dataTemp[x].left = dataTemp[x].reOrderLevel;
                     }
                 }
             }
@@ -836,14 +854,14 @@ class AssemblingCo extends React.Component {
             listOrders = this.markChangedOnes(this.state.listOrders);
             this.is2simulateUpdate = false;
         } else {
-            listOrders = this.markChangedOnes(this.props.data.listOrders.items);
+            listOrders = (this.props.data && this.props.data.listOrders) ? this.markChangedOnes(this.props.data.listOrders.items) : null;
         };
         let listReOrderRules;
         if (this.is2simulateUpdateRule) {
             listReOrderRules = this.markChangedOnesRules(this.state.listReOrderRules);
             this.is2simulateUpdateRule = false;
         } else {
-            listReOrderRules = this.markChangedOnesRules(this.props.dataRules.listReOrderRules.items);
+            listReOrderRules = (this.props.dataRules && this.props.dataRules.listReOrderRules) ? this.markChangedOnesRules(this.props.dataRules.listReOrderRules.items) : null;
         };
 
         console.log('listOrders in render', listOrders, listReOrderRules);
@@ -917,13 +935,13 @@ class AssemblingCo extends React.Component {
                     onClick={(this.props.dataRules.listReOrderRules && 
                         this.props.dataRules.listReOrderRules.nextToken) 
                         ? () => this.showPreviousROR(this.props.dataRules.listReOrderRules.nextToken) : null}
-                >prev 4 &nbsp;
+                >prev &nbsp;
                     </span>
                 <span
                     className={this.state.currentPositionROR !== 0 
                         ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
                     onClick={this.state.currentPositionROR !== 0 ? () => this.showNextROR(this.props.dataRules.listReOrderRules.nextToken) : null}
-                >next 4 &nbsp;
+                >next &nbsp;
                     </span>
                 <span
                     className="addnlightbg notbold cursorpointer"
@@ -933,6 +951,7 @@ class AssemblingCo extends React.Component {
                 <table id="tableFM">
                     <tbody>
                         <tr>
+                            <td></td>
                             <td>product</td>
                             <td>reorder x @ y, rating, price</td>
                             <td>left</td>
@@ -941,6 +960,14 @@ class AssemblingCo extends React.Component {
                         {listReOrderRules && [].concat(listReOrderRules).sort((a, b) =>
                             a.reorderRuleID.localeCompare(b.reorderRuleID)).map((orderRule) =>
                                 <tr key={orderRule.reorderRuleID} className={orderRule.reorderRuleID === '-10' ? 'responsiveBlue' : 'responsiveBlack'}>
+                                    <td>
+                                        {!orderRule.isRuleEffective && <span className="notbold cursorpointer responsiveGreen"
+                                            onClick={() => this.handleSuspendResumeWithButton(orderRule)}
+                                        >&#9654;</span>}
+                                        {orderRule.isRuleEffective && <span className="addnlightbg notbold cursorpointer"
+                                            onClick={() => this.handleSuspendResumeWithButton(orderRule)}
+                                        >&#9724;</span>}
+                                    </td>
                                     <td>
                                         <span className="addnlightbg notbold cursorpointer"
                                             onClick={() => {
@@ -953,12 +980,12 @@ class AssemblingCo extends React.Component {
                                             }}>{orderRule.product.name} {orderRule.product.modelNo}
                                         </span>
                                     </td>
-                                    <td>{this.getThresholdText(orderRule, true)}</td>
+                                    <td>{this.getThresholdText(orderRule, true)} - {orderRule.reorderLevel}</td>
 
                                     <td>
-                                    {<span className={(orderRule.left_ === 1 && orderRule.reorderRuleID !== '-10')
+                                    {<span className={(orderRule.left_ === 1 && orderRule.reorderLevel !== '-10')
                                         ? 'responsiveGreen' : (orderRule.reorderRuleID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
-                                        {orderRule.left}</span>}
+                                        {orderRule.left < orderRule.reorderLevel ? orderRule.reorderLevel : orderRule.left }</span>}
                                     {orderRule.left_T === 1 && orderRule.reorderRuleID !== '-10' &&
                                         setTimeout(() => this.fromTimer(orderRule.reorderRuleID, 'left'), 2500)}
                                     {orderRule.left_T === 1 && orderRule.reorderRuleID !== '-10' && this.fromTimer(orderRule.reorderRuleID, 'left_T')}
@@ -995,12 +1022,12 @@ class AssemblingCo extends React.Component {
                     <span
                         className={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
                         onClick={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? () => this.showPrevious(this.props.data.listOrders.nextToken) : null}
-                    >prev 4 &nbsp;
+                    >prev &nbsp;
                     </span>
                     <span
                         className={this.state.currentPosition !== 0 ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
                         onClick={this.state.currentPosition !== 0 ? () => this.showNext(this.props.data.listOrders.nextToken) : null}
-                    >next 4 &nbsp;  
+                    >next &nbsp;  
                     </span>
 
                     <span
@@ -1029,11 +1056,10 @@ class AssemblingCo extends React.Component {
                                         {order.price_T === 1 && order.orderID !== '-10'
                                             && setTimeout(() => this.fromTimer(order.orderID, 'price'), 3000)}
                                         {order.status === "ORDER_PLACED" && '  --'}
-                                        {order.status === "REJECTED" && <span className={(order.note_ === 1 && order.orderID !== '-10') 
-                                            ? 'responsiveGreen' : (order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                        {order.status === "REJECTED" && <span className="responsiveGreen">
                                             {order.note}</span>}
-                                        {order.status === "REJECTED" && order.note_T === 1 && order.orderID !== '-10' && 
-                                            setTimeout(() => this.fromTimer(order.orderID, 'note'), 3000 )}
+                                        {/*order.status === "REJECTED" && order.note_T === 1 && order.orderID !== '-10' && 
+                            setTimeout(() => this.fromTimer(order.orderID, 'note'), 3000 )*/}
                                     </td>
                                     <td>
                                         {<span className={(order.status_ === 1 && order.orderID !== '-10') 
@@ -1290,6 +1316,8 @@ class AssemblingCo extends React.Component {
 export default compose(
     graphql(ListOrders, {
         options: ({limit, nextToken, companyID}) => {
+            console.log('ID34 limit, nextToken, companyID-', limit, nextToken, companyID);
+            
             return ({
             variables: { limit, nextToken, companyID },
               fetchPolicy: 'cache-and-network'
