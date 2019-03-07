@@ -381,13 +381,28 @@ class AssemblingCo extends React.Component {
         }
     }
 
-    handleSuspendResumeWithButton(order) {
+    handleSuspendResumeWithButton = async (order) => {
         const suspendOrResume = order.isRuleEffective ? 'suspend' : 'resume';
         if (window.confirm(`Are you sure you want to ${suspendOrResume} this re-order rule ?`)) {
-            order.isRuleEffective = !order.isRuleEffective;
-            console.log('order2 - ', order);
-            this.props.onUpdateRule({ ...order });
-            this.handleSync();
+            let indexOfTurnedOn = null;
+            for (let z = 0; z < this.props.dataRules.listReOrderRules.items.length; z++) {
+                if (this.props.dataRules.listReOrderRules.items[z].isRuleEffective) { indexOfTurnedOn = z; break; }
+            }
+            if (indexOfTurnedOn) {
+                const ruleToTurnOff = JSON.parse(JSON.stringify(this.props.dataRules.listReOrderRules.items[indexOfTurnedOn]))
+                ruleToTurnOff.isRuleEffective = !ruleToTurnOff.isRuleEffective;
+                console.log('ruleToTurnOff - ', ruleToTurnOff, indexOfTurnedOn);
+                await this.props.onUpdateRule({ ...ruleToTurnOff });
+                console.log('ruleToTurnOff order2 - ', order);
+                order.isRuleEffective = !order.isRuleEffective;
+                this.props.onUpdateRule({ ...order });
+                this.handleSync();
+            } else {
+                order.isRuleEffective = !order.isRuleEffective;
+                console.log('order2 - ', order);
+                this.props.onUpdateRule({ ...order });
+                this.handleSync();
+            }
         }
     }
 
