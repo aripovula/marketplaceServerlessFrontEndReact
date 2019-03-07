@@ -142,7 +142,7 @@ class AssemblingCo extends React.Component {
             secondBestOfferType: 'CHEAPEST',
             minProductRating: 4.5,
             isCashPayment: false,
-            isRuleEffective: true,
+            isRuleEffective: false,
             reorderLevel: 50,
             reorderQnty: 250
         }
@@ -1365,7 +1365,11 @@ export default compose(
             subscribeToNewOrders: params => {
                 props.data.subscribeToMore({
                     document: NewOrderSubscription,
-                    // variables: "6e11abc1-5d3f-41f8-8167-32b1efb7edcf",
+                    // variables: {
+                    //     limit: props.ownProps.limit,
+                    //     nextToken: null,
+                    //     companyID: props.ownProps.companyID 
+                    // },
                     updateQuery: (prev, { subscriptionData: { data: { onCreateOrder } } }) => {
                         return {
                             ...prev,
@@ -1416,7 +1420,8 @@ export default compose(
             }
         })
     }),
-    // subscription to order change - user can not update order- but AWS Lambda changes status of orders
+    // subscription to order updates - user can not update order- but AWS Lambda changes status of orders
+    // that is why this subs is added
     graphql(ListOrders, {
         options: ({ limit, nextToken, companyID }) => {
             return ({
@@ -1434,15 +1439,32 @@ export default compose(
             subscribeToUpdateOrders: params => {
                 props.data.subscribeToMore({
                     document: UpdateOrderSubscription,
+                    // variables: {
+                    //     limit: props.ownProps.limit,
+                    //     nextToken: null,
+                    //     companyID: props.ownProps.companyID
+                    // },
                     updateQuery: (prev, { subscriptionData: { data: { onUpdateOrder } } }) => {
                         console.log('onUpdateOrder - ', onUpdateOrder);
-                        return {
+                        let toReturn;
+                        if (onUpdateOrder.companyID === props.ownProps.companyID) {
+                            prev = {
+                                ...prev,
+                                listOrders: {
+                                    __typename: 'OrderConnection',
+                                    items: [onUpdateOrder, ...prev.listOrders.items.filter(order => order.orderID !== onUpdateOrder.orderID)]
+                                }
+                            }
+                        }
+                        toReturn = {
                             ...prev,
                             listOrders: {
                                 __typename: 'OrderConnection',
-                                items: [onUpdateOrder, ...prev.listOrders.items.filter(order => order.orderID !== onUpdateOrder.orderID)]
+                                items: [...prev.listOrders.items.filter(order => order.companyID == props.ownProps.companyID)]
                             }
                         }
+
+                        return toReturn;
                     }
                 })
             }

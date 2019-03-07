@@ -34,13 +34,13 @@ export class AllTradersLineOne extends Component {
 
           </div>
           <div id="right2">
-            {/*<AssemblingCo
+            <AssemblingCo
               companyID="5c1b9f1d-a7fe-4780-85ad-443d176a182d"
               companyName="Last Line Ltd."
               client={this.props.client}
               limit={4}
               nextToken={null}
-            /> */}    
+            />
           </div>
         </div>
         

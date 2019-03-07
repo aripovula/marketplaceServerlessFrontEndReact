@@ -1,14 +1,8 @@
 import gql from 'graphql-tag'
 
 export default gql`
-subscription ($companyID: ID) {
-  onCreateOrder(
-    filter: {
-      companyID: {
-        eq: $companyID
-      }
-    }
-    )  {
+subscription OnNewOrder {
+  onCreateOrder {
     companyID
     orderID
     productID
