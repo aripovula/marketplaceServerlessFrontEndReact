@@ -395,6 +395,24 @@ class PartsCompany extends Component {
         });
     }
 
+    handleSync2 = () => {
+        const productsListFromProps = this.props.products ? this.props.products : null;
+        console.log('indexed prs from store', productsListFromProps);
+        const noOfferProducts = this.noOfferProducts(productsListFromProps);
+        this.setState({
+            offer: this.newOffer(),
+            offers: this.props.company.offers.items,
+            products: noOfferProducts,
+            productsNoOffer: noOfferProducts,
+            productsAll: this.allProducts(productsListFromProps),
+            isSubmitValid: false,
+            isUpdate: false,
+            isUpdateAtStart: false,
+            selectedOption: -1,
+            loading: false
+        });
+    }
+
     render() {
         console.log('this.props COT - ', this.props);
         console.log('props.products', this.props.products);
@@ -403,6 +421,9 @@ class PartsCompany extends Component {
         const loadingState = this.state.loading;
         const deals = this.dealsFromStore();
         if (this.props.company) {
+            if (!this.state.productsAll || this.state.productsAll.length === 0) {
+                if (this.props.products.length > 0) this.handleSync2();
+            }
             let { company: { offers: { items } } } = this.props;
             items = this.addAverageRatingToOffers(items, deals, this.props.company.id);
             return (
@@ -415,6 +436,7 @@ class PartsCompany extends Component {
                         console.log('state p len', this.state.productsAll.length)
                     }
                     {this.props.products.length !== this.state.productsAll.length &&
+                        this.state.productsAll.length > 0 &&
                         <div className="responsiveFSizeRed">
                         {this.props.products.length !== 0 && this.state.productsAll.length !== 0 &&
                             (this.props.products.length - this.state.productsAll.length) > 0 &&

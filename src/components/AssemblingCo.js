@@ -44,7 +44,6 @@ class AssemblingCo extends React.Component {
     listReOrderRulesPrev;
     keepTillItTimesOut = [];
     productLeft = [];
-    orders2keepRetrying = [];
 
     static defaultProps = {
         company: null,
@@ -558,7 +557,7 @@ class AssemblingCo extends React.Component {
         this.handleSync();
     }
 
-    handleSync = async () => {
+    handleSync = () => {
         // const { client } = this.props;
         // const query = QueryGetCompany;
 
@@ -591,6 +590,21 @@ class AssemblingCo extends React.Component {
             infoModalData: ''
         });
     }
+
+    // handleSync2 = async () => {
+    //     const { client } = this.props;
+    //     const query = ListOrders;
+
+    //     await client.query({
+    //         query,
+    //         variables: {
+    //             limit: this.props.limit,
+    //             nextToken: null,
+    //             companyID: this.props.companyID
+    //         },
+    //         fetchPolicy: 'network-only',
+    //     }, () => this.handleSync());
+    // }
 
     // paginate functions
 
@@ -821,8 +835,6 @@ class AssemblingCo extends React.Component {
                                 orderNew.status = 'ORDER_PLACED';
                                 orderNew.quantity = dataTemp[x].reorderQnty;
                                 console.log('ID12 orderNew b4 add - ', orderNew);
-                                // const retry1 = setTimeout( function () { this.setState({ position: 1 }); }.bind(this), 3000 );
-                                this.orders2keepRetrying.push({orderNew, timeAdded: new Date()*1, });
                                 this.addNewOrder(orderNew);
                             }
                         } else {
@@ -863,12 +875,17 @@ class AssemblingCo extends React.Component {
         } else {
             listReOrderRules = (this.props.dataRules && this.props.dataRules.listReOrderRules) ? this.markChangedOnesRules(this.props.dataRules.listReOrderRules.items) : null;
         };
+        
+        if (!this.state.productsAll || this.state.productsAll.length === 0) {
+            if (this.props.products.length > 0) this.handleSync();
+        }
 
         console.log('listOrders in render', listOrders, listReOrderRules);
         
         return (
             <div>
                 {this.props.products.length !== this.state.productsAll.length &&
+                    this.state.productsAll.length > 0 &&
                     <div className="responsiveFSizeRed">
                         {this.props.products.length !== 0 && this.state.productsAll.length !== 0 &&
                             (this.props.products.length - this.state.productsAll.length) > 0 &&
