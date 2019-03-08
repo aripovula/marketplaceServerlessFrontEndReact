@@ -46,6 +46,12 @@ class PartsCompany extends Component {
     // offerSubscriptionNew;
     offerUpdateSubscription;
     productSubscription;
+    is2simulateUpdate = false;
+    is2simulateUpdateRule = false;
+    listOffersPrev;
+    listReOrderRulesPrev;
+    keepTillItTimesOut = [];
+
 
     static defaultProps = {
         company: null,
@@ -71,7 +77,8 @@ class PartsCompany extends Component {
             isUpdateAtStart: false,
             selectedOption: -1,
             loading: false,
-            infoModalData: null
+            infoModalData: null,
+            is2reRender: false
         };
 
         this.openModal = this.openModal.bind(this);
@@ -426,6 +433,101 @@ class PartsCompany extends Component {
         return items;
     }
 
+    // update color changes
+
+    fromTimer(id, field) {
+        const z = this.getZ(id);
+        console.log("ID12", id, field, z);
+        if (field === "price") this.keepTillItTimesOut[z].price_ = 0;
+        if (field === "rating") this.keepTillItTimesOut[z].rating_ = 0;
+        if (field === "available") this.keepTillItTimesOut[z].available_ = 0;
+        if (field === "price_T") this.keepTillItTimesOut[z].price_T = 0;
+        if (field === "rating_T") this.keepTillItTimesOut[z].rating_T = 0;
+        if (field === "available_T") this.keepTillItTimesOut[z].available_T = 0;
+        this.setState(prevState => ({is2reRender: !prevState.is2reRender}));
+        // console.log("ID12-keep-", JSON.stringify(this.keepTillItTimesOut));
+    }
+
+    getZ(offerID){
+        let isFound = false; let Z;
+        const size = this.keepTillItTimesOut.length;
+        for (let z = 0; z < size; z++) {
+            if (this.keepTillItTimesOut[z].offerID === offerID) {isFound = true; Z = z; break; }
+        }
+        if (!isFound) {
+            this.keepTillItTimesOut.push({ offerID, price_: 0, rating_: 0, available_: 0, price_T: 0, rating_T: 0, available_T: 0 });
+            Z = size;
+        }
+        return Z;
+    }
+
+    markChangedOnes(listOffers) {
+        const dataTemp = JSON.parse(JSON.stringify(listOffers));
+        const dataPrev = this.listOffersPrev === null ? dataTemp : this.listOffersPrev;
+        console.log('ID123 dataTemp', dataTemp);
+        console.log('ID123 dataPrev', dataPrev);
+        if (dataPrev) {
+            for (let x = 0; x < dataTemp.length; x++) {
+                let price, prevPrice, rating, prevRating, available, prevAvailable;
+                for (let y = 0; y < dataPrev.length; y++) {
+                    if (dataPrev[y].offerID === dataTemp[x].offerID) {
+                        prevPrice = dataPrev[y].price;
+                        prevRating = dataPrev[y].lastTenAverageRating;
+                        prevAvailable = dataPrev[y].available;
+                        price = dataTemp[x].price;
+                        rating = dataTemp[x].lastTenAverageRating;
+                        available = dataTemp[x].available;
+                        
+                        const z = this.getZ(dataTemp[x].offerID);
+                        let tempTriggerTimer;
+
+                        if (price !== prevPrice) {
+                            this.keepTillItTimesOut[z].price_ = 1;
+                            tempTriggerTimer = 1;
+                        } else {
+                            tempTriggerTimer = 0;
+                        }
+                        dataTemp[x]["price_"] = this.keepTillItTimesOut[z].price_;
+                        dataTemp[x]["price_T"] = tempTriggerTimer;
+
+                        if (rating !== prevRating) {
+                            this.keepTillItTimesOut[z].rating_ = 1;
+                            tempTriggerTimer = 1;
+                        } else {
+                            tempTriggerTimer = 0;
+                        }
+                        dataTemp[x]["rating_"] = this.keepTillItTimesOut[z].rating_;
+                        dataTemp[x]["rating_T"] = tempTriggerTimer;
+
+                        if (available !== prevAvailable) {
+                            this.keepTillItTimesOut[z].available_ = 1;
+                            tempTriggerTimer = 1;
+                        } else {
+                            tempTriggerTimer = 0;
+                        }
+                        dataTemp[x]["available_"] = this.keepTillItTimesOut[z].available_;
+                        dataTemp[x]["available_T"] = tempTriggerTimer;
+
+                        // console.log('ID12-', note !== prevNote, note, prevNote, JSON.stringify(dataPrev));
+                        // if (note !== prevNote) {
+                        //     this.keepTillItTimesOut[z].note_ = 1;
+                        // } else {
+                        //     tempTriggerTimer = 0;
+                        // }
+                        // dataTemp[x]["note_"] = this.keepTillItTimesOut[z].note_;
+                        // dataTemp[x]["note_T"] = tempTriggerTimer;
+
+                    }
+                }
+            }
+        }
+        // console.log('dataTemp', dataTemp, this.keepTillItTimesOut);
+        
+        this.listOffersPrev = dataTemp;
+        return dataTemp;
+    }
+
+
     render() {
         console.log('this.props COT - ', this.props);
         console.log('props.products', this.props.products);
@@ -440,6 +542,7 @@ class PartsCompany extends Component {
             let { company: { offers: { items } } } = this.props;
             items = this.addAverageRatingToOffers(items, deals, this.props.company.id);
             if (this.props.offers && this.props.offers.length > 0) items = this.updateOffers(items);
+            items = this.markChangedOnes(items);
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
@@ -554,8 +657,20 @@ class PartsCompany extends Component {
                                                     }}>&nbsp;{offer.product.modelNo}&nbsp;</span>
                                         </td>
                                         <td>&nbsp;{offer.price}&nbsp;</td>
-                                        <td>&nbsp;{offer.lastTenAverageRating}&nbsp;</td>
-                                        <td>&nbsp;{offer.available}&nbsp;</td>
+                                        <td>&nbsp;
+                                        {<span className={(offer.rating_ === 1 && offer.offerID !== '-10')
+                                            ? 'responsiveGreen' : (offer.offerID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                            {offer.lastTenAverageRating}</span>}
+                                            {offer.rating_T === 1 && offer.offerID !== '-10' && 
+                                            setTimeout(() => this.fromTimer(offer.offerID, 'rating'), 3000)}
+                                            {offer.rating_T === 1 && offer.offerID !== '-10' && this.fromTimer(offer.offerID, 'rating_T')}
+                                        </td>
+                                        <td>&nbsp; {<span className={(offer.available_ === 1 && offer.offerID !== '-10')
+                                            ? 'responsiveGreen' : (offer.offerID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                            {offer.available}</span>}
+                                            {offer.available_T === 1 && offer.offerID !== '-10' && 
+                                            setTimeout(() => this.fromTimer(offer.offerID, 'available'), 3000)}
+                                        </td>
                                     </tr>
                                 )}
                             </tbody>

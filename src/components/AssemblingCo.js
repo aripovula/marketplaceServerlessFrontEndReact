@@ -784,6 +784,7 @@ class AssemblingCo extends React.Component {
 
                         if (price !== prevPrice) {
                             this.keepTillItTimesOut[z].price_ = 1;
+                            tempTriggerTimer = 1;
                         } else {
                             tempTriggerTimer = 0;
                         }
@@ -792,6 +793,7 @@ class AssemblingCo extends React.Component {
 
                         if (status !== prevStatus) {
                             this.keepTillItTimesOut[z].status_ = 1;
+                            tempTriggerTimer = 1;
                         } else {
                             tempTriggerTimer = 0;
                         }
