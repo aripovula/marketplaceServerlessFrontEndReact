@@ -414,6 +414,18 @@ class PartsCompany extends Component {
         });
     }
 
+    updateOffers(items){
+        for (let x = 0; x < this.props.offers.length; x++) {
+            for (let y = 0; y < items.length; y++) {
+                if (this.props.offers[x].companyID === this.props.company.id &&
+                this.props.offers[x].offerID === items[y].offerID) {
+                    items[y].available = this.props.offers[x].available;
+                }
+            }
+        }
+        return items;
+    }
+
     render() {
         console.log('this.props COT - ', this.props);
         console.log('props.products', this.props.products);
@@ -426,9 +438,8 @@ class PartsCompany extends Component {
                 if (this.props.products.length > 0) this.handleSync2();
             }
             let { company: { offers: { items } } } = this.props;
-            console.log('items b4', items);
             items = this.addAverageRatingToOffers(items, deals, this.props.company.id);
-            console.log('items b4 after', items);
+            if (this.props.offers && this.props.offers.length > 0) items = this.updateOffers(items);
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
@@ -862,29 +873,6 @@ export default compose (
                     document: UpdateOfferSubscription,
                     updateQuery: (prev, { subscriptionData: { data: { onUpdateOffer } } }) => {
                         console.log('onUpdateOffer - ', onUpdateOffer);
-                        // console.log('onUpdateOffer - prev-', props.ownProps.company.id, prev);
-                        // update cache - Company data 
-                        // if (onUpdateOffer) {
-                        //     const proxy = props.ownProps.client.proxy;
-                        //     const queryC = QueryGetCompany;
-                        //     const dataC = proxy.readQuery(
-                        //             { 
-                        //                 query: queryC,
-                        //                 variables: {id: props.ownProps.company.id},
-                        //             });
-                        //     console.log('data after read Co = ', dataC);
-                        //     const updatedOffer = JSON.parse(JSON.stringify(onUpdateOffer));
-                        //     let theProduct = props.ownProps.products.filter(
-                        //         item => (item.id === updatedOffer.productID)
-                        //     );
-                        //     console.log('theProduct', theProduct);
-                        //     updatedOffer.product = theProduct[0];
-                        //     console.log('theProduct2', updatedOffer);
-                        //     dataC.getCompany.offers.items = [
-                        //         updatedOffer, ...dataC.getCompany.offers.items.filter(offer => offer.offerID !== onUpdateOffer.offerID)
-                        //     ];
-                        //     proxy.writeQuery({ query: queryC, data: dataC });
-                        // }
                         return {
                             ...prev,
                             listOffers: {
