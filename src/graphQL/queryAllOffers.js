@@ -9,6 +9,14 @@ query {
       productID
       price
       available
+      product {
+        id,
+        name
+        modelNo
+        specificationURL
+        imageURL
+        lastTenRatingAverage
+      }
     }
   }
 }

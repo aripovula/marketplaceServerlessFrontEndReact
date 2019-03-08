@@ -169,7 +169,8 @@ class PartsCompany extends Component {
             console.log('readQuery error-', e);
             dealsTemp = null;
         }
-        const deals = (dealsTemp && dealsTemp.listDeals && dealsTemp.listDeals.items) ? dealsTemp.listDeals.items : [];
+        let deals = (dealsTemp && dealsTemp.listDeals && dealsTemp.listDeals.items) ? dealsTemp.listDeals.items : [];
+        deals = deals.filter(deal => this.props.company.id === deal.producerID);
         const theProducts = this.props.products;
         if (theProducts) {
             for (let x = 0; x < deals.length; x++) {
@@ -425,7 +426,9 @@ class PartsCompany extends Component {
                 if (this.props.products.length > 0) this.handleSync2();
             }
             let { company: { offers: { items } } } = this.props;
+            console.log('items b4', items);
             items = this.addAverageRatingToOffers(items, deals, this.props.company.id);
+            console.log('items b4 after', items);
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
                     {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
@@ -859,6 +862,29 @@ export default compose (
                     document: UpdateOfferSubscription,
                     updateQuery: (prev, { subscriptionData: { data: { onUpdateOffer } } }) => {
                         console.log('onUpdateOffer - ', onUpdateOffer);
+                        // console.log('onUpdateOffer - prev-', props.ownProps.company.id, prev);
+                        // update cache - Company data 
+                        // if (onUpdateOffer) {
+                        //     const proxy = props.ownProps.client.proxy;
+                        //     const queryC = QueryGetCompany;
+                        //     const dataC = proxy.readQuery(
+                        //             { 
+                        //                 query: queryC,
+                        //                 variables: {id: props.ownProps.company.id},
+                        //             });
+                        //     console.log('data after read Co = ', dataC);
+                        //     const updatedOffer = JSON.parse(JSON.stringify(onUpdateOffer));
+                        //     let theProduct = props.ownProps.products.filter(
+                        //         item => (item.id === updatedOffer.productID)
+                        //     );
+                        //     console.log('theProduct', theProduct);
+                        //     updatedOffer.product = theProduct[0];
+                        //     console.log('theProduct2', updatedOffer);
+                        //     dataC.getCompany.offers.items = [
+                        //         updatedOffer, ...dataC.getCompany.offers.items.filter(offer => offer.offerID !== onUpdateOffer.offerID)
+                        //     ];
+                        //     proxy.writeQuery({ query: queryC, data: dataC });
+                        // }
                         return {
                             ...prev,
                             listOffers: {

@@ -1460,7 +1460,7 @@ export default compose(
                             ...prev,
                             listOrders: {
                                 __typename: 'OrderConnection',
-                                items: [...prev.listOrders.items.filter(order => order.companyID == props.ownProps.companyID)]
+                                items: [...prev.listOrders.items.filter(order => order.companyID === props.ownProps.companyID)]
                             }
                         }
 

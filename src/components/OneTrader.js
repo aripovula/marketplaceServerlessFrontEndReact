@@ -16,12 +16,12 @@ export class OneTrader extends Component {
         // nextToken={null}
         />*/}
 
-        <PartsCo
+        {/*<PartsCo
           companyID="b254c829-2bca-434c-96d3-41b9e140f004"
           limit={10}
           nextToken={null}
           client={this.props.client}
-        />
+        />*/}
       </div>
     )
   }
