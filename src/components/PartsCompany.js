@@ -471,6 +471,9 @@ class PartsCompany extends Component {
                 if (this.props.offers[x].companyID === this.props.company.id &&
                 this.props.offers[x].offerID === items[y].offerID) {
                     items[y].available = this.props.offers[x].available;
+                    // const withNewPrice = JSON.parse(JSON.stringify(items[y]))
+                    // withNewPrice.price = withNewPrice.price * 1.1;
+                    // this.props.updateOffer({ ...withNewPrice });
                 }
             }
         }

@@ -52,7 +52,7 @@ h1, h2 {
 
 #top {
   position: fixed;
-  left: 25.2%;
+  left: 33.2%;
   right: 0;
   top: 35px;
   /* background-color: orange; */
@@ -62,7 +62,7 @@ h1, h2 {
 
 #bottom {
   position: fixed;
-  left: 25.2%;
+  left: 33.2%;
   right: 0;
   bottom: 0;
   /* background-color: green; */
@@ -599,7 +599,7 @@ a.addnlightbgoff:link {
 }
 
 #left {
-  width: 24.8%;
+  width: 33%;
   /* background-color: blue; */
   /* border-right: 2px solid #333; */
 }
@@ -644,20 +644,20 @@ a.addnlightbgoff:link {
 }
 
 #left2 {
-  width: 33%;
+  width: 49%;
   overflow: auto;
   /* background-color: gray; */
 }
 
-#middle2 {
+/* #middle2 {
   width: 33%;
   border-left: 2px solid #333;
   overflow: auto;
-  /* background-color: purple; */
-}
+  background-color: purple;
+} */
 
 #right2 {
-  width: 33%;
+  width: 49%;
   border-left: 2px solid #333;
   overflow: auto;
   /* background-color: red; */
