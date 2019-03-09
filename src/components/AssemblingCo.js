@@ -238,7 +238,7 @@ class AssemblingCo extends React.Component {
         let text = '';
         if (isOrderRule) {
             text = `${text} ${orderRule.reorderQnty} @ ${orderRule.reorderLevel}`;
-            // text = !orderRule.isRuleEffective ? `( SUSPENDED ) - ${text}` : text;
+            text = !orderRule.isRuleEffective ? `( SUSPENDED ) - ${text}` : text;
         }
 
         switch (orderRule.bestOfferType) {
