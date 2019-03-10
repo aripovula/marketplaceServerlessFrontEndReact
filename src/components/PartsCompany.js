@@ -471,6 +471,7 @@ class PartsCompany extends Component {
                 if (this.props.offers[x].companyID === this.props.company.id &&
                 this.props.offers[x].offerID === items[y].offerID) {
                     items[y].available = this.props.offers[x].available;
+                    items[y].price = this.props.offers[x].price;
                     // const withNewPrice = JSON.parse(JSON.stringify(items[y]))
                     // withNewPrice.price = withNewPrice.price * 1.1;
                     // this.props.updateOffer({ ...withNewPrice });
@@ -726,7 +727,14 @@ class PartsCompany extends Component {
                                                         }));
                                                     }}>&nbsp;{offer.product.modelNo}&nbsp;</span>
                                         </td>
-                                        <td>&nbsp;{offer.price}&nbsp;</td>
+                                        <td>&nbsp;
+                                        {<span className={(offer.price_ === 1 && offer.offerID !== '-10')
+                                                ? 'responsiveGreen' : (offer.offerID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                                {parseFloat(offer.price).toFixed(2)}</span>}
+                                            {offer.price_T === 1 && offer.offerID !== '-10' &&
+                                                setTimeout(() => this.fromTimer(offer.offerID, 'price'), 3000)}
+                                            {offer.price_T === 1 && offer.offerID !== '-10' && this.fromTimer(offer.offerID, 'price_T')}
+                                        </td>
                                         <td>&nbsp;
                                         {<span className={(offer.rating_ === 1 && offer.offerID !== '-10')
                                             ? 'responsiveGreen' : (offer.offerID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
@@ -764,7 +772,7 @@ class PartsCompany extends Component {
                                         setTimeout(() => this.fromTimer(deal.dealID, 'isNew'), 3000)}
                                     {deal.isNew_T === 1 && this.fromTimer(deal.isNew_T, 'isNew_T')}
                                         <td>{deal.productName}</td>
-                                        <td>{deal.dealPrice}</td>
+                                        <td>{deal.dealPrice.toFixed(2)}</td>
                                         <td>{deal.dealQuantity}</td>
                                         <td>{deal.dealStatus.toLowerCase()}</td>
                                     </tr>

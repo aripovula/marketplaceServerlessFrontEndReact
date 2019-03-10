@@ -151,12 +151,12 @@ class Deals extends React.Component {
                                         </span>
                                     </td>
                                     {console.log('dir -', item.lowPrice.direction, item.highPrice.direction)}
-                                    <td align="center">{item.lowPrice.price}&nbsp;
+                                    <td align="center">{item.lowPrice.price.toFixed(2)}&nbsp;
                                         {item.lowPrice.direction === 1 && <span style={{ color: '#ff2e00' }}>&#9650;</span>}
                                         {item.lowPrice.direction === 0 && <span style={{ color: '#ffbf00' }}>&#9656;</span>}
                                         {item.lowPrice.direction === -1 && <span style={{ color: '#57d500' }}>&#9660;</span>}
                                     </td>
-                                    <td align="center">{item.highPrice.price}&nbsp;
+                                    <td align="center">{item.highPrice.price.toFixed(2)}&nbsp;
                                         {item.highPrice.direction === 1 && <span style={{ color: '#ff2e00' }}>&#9650;</span>}
                                         {item.highPrice.direction === 0 && <span style={{ color: '#ffbf00' }}>&#9656;</span>}
                                         {item.highPrice.direction === -1 && <span style={{ color: '#57d500' }}>&#9660;</span>}

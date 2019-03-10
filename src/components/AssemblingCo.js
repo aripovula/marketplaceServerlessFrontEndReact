@@ -1086,7 +1086,7 @@ class AssemblingCo extends React.Component {
                                         {(order.status !== "ORDER_PLACED" && order.status !== "REJECTED" && order.dealPrice) &&
                                             <span className={(order.price_ === 1 && order.orderID !== '-10') 
                                             ? 'responsiveGreen' : (order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
-                                            ${order.dealPrice}</span>}
+                                            ${order.dealPrice.toFixed(2)}</span>}
                                         {order.price_T === 1 && order.orderID !== '-10'
                                             && setTimeout(() => this.fromTimer(order.orderID, 'price'), 3000)}
                                         {order.status === "ORDER_PLACED" && '  --'}
