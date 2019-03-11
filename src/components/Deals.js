@@ -130,7 +130,13 @@ class Deals extends React.Component {
                             <td align="center">lowest, $</td>
                             <td align="center">highest, $</td>
                         </tr>
-
+                        {tData && tData.length === 0 &&
+                            <tr>
+                                <td align="center">( no deals )</td>
+                                <td align="center">&nbsp;</td>
+                                <td align="center">&nbsp;</td>
+                            </tr>
+                        }
                         {tData && [].concat(tData).sort((a, b) =>
                             a.name.localeCompare(b.name)).map((item) =>
                                 <tr key={item.prodID}>
@@ -173,13 +179,13 @@ class Deals extends React.Component {
                     />
                 }
 
-                {
+                {/*
                     this.props.deals.map((r, i) => (
                         <div key={i} className="responsiveFSize">
                             <p>${r.dealPrice}-{r.dealQuantity}</p>
                         </div>
                     ))
-                }
+                */}
                 
             </div>
         )

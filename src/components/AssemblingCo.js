@@ -990,7 +990,14 @@ class AssemblingCo extends React.Component {
                             <td>reorder x @ y, rating, price</td>
                             <td>left</td>
                         </tr>
-
+                        {listReOrderRules && listReOrderRules.length === 0 && 
+                            <tr>
+                                <td></td>
+                                <td>&nbsp;</td>
+                                <td>(no re-order rule)</td>
+                                <td></td>
+                            </tr>
+                        }
                         {listReOrderRules && [].concat(listReOrderRules).sort((a, b) =>
                             a.reorderRuleID.localeCompare(b.reorderRuleID)).map((orderRule) =>
                                 <tr key={orderRule.reorderRuleID} className={orderRule.reorderRuleID === '-10' ? 'responsiveBlue' : 'responsiveBlack'}>
@@ -1076,6 +1083,13 @@ class AssemblingCo extends React.Component {
                                 <td>qnty, rating, price (target / actual)</td>
                                 <td>status</td>
                             </tr>
+                            {listOrders && listOrders.length === 0 &&
+                                <tr>
+                                    <td>&nbsp; (no orders)</td>
+                                    <td>&nbsp;</td>
+                                </tr>}
+
+
                             {listOrders && [].concat(listOrders).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order, i) =>
                                 <tr key={order.orderID} className={order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack'}> 
                                 {/* style={order.orderID === '-10' ? { color: 'red' } : { color: 'black' } }*/}

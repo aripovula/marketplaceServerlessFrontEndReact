@@ -459,6 +459,35 @@ a.addnlightbgoff:link {
   font-size: 1vw;
 }
 
+.addnlightbgsm,
+a.addnlightbgsm {
+  color: lightslategray;
+  font-size: 12px;
+}
+
+a.addnlightbgsm:link {
+  text-decoration: none;
+  font-size: 12px;
+}
+
+a.addnlightbgsm:visited {
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.addnlightbgsm:hover,
+a.addnlightbgsm:hover {
+  color: deepskyblue;
+  /* transition-duration: 0.4s; */
+  font-size: 12px;
+  text-decoration: none;
+}
+
+a.addnlightbgsm:active {
+  text-decoration: none;
+  font-size: 12px;
+}
+
 .black {
   color: black
 }

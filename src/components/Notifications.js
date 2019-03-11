@@ -5,19 +5,19 @@ import { graphql, compose } from 'react-apollo'
 import ListNotifications from "../graphQL/queryAllNotifications";
 // import QueryAllProducts from "../graphQL/queryAllProducts";
 import NewNotificationSubscription from '../graphQL/subscriptionNotifications';
-// import ModalInfo from "./ModalInfo";
+import ModalInfo from "./ModalInfo";
 
 class Notifications extends React.Component {
     
     notificationSubscription;
     
-    // constructor(props) {
-    //     super(props);
-    //     this.state = {
-    //         infoModalData: null
-    //     };
-    //     this.handleInfoModalClose = this.handleInfoModalClose.bind(this);
-    // }
+    constructor(props) {
+        super(props);
+        this.state = {
+            infoModalData: null
+        };
+        this.handleInfoModalClose = this.handleInfoModalClose.bind(this);
+    }
 
     componentWillMount() {
         this.notificationSubscription = this.props.subscribeToNewNotifications();
@@ -27,22 +27,48 @@ class Notifications extends React.Component {
         // this.notificationSubscription();
     }
 
-    // handleInfoModalClose() {
-    //     this.setState({ infoModalData: null });
-    // }
+    handleInfoModalClose() {
+        this.setState({ infoModalData: null });
+    }
 
     render() {
         return (
-            <div className="">
-               
+            <div style={{ textAlign: "left", marginLeft: "15px"}}>
+               <div>
                 {
-                    this.props.notifications.map((r, i) => (
+                    this.props.notifications.sort((a, b) => a.notificationID.localeCompare(b.notificationID)).map((r, i) => (
                         <div key={i} className="responsiveFSize">
-                            <p>${r.notificationTextRegular}-{r.notificationTextHighlighted}</p>
+                            <span className="smalltext">{r.notificationTextRegular} &nbsp;</span>
+                            {r.notificationTextHighlighted.includes('previousHash') &&
+                                <span className="addnlightbgsm notbold cursorpointer"
+                                    onClick={() => {
+                                        const block = JSON.parse(r.notificationTextHighlighted);
+                                        this.setState(() => ({
+                                            infoModalData: {
+                                                type: 'newBlock',
+                                                shortText: `Blockchain block #${block.index}`,
+                                                mainText: `Blockchain block details:`,
+                                                bIndex: `Index: ${block.index}`,
+                                                bHash: `Hash: "${block.hash}"`,
+                                                bPHash: `Previous hash: ${block.previousHash}`,
+                                            }
+                                        }));
+                                    }}>&nbsp;details&nbsp;&nbsp;&nbsp;
+                            </span>
+
+                            }
                         </div>
                     ))
                 }
-                
+                </div>
+                <div>
+                    {this.state.infoModalData &&
+                        <ModalInfo
+                            data={this.state.infoModalData}
+                            handleInfoModalClose={this.handleInfoModalClose}
+                        />
+                    }
+                </div>
             </div>
         )
     }

@@ -23,13 +23,15 @@ export class AllTradersLineTwo extends Component {
 
         <div id="container2a">
           <div id="left2">
-            <Notifications/>
+            <span className="smalltext">notifications & blockchain info:</span>
+            <Notifications />
           </div>
           {/*<div id="middle2">
             <Notifications/>
         </div>*/}
           <div id="right2">
-            <span className="responsiveFSize2">notifications & blockchain info:</span>
+            <span className="smalltext">notifications & blockchain info:</span>
+            <Notifications />
           </div>
         </div>
 

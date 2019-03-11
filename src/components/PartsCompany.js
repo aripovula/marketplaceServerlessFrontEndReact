@@ -698,10 +698,17 @@ class PartsCompany extends Component {
                                     <td>rating</td>
                                     <td>available</td>
                                 </tr>
-                                {console.log('offer12-s-', items)}
+                                {items && items.length === 0 &&
+                                    <tr>
+                                        <td>&nbsp; (no offers)</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                    </tr>
+                                }
                                 {[].concat(items).sort((a, b) => a.product.name.localeCompare(b.product.name)).map((offer) =>
                                     <tr key={offer.offerID} className={offer.offerID === '-10' ? 'responsiveBlue' : 'responsiveBlack'}>
-                                        {console.log('offer12-', offer)}
                                         <td>
                                             <span className="addnlightbg notbold cursorpointer"
                                                 onClick={() => {
@@ -764,7 +771,13 @@ class PartsCompany extends Component {
                                     <td>quantity</td>
                                     <td>status</td>
                                 </tr>
-
+                                {deals && deals.length === 0 && 
+                                    <tr>
+                                        <td>&nbsp;(no sales)</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                    </tr>}
                                 {[].concat(deals).sort((a, b) => b.dealID.localeCompare(a.dealID)).map((deal) =>
                                     <tr key={deal.dealID} 
                                     className={deal.isNew === 1 ? 'responsiveGreen' : 'responsiveBlack'} >

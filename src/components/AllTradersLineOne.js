@@ -5,6 +5,7 @@ import AssemblingCo from './AssemblingCo';
 import { OrderStatus } from './OrderStatus';
 import Search from './Search';
 import PartsCompany from './PartsCompany';
+import Notifications from './Notifications';
 
 export class AllTradersLineOne extends Component {
   render() {
@@ -46,13 +47,15 @@ export class AllTradersLineOne extends Component {
         
         <div id="container2a">
           <div id="left2">
-            <span className="responsiveFSize2">notifications & blockchain info:</span>
+            <span className="smalltext">notifications & blockchain info:</span>
+            <Notifications />
           </div>
           {/*<div id="middle2">
             <span className="responsiveFSize2">notifications & blockchain info:</span>
         </div>*/}
           <div id="right2">
-            <span className="responsiveFSize2">notifications & blockchain info:</span>
+            <span className="smalltext">notifications & blockchain info:</span>
+            <Notifications />
           </div>
         </div>
 
