@@ -1096,7 +1096,7 @@ class AssemblingCo extends React.Component {
                                     <td>
                                         {order.product.name}-{order.product.modelNo} - {order.quantity}
                                         {order.status !== "REJECTED" && this.getThresholdText(order, false)}
-                                        /
+                                        /&nbsp;
                                         {(order.status !== "ORDER_PLACED" && order.status !== "REJECTED" && order.dealPrice) &&
                                             <span className={(order.price_ === 1 && order.orderID !== '-10') 
                                             ? 'responsiveGreen' : (order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>

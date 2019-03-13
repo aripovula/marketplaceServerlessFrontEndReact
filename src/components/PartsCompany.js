@@ -778,7 +778,7 @@ class PartsCompany extends Component {
                                         <td>&nbsp;</td>
                                         <td>&nbsp;</td>
                                     </tr>}
-                                {[].concat(deals).sort((a, b) => b.dealID.localeCompare(a.dealID)).map((deal) =>
+                                {[].concat(deals).sort((a, b) => a.dealID.localeCompare(b.dealID)).map((deal) =>
                                     <tr key={deal.dealID} 
                                     className={deal.isNew === 1 ? 'responsiveGreen' : 'responsiveBlack'} >
                                     {deal.isNew_T === 1 &&

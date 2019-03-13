@@ -46,7 +46,7 @@ class AppRouter extends Component {
     checkLoginStatus(sender) {
         console.log('client in router', this.props.client);
         Auth.currentAuthenticatedUser().then(user => {
-            console.log(user);
+            console.log('currentAuthenticatedUser - ', user);
             this.setState({ authState: 'signedIn' });
             history.push('/multitrader');
             console.log('AppRouter - authState from ', sender, this.state.authState);
