@@ -59,7 +59,7 @@ class ModalInfo extends Component {
                                     <p>{this.props.data.bIndex}
                                     <span className="horIndent"></span>
                                     <span className="horIndent"></span>
-                                    <span className="smalltext" style={{ color: 'green' }}>** For simplicity separate blockchain is maintained for each product.</span>
+                                    <span className="smalltext" style={{ color: 'green' }}>** For simplicity separate blockchain is maintained for each product **</span>
                                     </p>
                                     <p>{this.props.data.bPHash}</p>
                                     <p>{this.props.data.bHash}</p>
