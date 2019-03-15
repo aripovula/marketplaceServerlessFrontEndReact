@@ -14,7 +14,7 @@ export class AllTradersLineOne extends Component {
         <div id="container2top">
           <div id="left2">
             <AssemblingCo
-              companyID="d20cde2e-b0a4-441b-a8be-5a31e0eb09e8"
+              companyID= {this.props.companyBID} // "02ff9041-c352-4705-a2f0-7295e55886b5"
               companyName="Assembler Inc."
               client={this.props.client}
               limit={4}
@@ -23,7 +23,7 @@ export class AllTradersLineOne extends Component {
           </div>
 
           <div id="right2">
-            <PartsCompany id='fef3f8e7-ef6f-4309-a80c-9781bb4ea7f0' client={this.props.client} />
+            <PartsCompany id='165f7de9-21bc-4bd4-a9b9-01740aa74ad2' client={this.props.client} />
             {/*
             <AssemblingCo
               companyID="6e11abc1-5d3f-41f8-8167-32b1efb7edcf"

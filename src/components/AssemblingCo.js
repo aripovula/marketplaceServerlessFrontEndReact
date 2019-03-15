@@ -1,5 +1,5 @@
 import React from 'react'
-import { v4 as uuid } from "uuid";
+// import { v4 as uuid } from "uuid";
 import Modal from 'react-modal';
 import { graphql, compose } from 'react-apollo'
 
@@ -498,9 +498,11 @@ class AssemblingCo extends React.Component {
             if (item.details.id === orderTemp.productID) orderTemp.product = item.details;
         });
         const prevThree = []; let count = 0;
-        [].concat(this.props.data.listOrders.items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) => {
-            count++; if (count < 4) prevThree.push(order);
-        });
+        if (this.props.data.listOrders) {
+            [].concat(this.props.data.listOrders.items).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) => {
+                count++; if (count < 4) prevThree.push(order);
+            });
+        }
         const listOrders = [orderTemp, ...prevThree];
         console.log('listOrders', listOrders);
         this.is2simulateUpdate = true;

@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import Amplify, { Auth } from 'aws-amplify';
 
+import { v4 as uuid } from "uuid";
+
 export class LoginPage extends Component {
 
   constructor(props) {
@@ -8,7 +10,7 @@ export class LoginPage extends Component {
     this.tryLogin = this.tryLogin.bind(this);
     this.state = {
       userData: {
-        username: 'component',
+        username: uuid(),
         password: 'Orchard1!'
       },
       isSignedIn: false
