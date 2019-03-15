@@ -33,7 +33,7 @@ export const Header = (props) => (
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                     exact={true}
-                >Trade room - one member
+                >Search
         </NavLink>
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>
@@ -61,7 +61,7 @@ export const Header = (props) => (
                     onClick={() => signOut(props)}
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px', float: 'right' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
-                >Logout
+                >Logout<span className="smalltext">(username: {props.username}</span>)
         </NavLink>
 
                 <span className="horIndent"></span><span className="horIndent"></span>

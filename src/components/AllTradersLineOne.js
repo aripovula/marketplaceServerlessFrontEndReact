@@ -19,6 +19,7 @@ export class AllTradersLineOne extends Component {
               client={this.props.client}
               limit={4}
               nextToken={null}
+              isNewUser={this.props.isNewUser}
             />
           </div>
 

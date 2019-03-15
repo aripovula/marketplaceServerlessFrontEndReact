@@ -770,10 +770,12 @@ class PartsCompany extends Component {
                                     <td>price</td>
                                     <td>quantity</td>
                                     <td>status</td>
+                                    <td>block ID</td>
                                 </tr>
                                 {deals && deals.length === 0 && 
                                     <tr>
                                         <td>&nbsp;(no sales)</td>
+                                        <td>&nbsp;</td>
                                         <td>&nbsp;</td>
                                         <td>&nbsp;</td>
                                         <td>&nbsp;</td>
@@ -788,6 +790,7 @@ class PartsCompany extends Component {
                                         <td>{deal.dealPrice.toFixed(2)}</td>
                                         <td>{deal.dealQuantity}</td>
                                         <td>{deal.dealStatus.toLowerCase()}</td>
+                                        <td># {deal.blockchainBlockID}</td>
                                     </tr>
                                 )}
                             </tbody>

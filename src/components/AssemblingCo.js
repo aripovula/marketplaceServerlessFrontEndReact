@@ -104,6 +104,17 @@ class AssemblingCo extends React.Component {
         // this.productSubscription();
     }
 
+    componentDidMount = async() =>{
+        if (this.props.isNewUser && this.state.productsAll.length > 1) {
+            const starterRuleOne = this.newOrder();
+            starterRuleOne.productID = this.state.productsAll[0].details.id;
+            await this.props.onAddRule({...starterRuleOne})
+            const starterRuleTwo = this.newOrder();
+            starterRuleTwo.productID = this.state.productsAll[1].details.id;
+            this.props.onAddRule({ ...starterRuleTwo })
+        }
+    }
+
     openModal() {
         this.setState({ modalIsOpen: true });
     }

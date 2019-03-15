@@ -24,12 +24,18 @@ class AppRouter extends Component {
     isNewCoStarted = false;
     Home = () => (
         <div className="ui container">
-            <AllTraders client={this.props.client} />
+            <AllTraders client={this.props.client} 
+            companyBID={this.company.companyID} 
+            isNewUser={this.isNewCoStarted}/>
         </div>
     );
 
     AllTradersWithClient = () => (
-        <AllTraders client={this.props.client} companyBID = {this.company.companyID} />
+        <AllTraders
+            client = {this.props.client}
+            companyBID = {this.company.companyID}
+            isNewUser = {this.isNewCoStarted}
+        />
     );
 
     OneTraderWithClient = () => (
@@ -56,9 +62,9 @@ class AppRouter extends Component {
         console.log('client in router', this.props.client);
         Auth.currentAuthenticatedUser().then(async(user) => {
             console.log('state in router', this.state);
-            if (!this.isNewCoStarted) {
-                this.company.userID = user.username;
-                this.company.companyID = user.username;
+            this.company.userID = user.username;
+            this.company.companyID = user.username;
+            if (sender === "Login" && !this.isNewCoStarted) {
                 this.isNewCoStarted = true;
                 await this.props.onAddCo({...this.company});
             }
@@ -83,7 +89,7 @@ class AppRouter extends Component {
             <div>
             <Router history={history}>
             <div>
-            <Header checkLoginStatus={this.checkLoginStatus}/>
+            <Header checkLoginStatus={this.checkLoginStatus} username={this.company.userID}/>
             <Route exact={true} path="/" component={this.Home} />
             <Route path="/multitrader" component={this.AllTradersWithClient} />
             <Route path="/onetrader" component={this.OneTraderWithClient} />
