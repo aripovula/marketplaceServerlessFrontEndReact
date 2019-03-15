@@ -49,14 +49,18 @@ export class AllTradersLineOne extends Component {
         <div id="container2a">
           <div id="left2">
             <span className="smalltext">notifications & blockchain info:</span>
-            <Notifications />
+            <Notifications 
+              client={this.props.client}
+            />
           </div>
           {/*<div id="middle2">
             <span className="responsiveFSize2">notifications & blockchain info:</span>
         </div>*/}
           <div id="right2">
             <span className="smalltext">notifications & blockchain info:</span>
-            <Notifications />
+            <Notifications
+              client={this.props.client}
+            />
           </div>
         </div>
 

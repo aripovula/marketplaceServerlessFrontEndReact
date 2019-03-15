@@ -61,10 +61,13 @@ export const Header = (props) => (
                     onClick={() => signOut(props)}
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px', float: 'right' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
-                >Logout<span className="smalltext">(username: {props.username}</span>)
-        </NavLink>
+                >Logout
+                </NavLink>
+                <span className="smalltext"
+                    onClick={() => { alert(`You can check how this app works by loggin in from another browser/computer using username of ${props.username}`); }}>
+                    (show userName)</span>
 
-                <span className="horIndent"></span><span className="horIndent"></span>
+
                 {/*<button className="button button--link" onClick={startLogout}>Logout</button>*/}
             </div>
         </div>

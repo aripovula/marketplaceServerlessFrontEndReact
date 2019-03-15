@@ -3,7 +3,7 @@ import React from 'react'
 
 import { graphql, compose } from 'react-apollo'
 import ListNotifications from "../graphQL/queryAllNotifications";
-// import QueryAllProducts from "../graphQL/queryAllProducts";
+import QueryAllProducts from "../graphQL/queryAllProducts";
 import NewNotificationSubscription from '../graphQL/subscriptionNotifications';
 import ModalInfo from "./ModalInfo";
 
@@ -31,6 +31,29 @@ class Notifications extends React.Component {
         this.setState({ infoModalData: null });
     }
 
+    getText(text1, text2) {
+        const block = JSON.parse(text2);
+        console.log('block.prod', block);
+        
+        let prodName = 'unknown';
+        let productsFromStore;
+        try {
+            productsFromStore = this.props.client.readQuery({
+                query: QueryAllProducts
+            });
+        } catch (e) {
+            console.log('prodReadQueryError-', e);
+            productsFromStore = null;
+        }
+        console.log('block.prods', productsFromStore);
+        
+        if (productsFromStore && productsFromStore.listProducts && productsFromStore.listProducts.items) {
+            productsFromStore.listProducts.items.map((prod) => {
+                if (prod.id === block.productID) prodName = prod.name + '-' + prod.modelNo;
+            });
+        }
+        return `${text1} for ${prodName}`;
+    }
     render() {
         return (
             <div style={{ textAlign: "left", marginLeft: "15px"}}>
@@ -38,7 +61,7 @@ class Notifications extends React.Component {
                 {
                     this.props.notifications.sort((a, b) => a.notificationID.localeCompare(b.notificationID)).map((r, i) => (
                         <div key={i} className="responsiveFSize">
-                            <span className="smalltext">{r.notificationTextRegular} &nbsp;</span>
+                            <span className="smalltext">{this.getText(r.notificationTextRegular, r.notificationTextHighlighted)} &nbsp;</span>
                             {r.notificationTextHighlighted.includes('previousHash') &&
                                 <span className="addnlightbgsm notbold cursorpointer"
                                     onClick={() => {

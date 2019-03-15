@@ -56,13 +56,17 @@ class ModalInfo extends Component {
                             {data.type === 'newBlock' &&
                                 <div>
                                     <p>{this.props.data.mainText}</p>
-                                    <p>{this.props.data.bIndex}</p>
+                                    <p>{this.props.data.bIndex}
+                                    <span className="horIndent"></span>
+                                    <span className="horIndent"></span>
+                                    <span className="smalltext" style={{ color: 'green' }}>** For simplicity separate blockchain is maintained for each product.</span>
+                                    </p>
                                     <p>{this.props.data.bPHash}</p>
                                     <p>{this.props.data.bHash}</p>
                                     <p>Nonce: 0 *</p>
                                     <p></p>
                                     <p className="smalltext">* Since blockchain is maintained centrally by the marketplace admin no leading zeros are added by using other values of nonce.</p>
-                                    <p className="smalltext" style={{color: 'green'}}>** For simplicity separate blockchain is maintained for each product.</p>
+                                    
                                 </div>
                             }
                             <div className="">
