@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid";
 
 import AllTraders from './AllTraders';
 import LoginPage from './LoginPage';
-import { OneTrader } from './OneTrader';
+import Search from './Search';
 import { Source } from './Source';
 import { Header } from './Header';
 
@@ -38,8 +38,10 @@ class AppRouter extends Component {
         />
     );
 
-    OneTraderWithClient = () => (
-        <OneTrader client={this.props.client} />
+    SearchWithClient = () => (
+        <Search client={this.props.client} 
+            companyBID={this.company.companyID}
+        />
     );
 
     constructor(props) {
@@ -64,7 +66,7 @@ class AppRouter extends Component {
             console.log('state in router', this.state);
             this.company.userID = user.username;
             this.company.companyID = user.username;
-            if (sender === "Login" && !this.isNewCoStarted) {
+            if (sender === "Signup" && !this.isNewCoStarted) {
                 this.isNewCoStarted = true;
                 await this.props.onAddCo({...this.company});
             }
@@ -92,7 +94,7 @@ class AppRouter extends Component {
             <Header checkLoginStatus={this.checkLoginStatus} username={this.company.userID}/>
             <Route exact={true} path="/" component={this.Home} />
             <Route path="/multitrader" component={this.AllTradersWithClient} />
-            <Route path="/onetrader" component={this.OneTraderWithClient} />
+            <Route path="/search" component={this.SearchWithClient} />
             <Route path="/source" component={Source} />
             <Route path="/offers" component={this.Offers} />
             

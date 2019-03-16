@@ -179,6 +179,9 @@ class PartsCompany extends Component {
             console.log('readQuery error-', e);
             dealsTemp = null;
         }
+        
+        
+        // if (this.dealsPrev && this.dealsPrev.length > 0 && dealsTemp && dealsTemp.length > 0) this.dealsPrev = dealsTemp;
         let deals = (dealsTemp && dealsTemp.listDeals && dealsTemp.listDeals.items) ? dealsTemp.listDeals.items : [];
         deals = this.props.company ? deals.filter(deal => this.props.company.id === deal.producerID) : deals;
         const theProducts = this.props.products;
@@ -191,7 +194,11 @@ class PartsCompany extends Component {
                 }
             }
         }
-        if (this.dealsPrev) {
+
+        console.log('this.dealsPrev && dealsTemp', this.dealsPrev, dealsTemp);
+        if (this.dealsPrev) console.log('this.dealsPrev && dealsTemp1', this.dealsPrev.length);
+        if (dealsTemp) console.log('this.dealsPrev && dealsTemp2', dealsTemp.listDeals.items.length);
+        if (this.dealsPrev && this.dealsPrev.length > 0 && dealsTemp && dealsTemp.listDeals.items && dealsTemp.listDeals.items.length > 0) {
             for (let x = 0; x < deals.length; x++) {
                 let isFound = false;
                 for (let y = 0; y < this.dealsPrev.length; y++) {
@@ -466,6 +473,7 @@ class PartsCompany extends Component {
     }
 
     updateOffers(items){
+        console.log('in updateOffers items', items, this.props.offers);
         for (let x = 0; x < this.props.offers.length; x++) {
             for (let y = 0; y < items.length; y++) {
                 if (this.props.offers[x].companyID === this.props.company.id &&
@@ -892,7 +900,7 @@ class PartsCompany extends Component {
             );
         } else {
             return (
-                <div>Company is not defined ...</div>
+                <div>Attempting to load offers ...</div>
             )
         }
     }

@@ -69,7 +69,7 @@ class Search extends Component {
         this.handleFilter(value)
     }
     handleFilter = debounce((val) => {
-        const val2 = "d20cde2e-b0a4-441b-a8be-5a31e0eb09e8";
+        const val2 = this.props.companyBID;
         this.props.onSearch(val, val2)
     }, 250)
     render() {
@@ -79,7 +79,7 @@ class Search extends Component {
             const { items }  = this.props.data.listOrders;
 
         return (
-            <div className="App">
+            <div className="margintop">
                 <input
                     // style={styles.input}
                     onChange={this.onChange.bind(this)}

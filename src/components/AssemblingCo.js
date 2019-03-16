@@ -104,16 +104,16 @@ class AssemblingCo extends React.Component {
         // this.productSubscription();
     }
 
-    componentDidMount = async() =>{
-        if (this.props.isNewUser && this.state.productsAll.length > 1) {
-            const starterRuleOne = this.newOrder();
-            starterRuleOne.productID = this.state.productsAll[0].details.id;
-            await this.props.onAddRule({...starterRuleOne})
-            const starterRuleTwo = this.newOrder();
-            starterRuleTwo.productID = this.state.productsAll[1].details.id;
-            this.props.onAddRule({ ...starterRuleTwo })
-        }
-    }
+    // componentDidMount = async () => {
+    //     if (this.props.isNewUser && this.state.productsAll.length > 1) {
+    //         const starterRuleOne = this.newOrder();
+    //         starterRuleOne.productID = this.state.productsAll[0].details.id;
+    //         await this.props.onAddRule({ ...starterRuleOne })
+    //         const starterRuleTwo = this.newOrder();
+    //         starterRuleTwo.productID = this.state.productsAll[1].details.id;
+    //         this.props.onAddRule({ ...starterRuleTwo })
+    //     }
+    // }
 
     openModal() {
         this.setState({ modalIsOpen: true });
@@ -892,6 +892,7 @@ class AssemblingCo extends React.Component {
         console.log('listOrders is2simulateUpdate', this.is2simulateUpdate);
         console.log('listOrders listOrders', this.state.listOrders);
         let listOrders;
+
         if (this.is2simulateUpdate) {
             listOrders = this.markChangedOnes(this.state.listOrders);
             this.is2simulateUpdate = false;

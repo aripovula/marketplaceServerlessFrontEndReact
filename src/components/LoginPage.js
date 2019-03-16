@@ -8,6 +8,7 @@ export class LoginPage extends Component {
   constructor(props) {
     super(props);
     this.tryLogin = this.tryLogin.bind(this);
+    this.trySignUp = this.trySignUp.bind(this);
     this.state = {
       userData: {
         username: uuid(),
@@ -17,17 +18,17 @@ export class LoginPage extends Component {
     }
   }
 
-  tryLogin() {
+  tryLogin(type) {
       Auth.signIn({
         username: this.state.userData.username, 
         password: this.state.userData.password,
     }).then(user => {
       console.log('Wow', user)
-      this.props.checkLoginStatus('Login');
+      this.props.checkLoginStatus(type);
     })
       .catch(err => {
         console.log('Wow', err);
-        this.trySignUp();
+        // this.trySignUp();
       });
   }
 
@@ -40,10 +41,12 @@ export class LoginPage extends Component {
       }
     }).then(user => {
       console.log('WowSignUp', user)
-      this.tryLogin();
+      // this.props.checkLoginStatus('Signup');
+      this.tryLogin('Signup');
     })
       .catch(err => {
         console.log('WowSignUp', err);
+        alert('Could not sign up !')
       });
   }
 
@@ -71,7 +74,7 @@ export class LoginPage extends Component {
         <br /><span className="horIndent" />
         <span className="postLineList">programmatically with Amazon Cognito when you click 'Login'.</span>
         <br /><span className="horIndent" />
-        <span className="postLineList">All data will be wiped off from DynamoDB as soon as you log out.</span>
+        <span className="postLineList">REMOVEAll data will be wiped off from DynamoDB as soon as you log out.</span>
         <br /><br />
 
         <div style={{ width: 300 }}>
@@ -81,6 +84,38 @@ export class LoginPage extends Component {
             defaultValue={this.state.userData.username}
             autoComplete="off"
             placeholder="username"
+            onChange={this.handleChange.bind(this, 'username')}
+            disabled
+          /></div>
+
+
+        <div style={{ width: 300 }}>
+          <span className="horIndent"></span>
+          <input
+            type="password"
+            defaultValue={this.state.userData.password}
+            autoComplete="off"
+            placeholder="password"
+            onChange={this.handleChange.bind(this, 'password')}
+          /></div>
+
+        <br />
+        <span className="horIndent"></span>
+        <button
+          className="button button1"
+          onClick={this.trySignUp}
+        >First time Login</button>
+        <br /><br />
+        <hr/>
+        <br/>
+        Use username copied from session running in another browser / computer
+        <br/>
+        <div style={{ width: 300 }}>
+          <span className="horIndent"></span>
+          <input
+            type="text"
+            autoComplete="off"
+            placeholder="paste username"
             onChange={this.handleChange.bind(this, 'username')}
           /></div>
 
@@ -99,8 +134,8 @@ export class LoginPage extends Component {
         <span className="horIndent"></span>
         <button
           className="button button1"
-          onClick={this.tryLogin}
-        >Login</button>
+          onClick={() => this.tryLogin('Login')}
+        >Login with copied username</button>
         <br /><br />
       </div>
     )

@@ -29,7 +29,7 @@ export const Header = (props) => (
                 <span className="horIndent"></span>|<span className="horIndent"></span>
 
                  <NavLink
-                    to="/onetrader"
+                    to="/search"
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                     exact={true}
@@ -63,7 +63,7 @@ export const Header = (props) => (
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                 >Logout
                 </NavLink>
-                <span className="smalltext"
+                <span className="smalltext cursorpointer"
                     onClick={() => { alert(`You can check how this app works by loggin in from another browser/computer using username of ${props.username}`); }}>
                     (show userName)</span>
 
@@ -75,3 +75,4 @@ export const Header = (props) => (
 );
 
 // export default Header;
+//  fe43f4e3-7e35-49ed-a88d-3af4fac97ceb
