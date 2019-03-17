@@ -15,6 +15,9 @@ import AddCompany from '../graphQL/mutationAddCompany';
 import AddCompanyB from '../graphQL/mutationAddCompanyB';
 import ListCompanies from "../graphQL/queryAllCompanies";
 import NewCompanySubscription from "../graphQL/subscriptionCompanyNew";
+import ListReOrderRules from "../graphQL/queryAllReorderRules";
+import MutationDeleteReOrderRule from "../graphQL/mutationDeleteReorderRule";
+
 
 
 export const history = createHistory();
@@ -233,6 +236,42 @@ export default compose(
                     // console.log('data2 2 b4 write', data2.listCompanies.items.length, JSON.stringify(data2));
                     // proxy.writeQuery({ query: ListCompanies, data: data2 });
                 }
+            })
+        }),
+    }),
+    graphql(MutationDeleteReOrderRule, {
+        props: props => ({
+            deleteReOrderRule: rule => props.mutate({
+                variables: rule,
+                // optimisticResponse: {
+                //     __typename: 'Mutation',
+                //     deleteReOrderRule: { ...rule, id: Math.round(Math.random() * -1000000), __typename: 'ReOrderRule' }
+                // },
+                // update: (proxy, { data: { deleteReOrderRule } }) => {
+                //     const data = proxy.readQuery({
+                //         query: ListReOrderRules,
+                //         variables: {
+                //             limit: props.ownProps.limit,
+                //             nextToken: null,
+                //             companyID: props.ownProps.companyID
+                //         }
+                //     });
+                //     data.listReOrderRules.items = [
+                //         ...data.listReOrderRules.items.filter(e => {
+                //             return e.reorderRuleID !== deleteReOrderRule.reorderRuleID
+                //         })];
+                //     proxy.writeQuery({ query: ListReOrderRules, data });
+                // }
+                // refetchQueries: [
+                //     {
+                //         query: ListReOrderRules,
+                //         variables: {
+                //             limit: props.ownProps.limit,
+                //             nextToken: null,
+                //             companyID: props.ownProps.companyID
+                //         },
+                //     },
+                // ],
             })
         }),
     })

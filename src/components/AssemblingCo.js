@@ -9,6 +9,7 @@ import UpdateReOrderRule from "../graphQL/mutationUpdateReorderRule";
 import QueryGetCompany from "../graphQL/queryGetCompany";
 // import QueryAllOrders from "../graphQL/queryAllOrders";
 import ListOrders from "../graphQL/queryOrdersWithData";
+import ListAllOrders from "../graphQL/queryAllOrdersForCo";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import ListReOrderRules from "../graphQL/queryAllReorderRules";
 import MutationDeleteReOrderRule from "../graphQL/mutationDeleteReorderRule";
@@ -38,10 +39,13 @@ class AssemblingCo extends React.Component {
     orderUpdateSubscription;
     reOrderRuleCreateSubscription;
     productSubscription;
+
     is2simulateUpdate = false;
     is2simulateUpdateRule = false;
     listOrdersPrev;
+    listAllOrdersPrev;
     listReOrderRulesPrev;
+    listAllReOrderRulesPrev;
     keepTillItTimesOut = [];
     productLeft = [];
 
@@ -65,6 +69,7 @@ class AssemblingCo extends React.Component {
             modalIsOpen: false,
             order: this.newOrder(),
             listOrders: null,
+            listAllOrders: null,
             listReOrderRules: null,
             products: productsAll,
             productsNoRule: noRuleProducts,
@@ -82,7 +87,9 @@ class AssemblingCo extends React.Component {
             nextTokenROR: '',
             allTokensROR: [null],
             currentPositionROR: 0,
-            is2reRender: false
+            is2reRender: false,
+            withPg: false,
+            isAlertShown: false
         };
 
         this.openModal = this.openModal.bind(this);
@@ -503,6 +510,7 @@ class AssemblingCo extends React.Component {
 
     addNewOrder(order) {
         let orderTemp = JSON.parse(JSON.stringify(order));
+        orderTemp.orderIDnext = orderTemp.orderID;
         orderTemp.orderID = '-10';
         this.state.productsAll.map((item) => {
             console.log(item.details.id === orderTemp.productID, item, orderTemp.productID);
@@ -520,7 +528,8 @@ class AssemblingCo extends React.Component {
         this.setState({
             loading: true,
             modalIsOpen: false,
-            listOrders
+            listOrders,
+            listAllOrders: [orderTemp, ...this.props.dataAll.listAllOrders.items]
         });
 
         // const { createOrder } = this.props;
@@ -705,6 +714,7 @@ class AssemblingCo extends React.Component {
         console.log("ID12", id, field, z);
         if (field === "price") this.keepTillItTimesOut[z].price_ = 0;
         if (field === "status") this.keepTillItTimesOut[z].status_ = 0;
+        if (field === "statusCheck_T") this.keepTillItTimesOut[z].statusCheck_T = 0;
         if (field === "note") this.keepTillItTimesOut[z].note_ = 0;
         if (field === "left") this.keepTillItTimesOut[z].left_ = 0;
         if (field === "left_T") this.keepTillItTimesOut[z].left_T = 0;
@@ -739,52 +749,73 @@ class AssemblingCo extends React.Component {
         } else {
             this.productLeft[p].left = this.productLeft[p].left + delta;
         }
-        console.log('ID123 others-', productID, delta, initialIfNull, isFound);
+        // console.log('ID123 others-', productID, delta, initialIfNull, isFound);
         
-        console.log('ID123 productLeft-', this.productLeft[p]);
+        // console.log('ID123 productLeft-', this.productLeft[p]);
         // console.log('ID12 productsLeft-', this.productLeft);
         return this.productLeft[p].left;
     }
 
-    markChangedOnes(listOrders) {
-        const dataTemp = JSON.parse(JSON.stringify(listOrders));
-        const dataPrev = this.listOrdersPrev === null ? dataTemp : this.listOrdersPrev;
-        console.log('ID123 dataTemp', dataTemp);
-        console.log('ID123 dataPrev', dataPrev);
+    markChangedOnes(listOrders, type) {
+        let dataTemp = JSON.parse(JSON.stringify(listOrders));
+        let dataPrev;
+        if (type === 0) dataPrev = this.listOrdersPrev === null ? dataTemp : this.listOrdersPrev;
+        if (type === 1) dataPrev = this.listAllOrdersPrev === null ? dataTemp : this.listAllOrdersPrev;
+        // console.log('ID123 dataTemp', dataTemp);
+        // console.log('ID123 dataPrev', dataPrev);
         if (dataPrev) {
+
+            let isFoundN = false; let yN;
+            for (let y = 0; y < dataPrev.length; y++) {
+                if (dataPrev[y].orderID === '-10') { isFoundN = true; yN = y; }
+            }
+            if (isFoundN) {
+                let isNotFoundN = true;
+                for (let x = 0; x < dataTemp.length; x++) {
+                    console.log('isNotFoundN, prev, temp-', dataTemp[x].orderID, dataPrev[yN].orderIDnext, dataTemp[x].orderID == dataPrev[yN].orderIDnext);
+                    if (dataTemp[x].orderID == dataPrev[yN].orderIDnext) isNotFoundN = false;
+                }
+                if (isNotFoundN) dataTemp = [dataPrev[yN], dataTemp[0], dataTemp[1], dataTemp[2]];
+                console.log('isNotFoundN, prev, temp-', isFoundN, isNotFoundN, yN, dataPrev, dataTemp, dataPrev[yN], dataPrev[yN].orderIDnext);
+            }
+            
+
             for (let x = 0; x < dataTemp.length; x++) {
                 let price, prevPrice, status, prevStatus, note, prevNote;
 
                 for (let y = 0; y < dataPrev.length; y++) {
-                    console.log('ID123 dataTemp[x], dataPrev[y]', dataTemp[x], dataPrev[y]);
-                    // if new order addition is complete update balance of left items
-                    if (dataPrev[y].orderID === '-10' && dataTemp[x].orderID !== '-10' && dataPrev[y].productID === dataTemp[x].productID) {
-                        // check if dataTemp[x].orderID is new one and add to left only if new one (not found among prev orders)
-                        let isFound2 = false;
-                        for (let y2 = 0; y2 < dataPrev.length; y2++) {
-                            if (dataPrev[y2].orderID === dataTemp[x].orderID) { isFound2 = true; break; }
-                        }
-                        let isDealMade = false; let x1 = x; let latest = dataTemp[x].orderID;
-                        if (!isFound2) {
-                            for (let x2 = 0; x2 < dataTemp.length; x2++) {
-                                if (dataTemp[x2].orderID < latest) { latest = dataTemp[x2].orderID; x1 = x2; }
-                            }
-                            if (dataTemp[x1].status !== "REJECTED") isDealMade = true;
-                            if (dataTemp[x1].status === "ORDER_PLACED") {isDealMade = false; dataTemp[x1].orderID = '-10';}
-                            console.log('id123 dataTemp[x1]-', dataTemp[x1].status);
-                            if (dataTemp[x1].status === "DEAL_MADE") {
-                                const z2 = this.getZ(dataTemp[x].orderID)
-                                this.keepTillItTimesOut[z2].price_ = 1;
-                                this.keepTillItTimesOut[z2].status_ = 1;
-                                dataTemp[x]["price_T"] = 1;
-                                dataTemp[x]["status_T"] = 1;
-                            }
-                        }
-                        if (!isFound2 && isDealMade) this.getLeft(dataTemp[x].productID, dataTemp[x].quantity, dataTemp[x].quantity);
-                        // console.log('ID123 left after new order - set', left, dataTemp[x], dataPrev[y]);
-                    }
+                    // if (dataPrev[y].orderID === '-10' || dataTemp[x].orderID === '-10') console.log('ID123 dataTemp[x], dataPrev[y]', dataTemp[x], dataPrev[y]);
+                    // // if new order addition is complete update balance of left items
+                    // if (dataPrev[y].orderID === '-10' && dataTemp[x].orderID !== '-10' && dataPrev[y].productID === dataTemp[x].productID) {
+                    //     console.log('inside -10 case');
+                        
+                    //     // check if dataTemp[x].orderID is new one and add to left only if new one (not found among prev orders)
+                    //     let isFound2 = false;
+                    //     for (let y2 = 0; y2 < dataPrev.length; y2++) {
+                    //         if (dataPrev[y2].orderID === dataTemp[x].orderID) { isFound2 = true; break; }
+                    //     }
+                    //     let isDealMade = false; let x1 = x; let latest = dataTemp[x].orderID;
+                    //     if (!isFound2) {
+                    //         for (let x2 = 0; x2 < dataTemp.length; x2++) {
+                    //             if (dataTemp[x2].orderID < latest) { latest = dataTemp[x2].orderID; x1 = x2; }
+                    //         }
+                    //         if (dataTemp[x1].status !== "REJECTED") isDealMade = true;
+                    //         if (dataTemp[x1].status === "ORDER_PLACED") {isDealMade = false; dataTemp[x1].orderID = '-10';}
+                    //         console.log('id123 dataTemp[x1]-', dataTemp[x1].status);
+                    //         if (dataTemp[x1].status === "DEAL_MADE") {
+                    //             const z2 = this.getZ(dataTemp[x].orderID)
+                    //             this.keepTillItTimesOut[z2].price_ = 1;
+                    //             this.keepTillItTimesOut[z2].status_ = 1;
+                    //             dataTemp[x]["price_T"] = 1;
+                    //             dataTemp[x]["status_T"] = 1;
+                    //         }
+                    //     }
+                    //     if (!isFound2 && isDealMade) this.getLeft(dataTemp[x].productID, dataTemp[x].quantity, dataTemp[x].quantity);
+                    //     // console.log('ID123 left after new order - set', left, dataTemp[x], dataPrev[y]);
+                    // }
 
-                    if (dataPrev[y].orderID === dataTemp[x].orderID) {
+                    if (dataPrev[y].orderID === dataTemp[x].orderID || (dataPrev[y].orderID === '-10' && dataTemp[x].orderID === dataPrev[y].orderIDnext) ) {
+                        // if (this.state.withPg && dataTemp[x].status === "ORDER_PLACED") {dataTemp[x].orderID = '-10';}
                         prevPrice = dataPrev[y].dealPrice;
                         prevStatus = dataPrev[y].status;
                         // prevNote = dataPrev[y].note;
@@ -806,11 +837,13 @@ class AssemblingCo extends React.Component {
 
                         if (status !== prevStatus) {
                             this.keepTillItTimesOut[z].status_ = 1;
+                            this.keepTillItTimesOut[z].statusCheck_T = 1;
                             tempTriggerTimer = 1;
                         } else {
                             tempTriggerTimer = 0;
                         }
                         dataTemp[x]["status_"] = this.keepTillItTimesOut[z].status_;
+                        dataTemp[x]["statusCheck_T"] = this.keepTillItTimesOut[z].statusCheck_T;
                         dataTemp[x]["status_T"] = tempTriggerTimer;
 
                         // console.log('ID12-', note !== prevNote, note, prevNote, JSON.stringify(dataPrev));
@@ -826,9 +859,10 @@ class AssemblingCo extends React.Component {
                 }
             }
         }
-        // console.log('dataTemp', dataTemp, this.keepTillItTimesOut);
+        console.log('dataTemp--', dataTemp, this.keepTillItTimesOut);
         
-        this.listOrdersPrev = dataTemp;
+        if (type === 0) this.listOrdersPrev = dataTemp;
+        if (type === 1) this.listAllOrdersPrev = dataTemp;
         return dataTemp;
     }
 
@@ -891,13 +925,15 @@ class AssemblingCo extends React.Component {
         console.log('newAssemblySTATE-', this.state);
         console.log('listOrders is2simulateUpdate', this.is2simulateUpdate);
         console.log('listOrders listOrders', this.state.listOrders);
-        let listOrders;
+        let listOrders, listAllOrders;
 
         if (this.is2simulateUpdate) {
-            listOrders = this.markChangedOnes(this.state.listOrders);
+            if (this.state.withPg) listOrders = this.markChangedOnes(this.state.listOrders, 0);
+            if (!this.state.withPg) listAllOrders = this.markChangedOnes(this.state.listAllOrders, 1);
             this.is2simulateUpdate = false;
         } else {
-            listOrders = (this.props.data && this.props.data.listOrders) ? this.markChangedOnes(this.props.data.listOrders.items) : null;
+            if (this.state.withPg) listOrders = (this.props.data && this.props.data.listOrders) ? this.markChangedOnes(this.props.data.listOrders.items, 0) : null;
+            if (!this.state.withPg) listAllOrders = (this.props.dataAll && this.props.dataAll.listAllOrders) ? this.markChangedOnes(this.props.dataAll.listAllOrders.items, 1) : null;
         };
         let listReOrderRules;
         if (this.is2simulateUpdateRule) {
@@ -911,7 +947,7 @@ class AssemblingCo extends React.Component {
             if (this.props.products.length > 0) this.handleSync();
         }
 
-        console.log('listOrders in render', listOrders, listReOrderRules);
+        console.log('listOrders in render', listOrders, listAllOrders, listReOrderRules);
         
         return (
             <div>
@@ -1074,23 +1110,41 @@ class AssemblingCo extends React.Component {
                         }}>new &nbsp;
                     </span>
 
-                    <span
-                        className={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
-                        onClick={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? () => this.showPrevious(this.props.data.listOrders.nextToken) : null}
-                    >prev &nbsp;
-                    </span>
-                    <span
-                        className={this.state.currentPosition !== 0 ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
-                        onClick={this.state.currentPosition !== 0 ? () => this.showNext(this.props.data.listOrders.nextToken) : null}
-                    >next &nbsp;  
-                    </span>
+                    {this.state.withPg &&
+                        <span>
+                            <span
+                                className={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
+                                onClick={(this.props.data.listOrders && this.props.data.listOrders.nextToken) ? () => this.showPrevious(this.props.data.listOrders.nextToken) : null}
+                            >prev &nbsp;
+                            </span>
+                            <span
+                                className={this.state.currentPosition !== 0 ? "addnlightbg notbold cursorpointer" : "addnlightbgoff notbold"}
+                                onClick={this.state.currentPosition !== 0 ? () => this.showNext(this.props.data.listOrders.nextToken) : null}
+                            >next &nbsp;  
+                            </span>
 
-                    <span
-                        className="addnlightbg notbold cursorpointer"
-                        onClick={() => this.showPrevious(null)}
-                    >latest 4
-                    </span>
-
+                            <span
+                                className="addnlightbg notbold cursorpointer"
+                                onClick={() => this.showPrevious(null)}
+                            >latest 4
+                            </span>
+                        </span>
+                    }
+                    <span className="horIndent"></span>
+                    <label className="addnlightbg notbold cursorpointer">
+                        with pagination
+                    <input
+                        name="withPg"
+                        type="checkbox"
+                        checked={this.state.withPg}
+                        onChange={() => {
+                                this.setState(prevState => ({withPg: !prevState.withPg, isAlertShown: true}));
+                                !this.state.isAlertShown && alert('Pagination works as expected and shows correct number of orders in most cases. However, in certain cases orders are not shown correctly - will try to fix it when I complete learning Apollo client');
+                            } 
+                        }
+                    />
+                    </label>
+                    
                     <table id="tableFM">
                         <tbody>
                             <tr>
@@ -1104,7 +1158,7 @@ class AssemblingCo extends React.Component {
                                 </tr>}
 
 
-                            {listOrders && [].concat(listOrders).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order, i) =>
+                            {this.state.withPg && listOrders && [].concat(listOrders).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order, i) =>
                                 <tr key={order.orderID} className={order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack'}> 
                                 {/* style={order.orderID === '-10' ? { color: 'red' } : { color: 'black' } }*/}
                                     <td>
@@ -1129,6 +1183,40 @@ class AssemblingCo extends React.Component {
                                             {order.status.toLowerCase()}</span>}
                                         {order.status_T === 1 && order.orderID !== '-10' && 
                                         setTimeout(() => this.fromTimer(order.orderID, 'status'), 3000)}
+                                    </td>
+                                </tr>
+                            )}
+
+                            {/*  if pagination is NOT selected render this  */}
+                            {!this.state.withPg && listAllOrders && [].concat(listAllOrders)
+                                .filter((item) => item.companyID === this.props.companyID)
+                                .sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order, i) =>
+                                <tr key={order.orderID} className={order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack'}>
+                                    {console.log('whatThe-', order)}
+                                    {/* style={order.orderID === '-10' ? { color: 'red' } : { color: 'black' } }*/}
+                                    <td>
+                                        {order.product.name}-{order.product.modelNo} - {order.quantity}
+                                        {order.status !== "REJECTED" && this.getThresholdText(order, false)}
+                                        /&nbsp;
+                                        {(order.status !== "ORDER_PLACED" && order.status !== "REJECTED" && order.dealPrice) &&
+                                            <span className={(order.price_ === 1 && order.orderID !== '-10')
+                                                ? 'responsiveGreen' : (order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                                ${order.dealPrice.toFixed(2)}</span>}
+                                        {order.price_T === 1 && order.orderID !== '-10'
+                                            && setTimeout(() => this.fromTimer(order.orderID, 'price'), 3000)}
+                                        {order.status === "ORDER_PLACED" && '  --'}
+                                        {order.status === "REJECTED" && <span className="responsiveGreen">
+                                            {order.note}</span>}
+                                        {/*order.status === "REJECTED" && order.note_T === 1 && order.orderID !== '-10' && 
+                            setTimeout(() => this.fromTimer(order.orderID, 'note'), 3000 )*/}
+                                    </td>
+                                    <td>
+                                        {<span className={(order.status_ === 1 && order.orderID !== '-10')
+                                            ? 'responsiveGreen' : (order.orderID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
+                                            {order.status.toLowerCase()}</span>}
+                                        {order.status_T === 1 && order.orderID !== '-10' &&
+                                            setTimeout(() => this.fromTimer(order.orderID, 'status'), 3000)}
+                                        {order.statusCheck_T === 1 && order.orderID !== '-10' && this.fromTimer(order.orderID, 'statusCheck_T')}
                                     </td>
                                 </tr>
                             )}
@@ -1376,6 +1464,22 @@ class AssemblingCo extends React.Component {
 }
 
 export default compose(
+    graphql(ListAllOrders, {
+        options: () => {
+            return ({
+                // variables: { companyID },
+                fetchPolicy: 'cache-and-network'
+            });
+        },
+        props: props => ({
+            dataAll: {
+                listAllOrders: {
+                    items: (props.data && props.data.listOrders) ? props.data.listOrders.items : [],
+                }
+            },
+        })
+    }),
+    // listReOrderRules
     graphql(ListOrders, {
         options: ({limit, nextToken, companyID}) => {
             console.log('ID34 limit, nextToken, companyID-', limit, nextToken, companyID);
@@ -1591,34 +1695,32 @@ export default compose(
                 //     __typename: 'Mutation',
                 //     createOrder: { ...order, orderID: Math.round(Math.random() * -1000000), __typename: 'Order' }
                 // },
-                // update: (proxy, { data: { createOrder } }) => {
+                update: (proxy, { data: { createOrder } }) => {
                 //     // 1
-                //     const data2 = proxy.readQuery({
-                //         query: ListOrders,
-                //         variables: {
-                //             limit: props.ownProps.limit,
-                //             nextToken: null,
-                //             companyID: props.ownProps.companyID 
-                //         }
-                //     });
-                //     console.log('data2 b4', data2.listOrders.items.length, JSON.stringify(data2));
-                //     // data2.listOrders.items.push(createOrder);
-                //     data2.listOrders.items = [
-                //         ...data2.listOrders.items.filter(e => {
-                //             // console.log('e = ', e);
-                //             // console.log('e.orderID = ', e.orderID);
-                //             return e.orderID !== createOrder.orderID
-                //         })
-                //         , createOrder];
+                    const data2 = proxy.readQuery({
+                        query: ListAllOrders,
+                        // variables: {
+                        //     companyID: props.ownProps.companyID 
+                        // }
+                    });
+                    console.log('data2 b4', data2);
+                    // data2.listOrders.items.push(createOrder);
+                    data2.listOrders.items = [
+                        ...data2.listOrders.items.filter(e => {
+                            // console.log('e = ', e);
+                            // console.log('e.orderID = ', e.orderID);
+                            return e.orderID !== createOrder.orderID
+                        })
+                        , createOrder];
 
-                //     console.log('data2 after', data2.listOrders.items.length, JSON.stringify(data2));
-                //     proxy.writeQuery({ query: ListOrders, data: data2 });
+                    console.log('data2 after', data2.listOrders.items.length, JSON.stringify(data2));
+                    proxy.writeQuery({ query: ListAllOrders, data: data2 });
                     
                 //     // 2
                 //     // const data = proxy.readQuery({ query: QueryAllOrders });
                 //     // data.listOrders.items.push(createOrder);
                 //     // proxy.writeQuery({ query: QueryAllOrders, data });
-                // },
+                },
                 refetchQueries: [
                     {
                         query: ListOrders,
