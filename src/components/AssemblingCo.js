@@ -761,8 +761,8 @@ class AssemblingCo extends React.Component {
         let dataPrev;
         if (type === 0) dataPrev = this.listOrdersPrev === null ? dataTemp : this.listOrdersPrev;
         if (type === 1) dataPrev = this.listAllOrdersPrev === null ? dataTemp : this.listAllOrdersPrev;
-        // console.log('ID123 dataTemp', dataTemp);
-        // console.log('ID123 dataPrev', dataPrev);
+        console.log('ID123 dataTemp', dataTemp);
+        console.log('ID123 dataPrev', dataPrev);
         if (dataPrev) {
 
             let isFoundN = false; let yN;
@@ -775,7 +775,14 @@ class AssemblingCo extends React.Component {
                     console.log('isNotFoundN, prev, temp-', dataTemp[x].orderID, dataPrev[yN].orderIDnext, dataTemp[x].orderID == dataPrev[yN].orderIDnext);
                     if (dataTemp[x].orderID == dataPrev[yN].orderIDnext) isNotFoundN = false;
                 }
-                if (isNotFoundN) dataTemp = [dataPrev[yN], dataTemp[0], dataTemp[1], dataTemp[2]];
+                const prevThree = []; let count = 0;
+
+                [].concat(dataTemp).sort((a, b) => a.orderID.localeCompare(b.orderID)).map((order) => {
+                    count++; if (count < 4) prevThree.push(order);
+                });
+                
+
+                if (isNotFoundN) dataTemp = [dataPrev[yN], ...prevThree];
                 console.log('isNotFoundN, prev, temp-', isFoundN, isNotFoundN, yN, dataPrev, dataTemp, dataPrev[yN], dataPrev[yN].orderIDnext);
             }
             
@@ -814,7 +821,7 @@ class AssemblingCo extends React.Component {
                     //     // console.log('ID123 left after new order - set', left, dataTemp[x], dataPrev[y]);
                     // }
 
-                    if (dataPrev[y].orderID === dataTemp[x].orderID || (dataPrev[y].orderID === '-10' && dataTemp[x].orderID === dataPrev[y].orderIDnext) ) {
+                    if ( dataPrev[y].orderID === dataTemp[x].orderID || (dataPrev[y].orderID === '-10' && dataTemp[x].orderID === dataPrev[y].orderIDnext) ) {
                         // if (this.state.withPg && dataTemp[x].status === "ORDER_PLACED") {dataTemp[x].orderID = '-10';}
                         prevPrice = dataPrev[y].dealPrice;
                         prevStatus = dataPrev[y].status;
@@ -1139,7 +1146,7 @@ class AssemblingCo extends React.Component {
                         checked={this.state.withPg}
                         onChange={() => {
                                 this.setState(prevState => ({withPg: !prevState.withPg, isAlertShown: true}));
-                                !this.state.isAlertShown && alert('Pagination works as expected and shows correct number of orders in most cases. However, in certain cases orders are not shown correctly - will try to fix it when I complete learning Apollo client');
+                                !this.state.isAlertShown && alert('Pagination works as expected and shows correct number of orders in most cases. However, in certain cases orders are not shown correctly - will try to fix it when I complete learning Apollo client in more detail');
                             } 
                         }
                     />
