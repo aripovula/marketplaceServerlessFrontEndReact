@@ -718,6 +718,30 @@ a.addnlightbgsm:active {
   border-left: 2px solid rgb(30, 218, 208);
 } */
 
+​ #containerLogin {
+  width: 100%;
+  overflow: hidden;
+}
+
+#containerLogin>div {
+  /* height: 100vh; */
+  float: left;
+  /* text-align: center; */
+  /* border-bottom: 2px solid #333; */
+}
+
+#leftLogin {
+  width: 40%;
+  /* background-color: blue; */
+  /* border-right: 2px solid #333; */
+}
+
+#rightLogin {
+    width: 40%;
+  /* border-left: 2px solid #333; */
+  /* background:yellow; */
+}
+
 .weeklysales {
   text-align: center;
   border-bottom: 2px solid rgb(30, 218, 208);

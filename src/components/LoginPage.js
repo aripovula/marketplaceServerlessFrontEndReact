@@ -60,23 +60,51 @@ export class LoginPage extends Component {
   render() {
     console.log('props LOGIN', this.props);
     return (
-      <div className="card-4" >
-        <div>
+      <div style={{ marginLeft: 30 }}>
+
+        <h3>
+          <span className="horIndent" />
+        Niche marketplace - supply chain</h3>
+        <div id="containerLogin">
+          <div id="leftLogin">
+            <span className="horIndent" />
+            <img alt="" src={require('../assets/GQLAppSync.png')} height="160px;"/>
+        </div>
+          <div id="rightLogin">
+
+            <img alt="" src={require('../assets/lambda-pre-sign-up.png')} height="160px;"/>
+          </div>
+        </div>
+        <div id="containerLogin">
+          <div id="leftLogin">
           <span className="verIndent"></span>
           <h4 className="is-active">
             <span className="horIndent"></span>
             Just click 'Login' button - demo version
                 </h4>
+        <span className="horIndent" />
+            <span className="smalltable">A random username will be used to sign up programmatically with Cognito</span>
+        <br/><span className="horIndent" />
+            <span className="smalltable"> when you click 'Login'. Changing standard password is optional.</span>
+        </div>
+          <div id="rightLogin">
+            <span className="verIndent"></span>
+            <h4 className="is-active">
+              <span className="horIndent"></span>
+              Subscriptions work and update data
+                </h4>
+            <span className="horIndent" />
+            <span className="smalltable">You can open this app in another browser or computer to see it working.</span>
+            <br /><span className="horIndent" />
+            <span className="smalltable">Login, click 'Show username', copy and paste below in another browser</span>
+
+          </div>
         </div>
 
-        <span className="horIndent" />
-        <span className="postLineList">A random username and password were composed and will be signed up</span>
-        <br /><span className="horIndent" />
-        <span className="postLineList">programmatically with Amazon Cognito when you click 'Login'.</span>
-        <br /><span className="horIndent" />
-        <span className="postLineList">REMOVEAll data will be wiped off from DynamoDB as soon as you log out.</span>
-        <br /><br />
-
+        <div id="containerLogin">
+          <div id="leftLogin">
+            <div className="card-4">
+        <br/>
         <div style={{ width: 300 }}>
           <span className="horIndent"></span>
           <input
@@ -105,11 +133,15 @@ export class LoginPage extends Component {
           className="button button1"
           onClick={this.trySignUp}
         >First time Login</button>
-        <br /><br />
-        <hr/>
-        <br/>
-        Use username copied from session running in another browser / computer
-        <br/>
+              <br />
+              <br />
+        </div>
+            <span className="smalltext">* by default Cognito requires sign-up verification. </span><br/>
+            <span className="smalltext">&nbsp;&nbsp;Pre sign-up lambda eliminates this need in this demo version.</span>
+          </div>
+          <div id="rightLogin">
+            <div className="card-4">
+        <br />
         <div style={{ width: 300 }}>
           <span className="horIndent"></span>
           <input
@@ -137,6 +169,10 @@ export class LoginPage extends Component {
           onClick={() => this.tryLogin('Login')}
         >Login with copied username</button>
         <br /><br />
+      </div>
+      <br/>
+      </div>
+      </div>
       </div>
     )
   }
