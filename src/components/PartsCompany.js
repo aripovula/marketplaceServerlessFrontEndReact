@@ -593,7 +593,7 @@ class PartsCompany extends Component {
 
                     {/* if company is defined display its offers */}
                     {company && <div className="">
-                        <div className="responsiveFSize">{company.name} - offered products:</div>
+                        <div className="responsiveFSize">{company.name} - offered products &nbsp; &nbsp;
                         <span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
@@ -608,7 +608,7 @@ class PartsCompany extends Component {
                                 }));
                             }}>add offer</span>
                         &nbsp;&nbsp;
-
+                        </div>
                         <table id="tableFM">
                             <tbody>
                                 <tr>

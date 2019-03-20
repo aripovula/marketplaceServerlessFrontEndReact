@@ -1,6 +1,4 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
-import Paginate from './Paginate';
 
 export class Source extends Component {
   render() {
