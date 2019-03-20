@@ -12,26 +12,8 @@ import './App.css';
 
 import AppRouter from './components/AppRouter';
 
-// Amplify init
-// Amplify.configure({
-//   Auth: {
-//     appSyncConfigCustom
-//   }
-// });
 
-
-// const handleAuthStateChange = (authState) => {
-//   if (authState === 'signedIn') {
-//     isSignedIn = true;
-//     /* Do something when the user has signed-in */
-//     console.log('Logged IN');
-//   } else {
-//     isSignedIn = false;
-//     console.log('Please Log IN');
-//   }
-// }
-
-
+// uses IAM and Cognito
 const client = new AWSAppSyncClient({
   url: appSyncConfigCustom.aws_appsync_graphqlEndpoint,
   region: appSyncConfigCustom.aws_appsync_region,
@@ -43,18 +25,15 @@ credentials: () => Auth.currentCredentials(),
   cacheOptions: {
 dataIdFromObject: (obj) => {
 let id = defaultDataIdFromObject(obj);
-console.log('defaultDataIdFromObject OBJ ID', obj, id);
 
 if (!id) {
 const { __typename: typename } = obj;
 switch (typename) {
 case 'Company':
-  console.log(`${typename}:${obj.id}`)
   return `${typename}:${obj.id}`;
 case 'Offer':
   return `${typename}:${obj.companyID}${obj.offerID}`;
 case 'Order':
-  console.log(`${typename}:${obj.orderID}`)
   return `${typename}:${obj.companyID}${obj.orderID}`;
 case 'ReOrderRule':
   return `${typename}:${obj.companyID}${obj.reorderRuleID}`;
@@ -68,7 +47,6 @@ case 'Notification':
   return `${typename}:${obj.companyID}${obj.notificationID}`;
 default:
   const typ = `${typename}`;
-  console.log('in default type', typ);
   return id;
         }
       }
@@ -82,12 +60,6 @@ const WithProvider = () => (
     <Rehydrated>
       <Authenticator
         hideDefault={true}
-        // onStateChange={
-        //   (authstate) => {
-        //     console.log('state-', authstate);
-        //     handleAuthStateChange(authstate)
-        //   }
-        // }
         amplifyConfig={appSyncConfigCustom}
       >
         <AppRouter client={client}/>

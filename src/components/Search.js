@@ -62,7 +62,7 @@ class Search extends Component {
     }, 250);
 
     render() {
-        console.log('props - ', this.props);
+        console.log('Search props - ', this.props);
         const { loading } = this.props.data
         if (this.props.data.listOrders && this.props.data.listOrders.items) {
             const { items } = this.props.data.listOrders;
@@ -75,7 +75,6 @@ class Search extends Component {
                     <p>OPTIMAL, CHEAPEST, HIGHESTRATING, CUSTOM</p>
 
                     <input
-                        // style={styles.input}
                         onChange={this.onChange.bind(this)}
                         placeholder='Search for order by type'
                     />
@@ -119,8 +118,6 @@ export default compose(
         }),
         props: props => ({
             onSearch: (searchQuery, companyID) => {
-                // searchQuery = searchQuery.toLowerCase()
-                console.log('inputs', searchQuery, companyID);
 
                 return props.data.fetchMore({
                     query: searchQuery === '' ? ListOrders : SearchOrders,

@@ -6,7 +6,6 @@ import ListDeals from "../graphQL/queryAllDeals";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import NewDealSubscription from '../graphQL/subscriptionDeals';
 import ModalInfo from "./ModalInfo";
-// import MarketDataTable from './MarketDataTable';
 
 let dataPrev;
 
@@ -34,6 +33,7 @@ class Deals extends React.Component {
         this.setState({ infoModalData: null });
     }
 
+    // prepared data for prices table
     generateData(currentDeals) {
         const dataTemp = [];
         currentDeals.map((deal) => {
@@ -83,10 +83,8 @@ class Deals extends React.Component {
             }
         });
 
-        console.log('dataTemp b4 -', dataTemp);
-        console.log('dataPrev b4 - ', dataPrev);
         
-        // determine direction
+        // determine whether price increased or decreased
         if (dataPrev) {
             for (let x = 0; x < dataTemp.length; x++) {
                 let prevLow, prevHigh, prevDirLow, prevDirHigh;
@@ -96,8 +94,6 @@ class Deals extends React.Component {
                         prevDirLow = dataPrev[y].lowPrice.direction;
                         prevHigh = dataPrev[y].highPrice.price;
                         prevDirHigh = dataPrev[y].highPrice.direction;
-                        console.log('4dir L-', dataTemp[x].lowPrice.direction, dataTemp[x].lowPrice.price, prevLow, prevDirLow);
-                        console.log('4dir H-', dataTemp[x].highPrice.direction, dataTemp[x].highPrice.price, prevHigh, prevDirHigh);
                         if (dataTemp[x].lowPrice.price < prevLow) dataTemp[x].lowPrice.direction = -1;
                         if (dataTemp[x].lowPrice.price > prevLow) dataTemp[x].lowPrice.direction = 1;
                         if (dataTemp[x].lowPrice.price === prevLow) dataTemp[x].lowPrice.direction = prevDirLow;
@@ -110,14 +106,12 @@ class Deals extends React.Component {
             }
         }
 
-        console.log('dataTemp after -', dataTemp);
-
         dataPrev = dataTemp;
         return dataTemp;
     }
 
     render() {
-        console.log(this.props);
+        console.log('Deals props', this.props);
         const tData = this.generateData(this.props.deals);
 
 
@@ -152,11 +146,11 @@ class Deals extends React.Component {
                                                         model: '',
                                                     }
                                                 }));
-                                            }}            // className='number'
+                                            }}            
                                             >&nbsp;{item.name}
                                         </span>
                                     </td>
-                                    {console.log('dir -', item.lowPrice.direction, item.highPrice.direction)}
+
                                     <td align="center">{item.lowPrice.price.toFixed(2)}&nbsp;
                                         {item.lowPrice.direction === 1 && <span style={{ color: '#ff2e00' }}>&#9650;</span>}
                                         {item.lowPrice.direction === 0 && <span style={{ color: '#ffbf00' }}>&#9656;</span>}
@@ -179,41 +173,11 @@ class Deals extends React.Component {
                     />
                 }
 
-                {/*
-                    this.props.deals.map((r, i) => (
-                        <div key={i} className="responsiveFSize">
-                            <p>${r.dealPrice}-{r.dealQuantity}</p>
-                        </div>
-                    ))
-                */}
-                
             </div>
         )
     }
 }
 
-// const styles = {
-//     title: {
-//         fontSize: 16
-//     },
-//     subtitle: {
-//         fontSize: 14,
-//         color: 'rgba(0, 0, 0, .5)'
-//     },
-//     deal: {
-//         boxShadow: '2px 2px 5px rgba(0, 0, 0, .2)',
-//         marginBottom: 7,
-//         padding: 14,
-//         border: '1px solid #ededed'
-//     },
-//     container: {
-//         display: 'flex',
-//         flexDirection: 'column',
-//         paddingLeft: 100,
-//         paddingRight: 100,
-//         textAlign: 'left'
-//     }
-// }
 
 export default compose(
     graphql(ListDeals, {
@@ -226,7 +190,6 @@ export default compose(
                 props.data.subscribeToMore({
                     document: NewDealSubscription,
                     updateQuery: (prev, { subscriptionData: { data: { onCreateDeal } } }) => {
-                        console.log('onCreateDeal - ', onCreateDeal);
                         return {
                             ...prev,
                             listDeals: {

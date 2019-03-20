@@ -2,7 +2,6 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
 import AppRouter, { history } from './AppRouter';
-// import { startLogout } from '../actions/auth';
 
 
 const signOut = (receivedProps) => {
@@ -10,7 +9,7 @@ const signOut = (receivedProps) => {
         .then(data => { console.log(data); receivedProps.checkLoginStatus('Header'); history.push('/login');})
         .catch(err => console.log(err))
 }
-// export const Header = ({ startLogout }) => (
+
 export const Header = (props) => (
     <header className="header fixedElement">
         <div>
@@ -34,25 +33,16 @@ export const Header = (props) => (
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                     exact={true}
                 >Search
-        </NavLink>
+                </NavLink>
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>
 
-                {/*   <NavLink
-                    to="/dataroom"
-                    style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
-                    activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
-                >Data room
-        </NavLink> 
-
-                <span className="horIndent"></span>|<span className="horIndent"></span>
-*/}
                 <NavLink
                     to="/source"
                     style={{ color: 'white', textDecoration: 'none', fontSize: '14px' }}
                     activeStyle={{ color: 'lightgreen', textDecoration: 'none' }}
                 >Link to source
-        </NavLink>
+                </NavLink>
 
                 <span className="horIndent"></span>|<span className="horIndent"></span>
 
@@ -67,12 +57,7 @@ export const Header = (props) => (
                     onClick={() => { alert(`You can check how this app works by loggin in from another browser/computer using username of ${props.username}`); }}>
                     (show userName)</span>
 
-
-                {/*<button className="button button--link" onClick={startLogout}>Logout</button>*/}
             </div>
         </div>
     </header>
 );
-
-// export default Header;
-//  fe43f4e3-7e35-49ed-a88d-3af4fac97ceb

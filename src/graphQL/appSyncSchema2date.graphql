@@ -44,6 +44,18 @@ type Company implements Member {
 	creditSaleLimitForB: Int
 }
 
+type CompanyB {
+	userID: ID!
+	companyID: String!
+	name: String!
+	yearsOfOperation: Int!
+}
+
+type CompanyBConnection {
+	items: [CompanyB]
+	nextToken: String
+}
+
 type CompanyConnection {
 	items: [Company]
 	nextToken: String
@@ -59,11 +71,17 @@ input CreateBlockchainBlockInput {
 	nonce: Int!
 }
 
-input CreateCompanyInput {
-	id: ID
+input CreateCompanyBInput {
+	userID: ID!
+	companyID: String!
 	name: String!
 	yearsOfOperation: Int!
+}
+
+input CreateCompanyInput {
+	name: String!
 	creditRating: CreditRating!
+	yearsOfOperation: Int!
 	status: MemberStatus!
 	creditSaleLimitForAAA: Int
 	creditSaleLimitForAA: Int
@@ -184,6 +202,11 @@ input DeleteBlockchainBlockInput {
 	blockchainID: String!
 }
 
+input DeleteCompanyBInput {
+	userID: ID!
+	companyID: String!
+}
+
 input DeleteCompanyInput {
 	id: ID!
 }
@@ -238,9 +261,6 @@ type Mutation {
 	createProduct(input: CreateProductInput!): Product
 	updateProduct(input: UpdateProductInput!): Product
 	deleteProduct(input: DeleteProductInput!): Product
-	createCompany(input: CreateCompanyInput!): Company
-	updateCompany(input: UpdateCompanyInput!): Company
-	deleteCompany(input: DeleteCompanyInput!): Company
 	createReOrderRule(input: CreateReOrderRuleInput!): ReOrderRule
 	updateReOrderRule(input: UpdateReOrderRuleInput!): ReOrderRule
 	deleteReOrderRule(input: DeleteReOrderRuleInput!): ReOrderRule
@@ -256,6 +276,12 @@ type Mutation {
 	createBlockchainBlock(input: CreateBlockchainBlockInput!): BlockchainBlock
 	updateBlockchainBlock(input: UpdateBlockchainBlockInput!): BlockchainBlock
 	deleteBlockchainBlock(input: DeleteBlockchainBlockInput!): BlockchainBlock
+	createCompany(input: CreateCompanyInput!): Company
+	updateCompany(input: UpdateCompanyInput!): Company
+	deleteCompany(input: DeleteCompanyInput!): Company
+	createCompanyB(input: CreateCompanyBInput!): CompanyB
+	updateCompanyB(input: UpdateCompanyBInput!): CompanyB
+	deleteCompanyB(input: DeleteCompanyBInput!): CompanyB
 }
 
 type Notification {
@@ -336,8 +362,6 @@ type Query {
 	listOffers(filter: TableOfferFilterInput, limit: Int, nextToken: String): OfferConnection
 	getProduct(id: ID!): Product
 	listProducts(filter: TableProductFilterInput, limit: Int, nextToken: String): ProductConnection
-	getCompany(id: ID!): Company
-	listCompanies(filter: TableCompanyFilterInput, limit: Int, nextToken: String): CompanyConnection
 	getReOrderRule(companyID: ID!, reorderRuleID: String!): ReOrderRule
 	listReOrderRules(filter: TableReOrderRuleFilterInput, limit: Int, nextToken: String): ReOrderRuleConnection
 	getNotification(companyID: ID!, notificationID: String!): Notification
@@ -348,6 +372,10 @@ type Query {
 	listDeals(filter: TableDealFilterInput, limit: Int, nextToken: String): DealConnection
 	getBlockchainBlock(userID: ID!, blockchainID: String!): BlockchainBlock
 	listBlockchainBlocks(filter: TableBlockchainBlockFilterInput, limit: Int, nextToken: String): BlockchainBlockConnection
+	getCompany(id: ID!): Company
+	listCompanies(filter: TableCompanyFilterInput, limit: Int, nextToken: String): CompanyConnection
+	getCompanyB(userID: ID!, companyID: String!): CompanyB
+	listCompanyBS(filter: TableCompanyBFilterInput, limit: Int, nextToken: String): CompanyBConnection
 }
 
 type ReOrderRule {
@@ -408,30 +436,6 @@ type Subscription {
 		specificationURL: String
 	): Product
 		@aws_subscribe(mutations: ["deleteProduct"])
-	onCreateCompany(
-		id: ID,
-		name: String,
-		yearsOfOperation: Int,
-		creditSaleLimitForAAA: Int,
-		creditSaleLimitForAA: Int
-	): Company
-		@aws_subscribe(mutations: ["createCompany"])
-	onUpdateCompany(
-		id: ID,
-		name: String,
-		yearsOfOperation: Int,
-		creditSaleLimitForAAA: Int,
-		creditSaleLimitForAA: Int
-	): Company
-		@aws_subscribe(mutations: ["updateCompany"])
-	onDeleteCompany(
-		id: ID,
-		name: String,
-		yearsOfOperation: Int,
-		creditSaleLimitForAAA: Int,
-		creditSaleLimitForAA: Int
-	): Company
-		@aws_subscribe(mutations: ["deleteCompany"])
 	onCreateReOrderRule(
 		companyID: ID,
 		reorderRuleID: String,
@@ -549,6 +553,51 @@ type Subscription {
 		previousHashOnDeal: String
 	): BlockchainBlock
 		@aws_subscribe(mutations: ["deleteBlockchainBlock"])
+	onCreateCompany(
+		id: ID,
+		name: String,
+		yearsOfOperation: Int,
+		creditSaleLimitForAAA: Int,
+		creditSaleLimitForAA: Int
+	): Company
+		@aws_subscribe(mutations: ["createCompany"])
+	onUpdateCompany(
+		id: ID,
+		name: String,
+		yearsOfOperation: Int,
+		creditSaleLimitForAAA: Int,
+		creditSaleLimitForAA: Int
+	): Company
+		@aws_subscribe(mutations: ["updateCompany"])
+	onDeleteCompany(
+		id: ID,
+		name: String,
+		yearsOfOperation: Int,
+		creditSaleLimitForAAA: Int,
+		creditSaleLimitForAA: Int
+	): Company
+		@aws_subscribe(mutations: ["deleteCompany"])
+	onCreateCompanyB(
+		userID: ID,
+		companyID: String,
+		name: String,
+		yearsOfOperation: Int
+	): CompanyB
+		@aws_subscribe(mutations: ["createCompanyB"])
+	onUpdateCompanyB(
+		userID: ID,
+		companyID: String,
+		name: String,
+		yearsOfOperation: Int
+	): CompanyB
+		@aws_subscribe(mutations: ["updateCompanyB"])
+	onDeleteCompanyB(
+		userID: ID,
+		companyID: String,
+		name: String,
+		yearsOfOperation: Int
+	): CompanyB
+		@aws_subscribe(mutations: ["deleteCompanyB"])
 }
 
 input TableBlockchainBlockFilterInput {
@@ -564,6 +613,13 @@ input TableBlockchainBlockFilterInput {
 input TableBooleanFilterInput {
 	ne: Boolean
 	eq: Boolean
+}
+
+input TableCompanyBFilterInput {
+	userID: TableIDFilterInput
+	companyID: TableStringFilterInput
+	name: TableStringFilterInput
+	yearsOfOperation: TableIntFilterInput
 }
 
 input TableCompanyFilterInput {
@@ -703,6 +759,13 @@ input UpdateBlockchainBlockInput {
 	previousHashOnDeal: String
 	hashOnDeal: String
 	nonce: Int
+}
+
+input UpdateCompanyBInput {
+	userID: ID!
+	companyID: String!
+	name: String
+	yearsOfOperation: Int
 }
 
 input UpdateCompanyInput {

@@ -4,6 +4,7 @@ import Modal from 'react-modal';
 
 class ModalInfo extends Component {
 
+    // style for modal
     customStyles = {
         content: {
             top: '30%',
@@ -21,7 +22,7 @@ class ModalInfo extends Component {
         
     render() {
         const {data} = this.props;
-        console.log('props modaL', this.props);
+        console.log('props ModalInfo', this.props);
         return (
             <div className="margintop">
                 <Modal
@@ -37,7 +38,6 @@ class ModalInfo extends Component {
                                 <div className="">
                                     <p>{data.name} - {data.model}</p>
                                     <p>Product image:</p>
-                                    {/*<img alt="" src={require(data.specURL)} />*/}
                                     <p>Product specification: Lorem ipsum</p>
                                 </div>
                             }

@@ -6,13 +6,11 @@ import Modal from 'react-modal';
 import QueryGetCompany from "../graphQL/queryGetCompany";
 import QueryAllProducts from "../graphQL/queryAllProducts";
 import QueryAllOffers from "../graphQL/queryAllOffers";
-import QueryGetOffer from "../graphQL/queryGetOffer";
 import QueryAllDeals from "../graphQL/queryAllDeals";
 import MutationCreateOffer from "../graphQL/mutationAddOffer";
 import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
 import NewProductSubscription from '../graphQL/subscriptionProducts';
-import NewOfferSubscription from '../graphQL/subscriptionOfferNew';
 import UpdateOfferSubscription from '../graphQL/subscriptionOfferUpdate';
 import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
@@ -44,7 +42,6 @@ const customStyles = {
 
 class PartsCompany extends Component {
 
-    // offerSubscriptionNew;
     offerUpdateSubscription;
     productSubscription;
     is2simulateUpdate = false;
@@ -63,12 +60,10 @@ class PartsCompany extends Component {
     constructor(props) {
         super(props);
         const productsListFromProps = this.props.products ? this.props.products : null;
-        console.log('indexed prs from store', productsListFromProps);
         const noOfferProducts = this.noOfferProducts(productsListFromProps);
         this.state = {
             modalIsOpen: false,
             offer: this.newOffer(),
-            // offers: this.props.company ? this.props.company.offers.items : null,
             listOffers: null,
             products: noOfferProducts,
             productsNoOffer: noOfferProducts,
@@ -88,7 +83,6 @@ class PartsCompany extends Component {
     }
 
     componentWillMount() {
-        // this.offerNewSubscription = this.props.subscribeToNewOffers();
         this.offerUpdateSubscription = this.props.subscribeToUpdateOffers();
         this.productSubscription = this.props.subscribeToNewProducts();
         Modal.setAppElement('body');
@@ -102,6 +96,7 @@ class PartsCompany extends Component {
         this.setState({ modalIsOpen: true });
     }
 
+    // restore modal defaults
     handleModalClose() {
         this.setState(prevState => ({
             offer: this.newOffer(),
@@ -132,7 +127,6 @@ class PartsCompany extends Component {
 
     // prepares array of all products recorded in store for options drop-down
     allProducts(productsListFromProps) {
-        console.log('indexed prs from store in MET - ', productsListFromProps.length, productsListFromProps);
         if (productsListFromProps.length > 0) {
             const l = productsListFromProps.length;
             let indexedProductsAll = [];
@@ -171,6 +165,7 @@ class PartsCompany extends Component {
     // if new deal is added mark it for color feedback
     dealsFromStore() {
         let dealsTemp;
+        // get deals data from store 
         try {
             dealsTemp = this.props.client.readQuery({
                 query: QueryAllDeals
@@ -180,8 +175,7 @@ class PartsCompany extends Component {
             dealsTemp = null;
         }
         
-        
-        // if (this.dealsPrev && this.dealsPrev.length > 0 && dealsTemp && dealsTemp.length > 0) this.dealsPrev = dealsTemp;
+        // as deals table stores only product id find product name from products list
         let deals = (dealsTemp && dealsTemp.listDeals && dealsTemp.listDeals.items) ? dealsTemp.listDeals.items : [];
         deals = this.props.company ? deals.filter(deal => this.props.company.id === deal.producerID) : deals;
         const theProducts = this.props.products;
@@ -195,9 +189,7 @@ class PartsCompany extends Component {
             }
         }
 
-        console.log('this.dealsPrev && dealsTemp', this.dealsPrev, dealsTemp);
-        if (this.dealsPrev) console.log('this.dealsPrev && dealsTemp1', this.dealsPrev.length);
-        if (dealsTemp) console.log('this.dealsPrev && dealsTemp2', dealsTemp.listDeals.items.length);
+        // checks if deal is new and if new this code sets to show the deal in green color for 3 secs and to go black again
         if (this.dealsPrev && this.dealsPrev.length > 0 && dealsTemp && dealsTemp.listDeals.items && dealsTemp.listDeals.items.length > 0) {
             for (let x = 0; x < deals.length; x++) {
                 let isFound = false;
@@ -221,29 +213,22 @@ class PartsCompany extends Component {
         return deals;
     }
 
+
     addAverageRatingToOffers(offers, deals, companyID) {
-        // const { offers } = this.props;
-        // const deals = this.dealsFromStore();
         for (let x = 0; x < offers.length; x++) {
-            // for (let y = 0; y < deals.length; y++) {
-            //     if (offers[x].companyID === deals[y].producerID && offers[x].productID === deals[y].productID) {
             offers[x]["lastTenAverageRating"] = this.getLastTenAverageRating(companyID, offers[x].productID, deals);
-            //     }
-            // }
         }
-        console.log('dealz rating in offers', offers);
         return offers;
     }
 
+    // upon each order ordering company provides rating ( random rating is provided in AWS Lambda function )
+    // below code gets last 10 rating for a specific product and calculates average and assigns to product offer
     getLastTenAverageRating(coID, productID, dealsForRating) {
-        console.log('getLastTenAverageRating -coID, dealsForRating -', coID, productID, dealsForRating);
-        let theRating = 0; // 0 is an initial rating for a product that does not have a rating.
-        // sort out deals for this coID
+            let theRating = 0;
             let count = 0,
-                total = 0;
+            total = 0;
             let allCompanyProductRatings = [];
             dealsForRating.map((deal) => {
-                console.log('assignRating', deal.producerID.S == coID, deal.producerID.S, coID)
                 if (deal.producerID == coID && deal.productID == productID) {
                     allCompanyProductRatings.push({
                         rating: parseFloat(deal.productRatingByBuyer),
@@ -251,20 +236,15 @@ class PartsCompany extends Component {
                     });
                 }
             });
-            console.log('allCompanyProductRatings ', allCompanyProductRatings);
-            console.log('allCompanyProductRatings sorted', allCompanyProductRatings.sort((a, b) => b.time - a.time));
+
             // sort result by time
             // calculate average rating
-
             allCompanyProductRatings.sort((a, b) => b.time - a.time).map((deal) => {
                 count++;
-                console.log('count++', count);
                 if (count < 11) {
                     total = total + deal.rating;
-                    console.log('in count<11 total -', total, deal.rating);
                 }
             });
-            console.log('total, rating ', total, theRating);
             theRating = total ? (total / count).toFixed(2) : 'n.a.';
         return theRating;
     }
@@ -293,22 +273,18 @@ class PartsCompany extends Component {
         fromState.forEach((item) => {
             newProducts = newProducts.filter(prod => prod.id !== item.details.id);
         });
-        console.log('newProducts', newProducts);
         return newProducts;
     }
 
     // update modal UI when certain product is selected in drop-down
     handleSelectOptionChange(selected) {
-        console.log('selected - ', selected);
         if (selected > -1) {
-            console.log('products[selected]', this.state.products[selected].details);
             let isFound = false; let xF = -1;
             for (let x = 0; x < this.props.company.offers.items.length; x++) {
                 if (this.props.company.offers.items[x].productID === this.state.products[selected].details.id) {
                     isFound = true; xF = x;
                 }
             }
-            console.log('prods, offers, isF, xF ', this.state.products, this.props.company.offers.items, isFound, xF);
 
             if (isFound) {
                 this.setState(prevState => ({
@@ -342,34 +318,28 @@ class PartsCompany extends Component {
         const { offer } = this.state;
         offer[field] = value;
         this.setState({ offer });
-        console.log('handleChange', this.state.offer);
     }
 
     handleDelete = async (offer, e) => {
         e.preventDefault();
-        console.log('offer - ', offer);
         if (window.confirm(`Are you sure you want to delete offer ${offer.offerID}`)) {
             this.setState({ loading: true, modalIsOpen: false });
             const { deleteOffer } = this.props;
-            console.log('deleteOffer = ', this.props.deleteOffer);
             await deleteOffer(offer);
-            // this.setState({ loading: false });
             this.handleSync();
         }
     }
 
+    // when new offer is submitted
     handleSaveNew = async (e) => {
         e.stopPropagation();
         e.preventDefault();
         const { createOffer } = this.props;
         const { offer } = this.state;
-        // this.setState({ loading: true, modalIsOpen: false });
-
-
+        // used to simulate optimistic update
         let offerTemp = JSON.parse(JSON.stringify(offer));
         offerTemp.offerID = '-10';
         this.state.productsAll.map((item) => {
-            console.log(item.details.id === offerTemp.productID, item, offerTemp.productID);
             if (item.details.id === offerTemp.productID) offerTemp.product = item.details;
         });
         const prevThree = []; let count = 0;
@@ -377,7 +347,6 @@ class PartsCompany extends Component {
             count++; if (count < 4) prevThree.push(offer);
         });
         const listOffers = [offerTemp, ...prevThree];
-        console.log('listOffers', listOffers);
         this.is2simulateUpdate = true;
         this.setState({
             loading: true,
@@ -386,12 +355,7 @@ class PartsCompany extends Component {
         });
 
         offer.product = offerTemp.product;
-
-        console.log('createOffer -', this.props.createOffer);
-        console.log('offer b4 save -', this.state.offer);
         await createOffer({ ...offer });
-        // this.setState({ loading: false });
-        console.log('offer after save -', this.state.offer);
         this.handleSync();
     }
 
@@ -399,11 +363,8 @@ class PartsCompany extends Component {
         this.setState({ loading: true, modalIsOpen: false });
         e.stopPropagation();
         e.preventDefault();
-        console.log('offer b4 save 1 -', this.state.offer);
-        console.log('offer b4 save 1a -', this.state.offer.companyID);
         const { updateOffer } = this.props;
         if (!this.state.offer.companyID) {
-            console.log('offer b4 save 1b id=', this.props.company.id);
             this.setState(prevState => ({
                 offer: {
                     ...prevState.offer,
@@ -411,12 +372,7 @@ class PartsCompany extends Component {
                 }
             }), async () => {
                 const { offer } = this.state;
-                console.log('updateOffer -', this.props.updateOffer);
-                console.log('offer b4 save 2 -', this.state.offer);
-
                 await updateOffer({ ...offer });
-                // this.setState({ loading: false });
-                console.log('offer after save -', this.state.offer);
                 this.handleSync();            
             });
         }
@@ -425,10 +381,6 @@ class PartsCompany extends Component {
     handleSync = async () => {
         const { client } = this.props;
         const query = QueryGetCompany;
-
-        // this.setState({ loading: true });
-        
-        console.log('client.query = ', client.query);
         const coId = this.props.company.id;
 
         client.query({
@@ -437,8 +389,11 @@ class PartsCompany extends Component {
             fetchPolicy: 'network-only',
         });
 
+        this.restoreDefaults();
+    }
+
+    restoreDefaults = () => {
         const productsListFromProps = this.props.products ? this.props.products : null;
-        console.log('indexed prs from store', productsListFromProps);
         const noOfferProducts = this.noOfferProducts(productsListFromProps);
         this.setState({
             offer: this.newOffer(),
@@ -454,46 +409,27 @@ class PartsCompany extends Component {
         });
     }
 
-    handleSync2 = () => {
-        const productsListFromProps = this.props.products ? this.props.products : null;
-        console.log('indexed prs from store', productsListFromProps);
-        const noOfferProducts = this.noOfferProducts(productsListFromProps);
-        this.setState({
-            offer: this.newOffer(),
-            offers: this.props.company.offers.items,
-            products: noOfferProducts,
-            productsNoOffer: noOfferProducts,
-            productsAll: this.allProducts(productsListFromProps),
-            isSubmitValid: false,
-            isUpdate: false,
-            isUpdateAtStart: false,
-            selectedOption: -1,
-            loading: false
-        });
-    }
-
+    // update offers when new props with changed price or qnty are received
     updateOffers(items){
-        console.log('in updateOffers items', items, this.props.offers);
         for (let x = 0; x < this.props.offers.length; x++) {
             for (let y = 0; y < items.length; y++) {
                 if (this.props.offers[x].companyID === this.props.company.id &&
                 this.props.offers[x].offerID === items[y].offerID) {
                     items[y].available = this.props.offers[x].available;
                     items[y].price = this.props.offers[x].price;
-                    // const withNewPrice = JSON.parse(JSON.stringify(items[y]))
-                    // withNewPrice.price = withNewPrice.price * 1.1;
-                    // this.props.updateOffer({ ...withNewPrice });
                 }
             }
         }
         return items;
     }
 
-    // update color changes
-
+    // when markChangedOnes() function below detects changed values it changes relevant value below to 1.
+    // That item in render is colored to light green in table. setTimeout is set to expire in 3 secs.
+    // When 3 secs pass setTimeout function calls below function (fromTimer).
+    // It cancels update color feedbacks changing values back to zero and updating state.
+    // This time markChangedOnes() detects no change and text is colored to black again.
     fromTimer(id, field) {
         const z = this.getZ(id);
-        console.log("ID12", id, field, z);
         if (field === "price") this.keepTillItTimesOut[z].price_ = 0;
         if (field === "rating") this.keepTillItTimesOut[z].rating_ = 0;
         if (field === "available") this.keepTillItTimesOut[z].available_ = 0;
@@ -503,9 +439,11 @@ class PartsCompany extends Component {
         if (field === "isNew") this.keepTillItTimesOut[z].isNew_ = 0;
         if (field === "isNew_T") this.keepTillItTimesOut[z].isNew_T = 0;
         this.setState(prevState => ({is2reRender: !prevState.is2reRender}));
-        // console.log("ID12-keep-", JSON.stringify(this.keepTillItTimesOut));
     }
 
+    // keepTillItTimesOut stores values for a specific field of a specific offer. 
+    // getZ function returns index in keepTillItTimesOut array that holds info for that offer
+    // if keepTillItTimesOut for a specific offerID is not found it will add one
     getZ(offerID){
         let isFound = false; let Z;
         const size = this.keepTillItTimesOut.length;
@@ -519,11 +457,10 @@ class PartsCompany extends Component {
         return Z;
     }
 
+    // markChangedOnes() detects changed values and marks them for color highlighting (light green)
     markChangedOnes(listOffers) {
         const dataTemp = JSON.parse(JSON.stringify(listOffers));
         const dataPrev = this.listOffersPrev === null ? dataTemp : this.listOffersPrev;
-        console.log('ID123 dataTemp', dataTemp);
-        console.log('ID123 dataPrev', dataPrev);
         if (dataPrev) {
             let isSimUpdFound = false;
             for (let y = 0; y < dataPrev.length; y++) {
@@ -579,21 +516,10 @@ class PartsCompany extends Component {
                         }
                         dataTemp[x]["available_"] = this.keepTillItTimesOut[z].available_;
                         dataTemp[x]["available_T"] = tempTriggerTimer;
-
-                        // console.log('ID12-', note !== prevNote, note, prevNote, JSON.stringify(dataPrev));
-                        // if (note !== prevNote) {
-                        //     this.keepTillItTimesOut[z].note_ = 1;
-                        // } else {
-                        //     tempTriggerTimer = 0;
-                        // }
-                        // dataTemp[x]["note_"] = this.keepTillItTimesOut[z].note_;
-                        // dataTemp[x]["note_T"] = tempTriggerTimer;
-
                     }
                 }
             }
         }
-        console.log('offer12-l-', dataTemp, this.keepTillItTimesOut);
         
         this.listOffersPrev = dataTemp;
         return dataTemp;
@@ -601,15 +527,13 @@ class PartsCompany extends Component {
 
 
     render() {
-        console.log('this.props COT - ', this.props);
-        console.log('props.products', this.props.products);
-        // console.log('dealz', this.dealsFromStore());
+        console.log('props Offers - ', this.props);
         const { company, loading } = this.props;
         const loadingState = this.state.loading;
         const deals = this.dealsFromStore();
         if (this.props.company) {
             if (!this.state.productsAll || this.state.productsAll.length === 0) {
-                if (this.props.products.length > 0) this.handleSync2();
+                if (this.props.products.length > 0) this.restoreDefaults();
             }
             let { company: { offers: { items } } } = this.props;
             items = this.addAverageRatingToOffers(items, deals, this.props.company.id);
@@ -623,13 +547,8 @@ class PartsCompany extends Component {
 
             return (
                 <div style={(loading || loadingState)  ? sectionStyle : null}>  
-                    {/*<img alt="" src={require('../assets/loading.gif')} />   className={`${loading ? 'loading' : ''}`} */}
-                    {
-                        console.log('props p len', this.props.products.length)
-                    }
-                    {
-                        console.log('state p len', this.state.productsAll.length)
-                    }
+                    
+                    {/* if new product was added warn offering company */}
                     {this.props.products.length !== this.state.productsAll.length &&
                         this.state.productsAll.length > 0 &&
                         <div className="responsiveFSizeRed">
@@ -671,13 +590,14 @@ class PartsCompany extends Component {
                             <hr/>
                         </div>
                     }
+
+                    {/* if company is defined display its offers */}
                     {company && <div className="">
                         <div className="responsiveFSize">{company.name} - offered products:</div>
                         <span
                             className="addnlightbg notbold cursorpointer"
                             onClick={() => {
                                 const productsListFromProps = this.props.products ? this.props.products : null;
-                                console.log('products in Store', productsListFromProps);
                                 const noOfferProducts = this.noOfferProducts(productsListFromProps);
                                 this.setState(() => ({
                                     products: noOfferProducts,
@@ -688,14 +608,6 @@ class PartsCompany extends Component {
                                 }));
                             }}>add offer</span>
                         &nbsp;&nbsp;
-                        {/*<span
-                            className="addnlightbg notbold cursorpointer"
-                            onClick={() => {
-                                this.handleSync();
-                            }}>sync offers</span>
-                        &nbsp;&nbsp;*/}
-
-                        <span className="responsiveFSize2">hover for more info</span>
 
                         <table id="tableFM">
                             <tbody>
@@ -805,6 +717,7 @@ class PartsCompany extends Component {
                         </table>}
 
                     <div>
+                        {/*  Add new offer pop-up modal  */}
                         <Modal
                             isOpen={this.state.modalIsOpen}
                             style={customStyles}
@@ -816,7 +729,6 @@ class PartsCompany extends Component {
                                     <p>{this.state.isUpdateAtStart ? 'Update an offer' : (this.state.isUpdate ? 'Update an offer' : 'Add new offer')}</p>
                                 </div>
                                 <div className="padding15">
-                                    {console.log('isUpdateAtStart === ', this.state.isUpdateAtStart)}
                                     {!this.state.isUpdateAtStart &&
                                         <div>
                                             <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
@@ -832,11 +744,8 @@ class PartsCompany extends Component {
                                                 <select
                                                     value={this.state.selectedOption}
                                                     onChange={(e) => {
-                                                        console.log('e.target.value - ', e.target.value);
-
                                                         this.setState({ selectedOption: e.target.value },
                                                             () => this.handleSelectOptionChange(this.state.selectedOption));
-
                                                     }}
                                                 >
                                                     <option key="-1" value='null'>( please select a product )</option>
@@ -857,9 +766,7 @@ class PartsCompany extends Component {
                                         <input type="text" id="available" value={this.state.offer.available} onChange={this.handleChange.bind(this, 'available')} />
                                 </div>
                                     <br />
-                                    <div className="">
-                                        {console.log(this.state.isSubmitValid, this.state.isUpdateAtStart)}
-                                        
+                                    <div className="">                                        
                                         {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
                                             <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
                                                 Add new
@@ -889,13 +796,6 @@ class PartsCompany extends Component {
                         }
                     </div>
 
-                    {/*
-                        this.props.offers.map((r, i) => (
-                            <div key={i}>
-                                <p className="responsiveFSize2">CoId: {r.companyID} - ${r.price} Av: {r.available} USD</p>
-                            </div>
-                        ))
-                    */}
                 </div>
             );
         } else {
@@ -911,14 +811,12 @@ export default compose (
         QueryGetCompany,
         {
             options: function ({ id }) {
-                console.log('in BBB1');
                 return ({
                     variables: { id },
                     fetchPolicy: 'cache-and-network',
                 })
             },
             props: ({ data: { getCompany: company, loading } }) => {
-                console.log('in BBB2 data -', company, loading);
                 return ({
                     company,
                     loading,
@@ -931,67 +829,8 @@ export default compose (
         {
             props: (props) => ({
                 createOffer: (offer) => {
-                    console.log('point L1 at createOffer = ', offer);
                     return props.mutate({
                         update: (proxy, { data: { createOffer } }) => {
-                            // console.log('point L2 proxy - ', proxy);
-
-                            // // const proxy = props.ownProps.client.proxy;
-                            // const queryC = QueryGetCompany;
-                            // const dataC = proxy.readQuery(
-                            //         { 
-                            //             query: queryC,
-                            //             variables: {id: props.ownProps.company.id},
-                            //         });
-                            // console.log('data after read Co = ', dataC);
-                            // const updatedOffer = JSON.parse(JSON.stringify(createOffer));
-                            // let theProduct = props.ownProps.products.filter(
-                            //     item => (item.id === updatedOffer.productID)
-                            // );
-                            // console.log('theProduct', theProduct);
-                            // updatedOffer.product = theProduct[0];
-                            // console.log('theProduct2', updatedOffer);
-                            // dataC.getCompany.offers.items = [
-                            //     updatedOffer, ...dataC.getCompany.offers.items.filter(offer => offer.offerID !== createOffer.offerID)
-                            // ];
-                            // proxy.writeQuery({ query: queryC, data: dataC });
-
-
-                            // Update QueryAllOffers
-                            // const query = QueryAllOffers;
-                            // const data = proxy.readQuery({ query });
-                            // console.log('query = ', query);
-                            // console.log('data after read = ', data);
-                            // console.log('data.listOffers.items LEN after read = ', data.listOffers.items.length);
-                            // console.log('data.listOffers.items after read = ', data.listOffers.items);
-                            // console.log('createOffer = ', createOffer);
-
-                            // // // get latest offers from getCompany
-                            // // data.listOffers.items = [
-                            // // ...props.ownProps.offers.items, 
-                            // // createOffer];
-
-                            // // filter out old one if it is an update
-                            // data.listOffers.items = [
-                            //     ...data.listOffers.items.filter(e => {
-                            //         console.log('e = ', e);
-                            //         console.log('e.offerID = ', e.offerID);
-                            //         return e.offerID !== createOffer.offerID
-                            //     })
-                            //     , createOffer];
-
-                            // console.log('data after filter = ', data);
-                            // console.log('data.listOffers.items after filter = ', data.listOffers.items);
-                            // proxy.writeQuery({ query, data });
-
-                            // // Create cache entry for QueryGetOffer
-                            // const query2 = QueryGetOffer;
-                            // const variables = { id: createOffer.id };
-                            // const data2 = { getOffer: { ...createOffer } };
-                            // console.log('point L3 data2 = ', data2);
-                            // proxy.writeQuery({ query: query2, variables, data: data2 });
-                            // console.log('point L4 query2 = ', query2);
-                            // console.log('this.props GQL part -', props);
                         },
                         variables: offer,
                         optimisticResponse: () => (
@@ -1010,37 +849,18 @@ export default compose (
         {
             props: (props) => ({
                 updateOffer: (offer) => {
-                    console.log('point L1 at updateOffer = ', offer);
                     return props.mutate({
                         update: (proxy, { data: { updateOffer } }) => {
-                            console.log('point L2 proxy - ', proxy);
-                            // Update QueryAllOffers
                             const query = QueryAllOffers;
                             const data = proxy.readQuery({ query });
-                            console.log('query = ', query);
-                            console.log('data after read = ', data);
-                            console.log('data.listOffers.items LEN after read = ', data.listOffers.items.length);
-                            console.log('data.listOffers.items after read = ', data.listOffers.items);
-                            console.log('createOffer = ', updateOffer);
-
-                            // // get latest offers from getCompany
-                            // data.listOffers.items = [
-                            // ...props.ownProps.offers.items, 
-                            // createOffer];
 
                             // filter out old one if it is an update
                             data.listOffers.items = [
                                 ...data.listOffers.items.filter(e => {
-                                    console.log('e = ', e);
-                                    console.log('e.offerID = ', e.offerID);
                                     return e.offerID !== updateOffer.offerID
                                 })
                                 , updateOffer];
-
-                            console.log('data after filter = ', data);
-                            console.log('data.listOffers.items after filter = ', data.listOffers.items);
                             proxy.writeQuery({ query, data });
-
                         },
                         variables: offer,
                         optimisticResponse: () => (
@@ -1061,15 +881,12 @@ export default compose (
                 update: (proxy, { data: { deleteOffer } }) => {
                     const query = QueryAllOffers;
                     const data = proxy.readQuery({ query });
-
                     data.listOffers.items = data.listOffers.items.filter(offer => offer.offerID !== deleteOffer.offerID);
-
                     proxy.writeQuery({ query, data });
                 }
             },
             props: (props) => ({
                 deleteOffer: (offer) => {
-                    console.log('props.ownProps', props.ownProps)
                     return props.mutate({
                         variables: { companyID: props.ownProps.company.id, offerID: offer.offerID },
                         optimisticResponse: () => ({
@@ -1092,7 +909,6 @@ export default compose (
                 props.data.subscribeToMore({
                     document: NewProductSubscription,
                     updateQuery: (prev, { subscriptionData: { data: { onCreateProduct } } }) => {
-                        console.log('onCreateProduct - ', onCreateProduct);
                         return {
                             ...prev,
                             listProducts: {
@@ -1105,45 +921,6 @@ export default compose (
             }
         })
     }),
-    // graphql(QueryAllOffers, {
-    //     options: {
-    //         fetchPolicy: 'cache-and-network'
-    //     },
-    //     props: props => ({
-    //         offers: props.data.listOffers ? props.data.listOffers.items : [],
-    //         subscribeToNewOffers: params => {
-    //             props.data.subscribeToMore({
-    //                 document: NewOfferSubscription,
-    //                 updateQuery: (prev, { subscriptionData: { data: { onCreateOffer } } }) => {
-    //                     props.ownProps.products.map((item) => {
-    //                         if (item.id === onCreateOffer.productID) onCreateOffer.product = item;
-    //                     });
-
-    //                     console.log('onNewOffer - ', onCreateOffer);
-    //                     console.log('onNewOffer22 - ', prev);
-    //                     let toReturn;
-    //                     if (prev && prev.listOffers && prev.listOffers.items && prev.listOffers.items.length > 0) {
-    //                         toReturn = {
-    //                             ...prev,
-    //                             listOffers: {
-    //                                 __typename: 'OfferConnection',
-    //                                 items: [onCreateOffer, ...prev.listOffers.items.filter(offer => offer.offerID !== onCreateOffer.offerID)]
-    //                             }
-    //                         }
-    //                     } else {
-    //                         toReturn = {
-    //                             listOffers: {
-    //                                 __typename: 'OfferConnection',
-    //                                 items: [onCreateOffer]
-    //                             }
-    //                         }                            
-    //                     }
-    //                     return toReturn;
-    //                 }
-    //             })
-    //         }
-    //     })
-    // }),
     graphql(QueryAllOffers, {
         options: {
             fetchPolicy: 'cache-and-network'
@@ -1154,7 +931,6 @@ export default compose (
                 props.data.subscribeToMore({
                     document: UpdateOfferSubscription,
                     updateQuery: (prev, { subscriptionData: { data: { onUpdateOffer } } }) => {
-                        console.log('onUpdateOffer - ', onUpdateOffer);
                         return {
                             ...prev,
                             listOffers: {

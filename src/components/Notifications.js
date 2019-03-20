@@ -31,9 +31,10 @@ class Notifications extends React.Component {
         this.setState({ infoModalData: null });
     }
 
+    // exracts text contained in notification received from AppSync
+    // gets products name
     getText(text1, text2) {
         const block = JSON.parse(text2);
-        console.log('block.prod', block);
         
         let prodName = 'unknown';
         let productsFromStore;
@@ -45,7 +46,6 @@ class Notifications extends React.Component {
             console.log('prodReadQueryError-', e);
             productsFromStore = null;
         }
-        console.log('block.prods', productsFromStore);
         
         if (productsFromStore && productsFromStore.listProducts && productsFromStore.listProducts.items) {
             productsFromStore.listProducts.items.map((prod) => {
@@ -108,7 +108,6 @@ export default compose(
                 props.data.subscribeToMore({
                     document: NewNotificationSubscription,
                     updateQuery: (prev, { subscriptionData: { data: { onCreateNotification } } }) => {
-                        console.log('onCreateNotification - ', onCreateNotification);
                         return {
                             ...prev,
                             listNotifications: {
