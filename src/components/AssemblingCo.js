@@ -178,7 +178,7 @@ class AssemblingCo extends React.Component {
             let indexedproductsNoRule = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
-                if (!coOrders.includes(productsListFromProps[x].id)) {
+                if (coOrders && !(coOrders.includes(productsListFromProps[x].id))) {
                     indexedproductsNoRule.push({
                         seqNumb: count++,
                         details: productsListFromProps[x]

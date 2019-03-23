@@ -3,6 +3,7 @@ import gql from 'graphql-tag'
 import { graphql, compose } from 'react-apollo'
 
 import debounce from 'lodash/debounce';
+import UsersCompanyContext from '../context/UsersCompanyContext'
 
 const SearchOrders = gql`
   query($searchQuery: String, $companyID: ID) {
@@ -44,7 +45,7 @@ const ListOrders = gql`
 `
 
 class Search extends Component {
-
+    static contextType = UsersCompanyContext;
 
     state = {
         searchQuery: ''
@@ -57,7 +58,7 @@ class Search extends Component {
     
     handleFilter = debounce((val) => {
         this.setState({ searchQuery: val });
-        const val2 = this.props.companyBID;
+        const val2 = this.context; // this.props.companyBID;
         this.props.onSearch(val, val2)
     }, 250);
 

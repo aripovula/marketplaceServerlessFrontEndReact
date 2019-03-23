@@ -1,16 +1,22 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { NavLink } from 'react-router-dom';
 import { Auth } from 'aws-amplify';
 import AppRouter, { history } from './AppRouter';
 
 
-const signOut = (receivedProps) => {
-    Auth.signOut()
-        .then(data => { console.log(data); receivedProps.checkLoginStatus('Header'); history.push('/login');})
-        .catch(err => console.log(err))
-}
 
-export const Header = (props) => (
+export const Header = (props) => {
+    
+    const [is2showUserName, setIs2showUserName] = useState(false);
+        
+    const signOut = (receivedProps) => {
+        Auth.signOut()
+            .then(data => { console.log(data); receivedProps.checkLoginStatus('Header'); history.push('/login');})
+            .catch(err => console.log(err))
+    };
+
+    return (
+
     <header className="header fixedElement">
         <div>
             <div className="header__content">
@@ -54,10 +60,18 @@ export const Header = (props) => (
                 >Logout
                 </NavLink>
                 <span className="smalltext cursorpointer"
-                    onClick={() => { alert(`You can check how this app works by loggin in from another browser/computer using username of ${props.username}`); }}>
-                    (show userName)</span>
+                    onClick={() => {
+                        setTimeout(() => setIs2showUserName(false), 15000)
+                        setIs2showUserName(!is2showUserName);
+                        // alert(`You can check how this app works by loggin in from another browser/computer using username of ${props.username}`); 
+                    }}>
+                        {!is2showUserName && '(show userName)'}
+                        {is2showUserName && `hide - ${props.username}`}
+
+                </span>
 
             </div>
         </div>
     </header>
-);
+    )
+}

@@ -1,7 +1,8 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
 import Amplify, { Auth } from 'aws-amplify';
 
 import { v4 as uuid } from "uuid";
+import Loader from 'react-loader-spinner';
 
 export class LoginPage extends Component {
 
@@ -14,25 +15,31 @@ export class LoginPage extends Component {
         username: uuid(),
         password: 'Orchard1!'
       },
-      isSignedIn: false
+      isSignedIn: false,
+      loading: false
     }
   }
 
   tryLogin(type) {
-      Auth.signIn({
+    this.setState({ loading: true });
+    Auth.signIn({
         username: this.state.userData.username, 
         password: this.state.userData.password,
-    }).then(user => {
-      console.log('Wow', user)
+    })
+    .then(user => {
+      console.log('User', user)
+      this.setState({loading: false});
       this.props.checkLoginStatus(type);
     })
-      .catch(err => {
-        console.log('Wow', err);
+    .catch(err => {
+        console.log('User', err);
+        this.setState({ loading: false });
         // this.trySignUp();
-      });
+    });
   }
 
   trySignUp() {
+    this.setState({ loading: true });
     Auth.signUp({
       'username': this.state.userData.username,
       'password': this.state.userData.password,
@@ -40,12 +47,12 @@ export class LoginPage extends Component {
         'email': this.state.userData.username+'@example.com',
       }
     }).then(user => {
-      console.log('WowSignUp', user)
+      console.log('UserSignUp', user)
       // this.props.checkLoginStatus('Signup');
       this.tryLogin('Signup');
     })
       .catch(err => {
-        console.log('WowSignUp', err);
+        console.log('UserSignUp', err);
         alert('Could not sign up !')
       });
   }
@@ -54,14 +61,12 @@ export class LoginPage extends Component {
     const { userData } = this.state;
     userData[field] = value;
     this.setState({ userData });
-    console.log('handleChange', this.state.userData);
   }
 
   render() {
     console.log('props LOGIN', this.props);
     return (
-      <div style={{ marginLeft: 30 }}>
-
+      <div style={{ marginLeft: 30 }}>        
         <h3>
           <span className="horIndent" />
         Niche marketplace - supply chain</h3>
@@ -75,6 +80,7 @@ export class LoginPage extends Component {
             <img alt="" src={require('../assets/lambda-pre-sign-up.png')} height="160px;"/>
           </div>
         </div>
+        
         <div id="containerLogin">
           <div id="leftLogin">
           <span className="verIndent"></span>
@@ -86,7 +92,8 @@ export class LoginPage extends Component {
             <span className="smalltable">A random username will be used to sign up programmatically with Cognito</span>
         <br/><span className="horIndent" />
             <span className="smalltable"> when you click 'Login'. Changing standard password is optional.</span>
-        </div>
+
+         </div>
           <div id="rightLogin">
             <span className="verIndent"></span>
             <h4 className="is-active">
@@ -97,6 +104,12 @@ export class LoginPage extends Component {
             <span className="smalltable">You can open this app in another browser or computer to see it working.</span>
             <br /><span className="horIndent" />
             <span className="smalltable">Login, click 'Show username', copy and paste below in another browser</span>
+            {this.state.loading && <div><br/><br/><Loader
+              type="CradleLoader"
+              color="#00BFFF"
+              height="100"
+              width="100"
+            /></div>}
 
           </div>
         </div>

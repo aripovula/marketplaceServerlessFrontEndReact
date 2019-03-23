@@ -11,7 +11,7 @@ import { Header } from './Header';
 
 import { graphql, compose } from 'react-apollo'
 import AddCompanyB from '../graphQL/mutationAddCompanyB';
-
+import UsersCompanyContext from '../context/UsersCompanyContext'
 
 export const history = createHistory();
 
@@ -21,7 +21,7 @@ class AppRouter extends Component {
     Home = () => (
         <div className="ui container">
             <AllTraders client={this.props.client} 
-            companyBID={this.company.companyID} 
+            // companyBID={this.company.companyID} 
             isNewUser={this.isNewCoStarted}/>
         </div>
     );
@@ -29,14 +29,14 @@ class AppRouter extends Component {
     AllTradersWithClient = () => (
         <AllTraders
             client = {this.props.client}
-            companyBID = {this.company.companyID}
+            // companyBID = {this.company.companyID}
             isNewUser = {this.isNewCoStarted}
         />
     );
 
     SearchWithClient = () => (
         <Search client={this.props.client} 
-            companyBID={this.company.companyID}
+            // companyBID={this.company.companyID}
         />
     );
 
@@ -77,7 +77,9 @@ class AppRouter extends Component {
   render() {
       console.log('router props', this.props);
     return (
-      <div>
+
+      <UsersCompanyContext.Provider value={this.company.companyID} >
+
             {this.state.authState === 'signedIn' &&
                 <div>
                 <Router history={history}>
@@ -99,7 +101,7 @@ class AppRouter extends Component {
                 client={this.props.client}
                 />
             }
-      </div>
+      </UsersCompanyContext.Provider>
     )
   }
 }

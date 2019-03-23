@@ -2,15 +2,19 @@ import React, { Component } from 'react'
 import AssemblingCo from './AssemblingCo';
 import PartsCompany from './PartsCompany';
 import Notifications from './Notifications';
+import UsersCompanyContext from '../context/UsersCompanyContext'
 
 export class AllTradersLineOne extends Component {
+  static contextType = UsersCompanyContext;
   render() {
+    console.log('{this.context}=', this.context);
+    
     return (
       <div id="top">
         <div id="container2top">
           <div id="left2">
             <AssemblingCo
-              companyID= {this.props.companyBID}
+              companyID={this.context} // {this.props.companyBID}
               companyName="Assembler Inc."
               client={this.props.client}
               limit={4}

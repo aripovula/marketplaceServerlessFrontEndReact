@@ -63,7 +63,7 @@ export class AllTrader extends Component {
           <div id="right">
             <AllTradersLineOne
               client={this.props.client} 
-              companyBID={this.props.companyBID}
+              // companyBID={this.props.companyBID}
               isNewUser={this.props.isNewUser}
             />
             <AllTradersLineTwo client={this.props.client}/>
