@@ -13,18 +13,7 @@ import MutationUpdateOffer from "../graphQL/mutationUpdateOffer";
 import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
 import NewProductSubscription from '../graphQL/subscriptionProducts';
 import UpdateOfferSubscription from '../graphQL/subscriptionOfferUpdate';
-import Spinner from '../assets/loading2.gif';
 import ModalInfo from "./ModalInfo";
-
-// style for loading spinner
-var sectionStyle = {
-    width: "100%",
-    height: "100%",
-    backgroundImage: `url(${Spinner})`,
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-    backgroundSize: "cover"
-};
 
 // style for modal
 const customStyles = {
@@ -424,6 +413,10 @@ class PartsCompany extends Component {
         return items;
     }
 
+    addCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
     // when markChangedOnes() function below detects changed values it changes relevant value below to 1.
     // That item in render is colored to light green in table. setTimeout is set to expire in 3 secs.
     // When 3 secs pass setTimeout function calls below function (fromTimer).
@@ -437,6 +430,7 @@ class PartsCompany extends Component {
         if (field === "price_T") this.keepTillItTimesOut[z].price_T = 0;
         if (field === "rating_T") this.keepTillItTimesOut[z].rating_T = 0;
         if (field === "available_T") this.keepTillItTimesOut[z].available_T = 0;
+        if (field === "available_T2") this.keepTillItTimesOut[z].available_T2 = 0;
         if (field === "isNew") this.keepTillItTimesOut[z].isNew_ = 0;
         if (field === "isNew_T") this.keepTillItTimesOut[z].isNew_T = 0;
         this.setState(prevState => ({is2reRender: !prevState.is2reRender}));
@@ -452,7 +446,7 @@ class PartsCompany extends Component {
             if (this.keepTillItTimesOut[z].offerID === offerID) {isFound = true; Z = z; break; }
         }
         if (!isFound) {
-            this.keepTillItTimesOut.push({ offerID, price_: 0, rating_: 0, available_: 0, price_T: 0, rating_T: 0, available_T: 0 });
+            this.keepTillItTimesOut.push({ offerID, price_: 0, rating_: 0, available_: 0, price_T: 0, rating_T: 0, available_T: 0, available_T2: 0 });
             Z = size;
         }
         return Z;
@@ -517,6 +511,7 @@ class PartsCompany extends Component {
                         }
                         dataTemp[x]["available_"] = this.keepTillItTimesOut[z].available_;
                         dataTemp[x]["available_T"] = tempTriggerTimer;
+                        dataTemp[x]["available_T2"] = tempTriggerTimer;
                     }
                 }
             }
@@ -683,9 +678,11 @@ class PartsCompany extends Component {
                                         </td>
                                         <td>&nbsp; {<span className={(offer.available_ === 1 && offer.offerID !== '-10')
                                             ? 'responsiveGreen' : (offer.offerID === '-10' ? 'responsiveBlue' : 'responsiveBlack')}>
-                                            {offer.available}</span>}
-                                            {offer.available_T === 1 && offer.offerID !== '-10' && 
-                                            setTimeout(() => this.fromTimer(offer.offerID, 'available'), 3000)}
+                                            {this.addCommas(offer.available)}</span>}
+                                            {offer.available_T === 1 && offer.offerID !== '-10' &&
+                                                setTimeout(() => this.fromTimer(offer.offerID, 'available'), 3000)}
+                                            {offer.available_T2 === 1 && offer.offerID !== '-10' &&
+                                                this.fromTimer(offer.offerID, 'available_T2')}
                                         </td>
                                     </tr>
                                 )}

@@ -500,6 +500,7 @@ class AssemblingCo extends React.Component {
         } else if (this.state.oneOffOrRule === 2) {
             const { order } = this.state;
             let orderTemp = JSON.parse(JSON.stringify(order));
+            orderTemp.reorderRuleIDnext = orderTemp.reorderRuleID;
             orderTemp.reorderRuleID = '-10';
             this.state.productsAll.map((item) => {
                 if (item.details.id === orderTemp.productID) orderTemp.product = item.details;
@@ -515,8 +516,15 @@ class AssemblingCo extends React.Component {
             this.setState({
                 loading: true,
                 modalIsOpen: false,
-                listReOrderRules
-            });
+                listReOrderRules,
+                listAllReOrderRules: [
+                    ...this.props.dataAllRules.listAllRules.items.filter(e => {
+                        return e.reorderRuleID !== order.reorderRuleID
+                    })
+                    , orderTemp]
+                
+            }, () => console.log('listAllReOrderRules12-', this.state.listAllReOrderRules));
+            
             await this.props.onUpdateRule({ ...order });
             // I know that I had better use update inside of mutation only. But this does not always work as expected
             this.handleSync();
@@ -843,6 +851,7 @@ class AssemblingCo extends React.Component {
         if (!this.state.productsAll || this.state.productsAll.length === 0) {
             if (this.props.products.length > 0) this.restoreDefaults();
         }
+        console.log('listAllReOrderRules--', listAllReOrderRules);
         
         return (
             <div>
@@ -1671,23 +1680,26 @@ export default compose(
             onUpdateRule: rule => props.mutate({
                 variables: rule,
                 update: (proxy, { data: { updateReOrderRule } }) => {
-                    const data = proxy.readQuery({
+                    const data2 = proxy.readQuery({
+                        query: ListAllReOrderRules,
+                    });
+                    data2.listReOrderRules.items = [
+                        ...data2.listReOrderRules.items.filter(e => {
+                            return e.reorderRuleID !== updateReOrderRule.reorderRuleID
+                        })
+                        , updateReOrderRule];
+                    proxy.writeQuery({ query: ListAllReOrderRules, data: data2 });
+                },
+                refetchQueries: [
+                    {
                         query: ListReOrderRules,
                         variables: {
                             limit: props.ownProps.limit,
                             nextToken: null,
                             companyID: props.ownProps.companyID
-                        }
-                    });
-                    data.listReOrderRules.nextToken = null;
-                    data.listReOrderRules.items = [
-                        ...data.listReOrderRules.items.filter(e => {
-                            return e.reorderRuleID !== updateReOrderRule.reorderRuleID
-                        })
-                        , updateReOrderRule];
-                    
-                    proxy.writeQuery({ query: ListReOrderRules, data });
-                },
+                        },
+                    },
+                ],
             })
         }),
     }),
