@@ -64,8 +64,7 @@ table, th, td, tr {
   font-size: 0.88vw;
 }
 
-#tableFM td,
-#tableFM th {
+#tableFM td, #tableFM th {
   border: 1px solid #ddd;
   padding: 4px;
 }
@@ -211,7 +210,7 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
   opacity: 0.85;
 }
 
-.padding15{
+.padding15 {
   padding: 15px;
 }
 
@@ -224,7 +223,6 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
 .btn {
   border-radius: 0px;
 }
-
 
 .button {
   /* //border:  rgb(48, 190, 238) solid 1px;  */
@@ -344,6 +342,11 @@ input[type=text], input[type=number], input[type=date], input[type=password] {
   font-size: 1vw;
 }
 
+.responsiveFSize2b {
+  color: #000000;
+  font-size: 1vw;
+}
+
 .responsiveFSize2a {
   color: lightslategray;
   font-size: 0.8vw;
@@ -427,8 +430,7 @@ a.addnlightbg:active {
   font-size: 1vw;
 }
 
-.addnlightbgoff,
-a.addnlightbg {
+.addnlightbgoff, a.addnlightbg {
   color: rgb(194, 202, 211);
   font-size: 1vw;
 }
@@ -438,8 +440,7 @@ a.addnlightbgoff:link {
   font-size: 1vw;
 }
 
-.addnlightbgsm,
-a.addnlightbgsm {
+.addnlightbgsm, a.addnlightbgsm {
   color: lightslategray;
   font-size: 12px;
 }
@@ -454,8 +455,7 @@ a.addnlightbgsm:visited {
   font-size: 12px;
 }
 
-.addnlightbgsm:hover,
-a.addnlightbgsm:hover {
+.addnlightbgsm:hover, a.addnlightbgsm:hover {
   color: deepskyblue;
   /* transition-duration: 0.4s; */
   font-size: 12px;
@@ -465,6 +465,34 @@ a.addnlightbgsm:hover {
 a.addnlightbgsm:active {
   text-decoration: none;
   font-size: 12px;
+}
+
+/* for Source */
+
+.addnlightbgReg, a.addnlightbgReg {
+  color: rgb(76, 158, 206);
+}
+
+a.addnlightbgReg:link {
+  text-decoration: none;
+}
+
+a.addnlightbgReg:visited {
+  text-decoration: none;
+}
+
+.addnlightbgReg:hover, a.addnlightbgReg:hover {
+  color: deepskyblue;
+  /* transition-duration: 0.4s; */
+  text-decoration: none;
+}
+
+a.addnlightbgReg:active {
+  text-decoration: none;
+}
+
+.a.addnlightbgReg {
+  color: rgb(194, 202, 211);
 }
 
 .black {
@@ -690,7 +718,7 @@ a.addnlightbgsm:active {
 }
 
 #rightLogin {
-    width: 40%;
+  width: 40%;
   /* border-left: 2px solid #333; */
   /* background:yellow; */
 }

@@ -21,7 +21,6 @@ class AppRouter extends Component {
     Home = () => (
         <div className="ui container">
             <AllTraders client={this.props.client} 
-            // companyBID={this.company.companyID} 
             isNewUser={this.isNewCoStarted}/>
         </div>
     );
@@ -29,14 +28,12 @@ class AppRouter extends Component {
     AllTradersWithClient = () => (
         <AllTraders
             client = {this.props.client}
-            // companyBID = {this.company.companyID}
             isNewUser = {this.isNewCoStarted}
         />
     );
 
     SearchWithClient = () => (
         <Search client={this.props.client} 
-            // companyBID={this.company.companyID}
         />
     );
 

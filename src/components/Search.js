@@ -58,7 +58,7 @@ class Search extends Component {
     
     handleFilter = debounce((val) => {
         this.setState({ searchQuery: val });
-        const val2 = this.context; // this.props.companyBID;
+        const val2 = this.context; // this.props.companyBID;  // "react-scripts test",
         this.props.onSearch(val, val2)
     }, 250);
 

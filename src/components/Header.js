@@ -61,7 +61,7 @@ export const Header = (props) => {
                 </NavLink>
                 <span className="smalltext cursorpointer"
                     onClick={() => {
-                        setTimeout(() => setIs2showUserName(false), 15000)
+                        setTimeout(() => setIs2showUserName(false), 30000)
                         setIs2showUserName(!is2showUserName);
                         // alert(`You can check how this app works by loggin in from another browser/computer using username of ${props.username}`); 
                     }}>

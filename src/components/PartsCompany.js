@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { graphql, compose } from 'react-apollo'
 import { v4 as uuid } from "uuid";
 import Modal from 'react-modal';
+import Loader from 'react-loader-spinner';
 
 import QueryGetCompany from "../graphQL/queryGetCompany";
 import QueryAllProducts from "../graphQL/queryAllProducts";
@@ -546,7 +547,7 @@ class PartsCompany extends Component {
             };
 
             return (
-                <div style={(loading || loadingState)  ? sectionStyle : null}>  
+                <div>
                     
                     {/* if new product was added warn offering company */}
                     {this.props.products.length !== this.state.productsAll.length &&
@@ -608,6 +609,16 @@ class PartsCompany extends Component {
                                 }));
                             }}>add offer</span>
                         &nbsp;&nbsp;
+                        </div>
+                        <div>
+                            { (loading || loadingState) && 
+                                <Loader
+                                    type="ThreeDots"
+                                    color="#00BFFF"
+                                    height="50"
+                                    width="50"
+                                />
+                                          }
                         </div>
                         <table id="tableFM">
                             <tbody>

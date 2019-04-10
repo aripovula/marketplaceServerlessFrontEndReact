@@ -178,13 +178,15 @@ class AssemblingCo extends React.Component {
             let indexedproductsNoRule = [];
             let count = 0;
             for (let x = 0; x < l; x++) {
-                if (coOrders && !(coOrders.includes(productsListFromProps[x].id))) {
+                if ( !coOrders || ( coOrders && !(coOrders.includes(productsListFromProps[x].id)) ) ) {
                     indexedproductsNoRule.push({
                         seqNumb: count++,
                         details: productsListFromProps[x]
                     })
                 }
             }
+            console.log('rulesForCo-', rulesForCo, ' indexedproductsNoRule- ', indexedproductsNoRule, '  productsListFromProps-', productsListFromProps);
+            
             return indexedproductsNoRule;
         } else {
             return this.allProducts(productsListFromProps);
@@ -419,7 +421,9 @@ class AssemblingCo extends React.Component {
                     listAllReOrderRules: listReOrderRules
                 });
 
-                this.props.deleteReOrderRule(order);
+                await this.props.deleteReOrderRule(order);
+                // I know that I had better use update inside of mutation only. But this does not always work as expected
+                this.handleSync();
                 this.restoreDefaults();
             }
         }
@@ -455,7 +459,9 @@ class AssemblingCo extends React.Component {
                 listAllReOrderRules
             });
 
-            this.props.onAddRule({ ...order });
+            await this.props.onAddRule({ ...order });
+            // I know that I had better use update inside of mutation only. But this does not always work as expected
+            this.handleSync();
         }
         this.restoreDefaults();
     }
@@ -511,9 +517,23 @@ class AssemblingCo extends React.Component {
                 modalIsOpen: false,
                 listReOrderRules
             });
-            this.props.onUpdateRule({ ...order });
+            await this.props.onUpdateRule({ ...order });
+            // I know that I had better use update inside of mutation only. But this does not always work as expected
+            this.handleSync();
         }
         this.restoreDefaults();
+    }
+
+    handleSync = async () => {
+        const { client } = this.props;
+        const query = ListAllReOrderRules;
+
+        client.query({
+            query,
+            fetchPolicy: 'network-only',
+        });
+
+        // this.restoreDefaults();
     }
 
     restoreDefaults = () => {
@@ -680,7 +700,14 @@ class AssemblingCo extends React.Component {
                 let price, prevPrice, status, prevStatus;
 
                 for (let y = 0; y < dataPrev.length; y++) {
-                    if ( dataPrev[y].orderID === dataTemp[x].orderID || (dataPrev[y].orderID === '-10' && dataTemp[x].orderID === dataPrev[y].orderIDnext) ) {
+                    let isAdditionConfirmed = false;
+                    // console.log('left after adding 1- ', dataPrev[y].orderID, dataTemp[x].orderID, dataPrev[y].orderIDnext);
+                    if ( dataPrev[y].orderID === '-10' && dataTemp[x].orderID == dataPrev[y].orderIDnext ) {
+                        isAdditionConfirmed = true;
+                        const left = this.getLeft(dataTemp[x].productID, dataTemp[x].quantity, dataTemp[x].reorderLevel);
+                        // console.log('left after adding 2- ', left);
+                    }
+                    if ( dataPrev[y].orderID === dataTemp[x].orderID || isAdditionConfirmed ) {
                         prevPrice = dataPrev[y].dealPrice;
                         prevStatus = dataPrev[y].status;
                         price = dataTemp[x].dealPrice;

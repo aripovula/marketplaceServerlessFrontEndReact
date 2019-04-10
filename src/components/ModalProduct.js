@@ -139,13 +139,13 @@ class ModalProduct extends Component {
                         <input type="text" id="modelNo" value={product.modelNo} onChange={this.handleChange.bind(this, 'modelNo')} />
                         </div>
                             <div className="">
-                                <label htmlFor="imageURL">image URL</label>
+                                <label htmlFor="imageURL">image URL (type any value *)</label>
                                 <input type="text" id="imageURL" value={product.imageURL} onChange={this.handleChange.bind(this, 'imageURL')} />
                             </div>
                         <div className="">
                         <label htmlFor="specificationURL">specification URL (type any value *)</label>
                         <input type="text" id="specificationURL" value={product.specificationURL} onChange={this.handleChange.bind(this, 'specificationURL')} />
-                        <br/><label className="text14black">* assume there is a webpage that defines product standards</label>
+                        <br/><label className="text14black">* assume there is a webpage that defines product standards and provides product image</label>
                                 {!this.state.isExistingProduct &&
                                     <p className="text14black">only registered products can be traded in this marketplace. All traded items must meet exact same design and quality standards agreed between market members. Request adding new product</p>
                                 }
