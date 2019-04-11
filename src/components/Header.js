@@ -62,11 +62,11 @@ export const Header = (props) => {
                 <span className="smalltext cursorpointer"
                     onClick={() => {
                         setTimeout(() => setIs2showUserName(false), 30000)
-                        setIs2showUserName(!is2showUserName);
+                        !is2showUserName && setIs2showUserName(!is2showUserName);
                         // alert(`You can check how this app works by loggin in from another browser/computer using username of ${props.username}`); 
                     }}>
                         {!is2showUserName && '(show userName)'}
-                        {is2showUserName && `hide - ${props.username}`}
+                        {is2showUserName && `${props.username}`}
 
                 </span>
 
