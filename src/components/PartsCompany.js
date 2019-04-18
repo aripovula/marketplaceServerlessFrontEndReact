@@ -14,21 +14,7 @@ import MutationDeleteOffer from "../graphQL/mutationDeleteOffer";
 import NewProductSubscription from '../graphQL/subscriptionProducts';
 import UpdateOfferSubscription from '../graphQL/subscriptionOfferUpdate';
 import ModalInfo from "./ModalInfo";
-
-// style for modal
-const customStyles = {
-    content: {
-        top: '30%',
-        left: '50%',
-        right: 'auto',
-        bottom: 'auto',
-        marginRight: '-50%',
-        transform: 'translate(-50%, -50%)',
-        width: '650px',
-        padding: '1%',
-        margin: '4%'
-    }
-};
+import { ModalOffers } from "./ModalOffers";
 
 class PartsCompany extends Component {
 
@@ -70,6 +56,13 @@ class PartsCompany extends Component {
         this.openModal = this.openModal.bind(this);
         this.handleModalClose = this.handleModalClose.bind(this);
         this.handleInfoModalClose = this.handleInfoModalClose.bind(this);
+        this.handleSaveNew = this.handleSaveNew.bind(this);
+        this.handleSaveUpdate = this.handleSaveUpdate.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+        this.updateProductOptions = this.updateProductOptions.bind(this);
+        this.handleSelectOptionChange = this.handleSelectOptionChange.bind(this);
+
     }
 
     componentWillMount() {
@@ -268,6 +261,7 @@ class PartsCompany extends Component {
 
     // update modal UI when certain product is selected in drop-down
     handleSelectOptionChange(selected) {
+        this.setState({ selectedOption: selected });
         if (selected > -1) {
             let isFound = false; let xF = -1;
             for (let x = 0; x < this.props.company.offers.items.length; x++) {
@@ -726,76 +720,26 @@ class PartsCompany extends Component {
 
                     <div>
                         {/*  Add new offer pop-up modal  */}
-                        <Modal
-                            isOpen={this.state.modalIsOpen}
-                            style={customStyles}
-                            contentLabel="Example Modal"
-                        >
+                        <ModalOffers
+                            isOpen = {this.state.modalIsOpen}
+                            isUpdateAtStart = {this.state.isUpdateAtStart}
+                            isUpdate = {this.state.isUpdate}
+                            productsNoOffer = {this.state.productsNoOffer}
+                            productsAll = {this.state.productsAll}
+                            products = {this.state.products}
+                            selectedOption = {this.state.selectedOption}
+                            offer = {this.state.offer}
+                            isSubmitValid = {this.state.isSubmitValid}
 
-                            <div className="card-4" >
-                                <div className="bggreen">
-                                    <p>{this.state.isUpdateAtStart ? 'Update an offer' : (this.state.isUpdate ? 'Update an offer' : 'Add new offer')}</p>
-                                </div>
-                                <div className="padding15">
-                                    {!this.state.isUpdateAtStart &&
-                                        <div>
-                                            <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
-                                                <label htmlFor="noOffers">products with no offer({this.state.productsNoOffer.length})&nbsp;</label>
-                                                <input id="noOffers" type="radio" value="noOffers" name="prodtype" defaultChecked />
-                                                &nbsp;&nbsp;
-                                        <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
-                                                <input id="all" type="radio" value="all" name="prodtype" />
-                                            </div>
+                            handleSelectOptionChange = {this.handleSelectOptionChange}
+                            handleChange = {this.handleChange}
+                            updateProductOptions = {this.updateProductOptions}
+                            handleSaveNew = {this.handleSaveNew}
+                            handleSaveUpdate = {this.handleSaveUpdate}
+                            handleDelete = {this.handleDelete}
+                            handleModalClose = {this.handleModalClose}
+                    />
 
-                                            <div>
-                                                <span>products </span>
-                                                <select
-                                                    value={this.state.selectedOption}
-                                                    onChange={(e) => {
-                                                        this.setState({ selectedOption: e.target.value },
-                                                            () => this.handleSelectOptionChange(this.state.selectedOption));
-                                                    }}
-                                                >
-                                                    <option key="-1" value='null'>( please select a product )</option>
-                                                    {this.state.products.map((aProduct) =>
-                                                        <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
-                                                    )}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    }
-
-                                    <div className="">
-                                        <label htmlFor="price">price</label>
-                                        <input type="text" id="price" value={this.state.offer.price} onChange={this.handleChange.bind(this, 'price')} />
-                                    </div>
-                                    <div className="">
-                                        <label htmlFor="available">available</label>
-                                        <input type="text" id="available" value={this.state.offer.available} onChange={this.handleChange.bind(this, 'available')} />
-                                </div>
-                                    <br />
-                                    <div className="">                                        
-                                        {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
-                                            <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
-                                                Add new
-                                            </button>
-                                        }
-                                        
-                                        {(this.state.isUpdateAtStart || this.state.isUpdate) &&
-                                            <button className="button button1" onClick={this.handleSaveUpdate} disabled={!this.state.isSubmitValid && !this.state.isUpdateAtStart}>
-                                                Update
-                                            </button>
-                                        }
-                                        
-                                        <button className="button button1" onClick={this.handleModalClose}>Cancel</button>
-                                        <span className="horIndent"></span>
-                                        {(this.state.isUpdateAtStart || this.state.isUpdate) &&
-                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.offer)}> Delete </button>
-                                        }
-                                    </div>
-                                </div>
-                            </div>
-                        </Modal>
                         {this.state.infoModalData &&
                             <ModalInfo
                                 data={this.state.infoModalData}
