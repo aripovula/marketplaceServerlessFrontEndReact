@@ -16,21 +16,22 @@ import NewReOrderRuleSubscription from '../graphQL/subscriptionReOrderRuleNew';
 import UpdateOrderSubscription from '../graphQL/subscriptionOrderUpdate';
 import NewProductSubscription from '../graphQL/subscriptionProducts';
 import ModalInfo from "./ModalInfo";
+import { ModalOrders } from './ModalOrders';
 
 // style for modal
-const customStyles = {
-    content: {
-        top: '40%',
-        left: '50%',
-        right: 'auto',
-        bottom: 'auto',
-        marginRight: '-50%',
-        transform: 'translate(-50%, -50%)',
-        width: '60%',
-        padding: '1%',
-        margin: '4%'
-    }
-};
+// const customStyles = {
+//     content: {
+//         top: '40%',
+//         left: '50%',
+//         right: 'auto',
+//         bottom: 'auto',
+//         marginRight: '-50%',
+//         transform: 'translate(-50%, -50%)',
+//         width: '60%',
+//         padding: '1%',
+//         margin: '4%'
+//     }
+// };
 
 class AssemblingCo extends React.Component {
 
@@ -1182,7 +1183,27 @@ class AssemblingCo extends React.Component {
 
                 {/* MODALS  */}
                 <div>
-                    <Modal
+                    <ModalOrders
+                        isOpen={this.state.modalIsOpen}
+                        isUpdateAtStart={this.state.isUpdateAtStart}
+                        isUpdate={this.state.isUpdate}
+                        productsNoOffer={this.state.productsNoOffer}
+                        productsAll={this.state.productsAll}
+                        products={this.state.products}
+                        selectedOption={this.state.selectedOption}
+                        order={this.state.order}
+                        isSubmitValid={this.state.isSubmitValid}
+                        oneOffOrRule={this.state.oneOffOrRule}
+
+                        // handleSelectOptionChange={this.handleSelectOptionChange}
+                        // handleChange={this.handleChange}
+                        // updateProductOptions={this.updateProductOptions}
+                        // handleSaveNew={this.handleSaveNew}
+                        // handleSaveUpdate={this.handleSaveUpdate}
+                        // handleDelete={this.handleDelete}
+                        // handleModalClose={this.handleModalClose}
+                    />
+                    {/* <Modal
                         isOpen={this.state.modalIsOpen}
                         style={customStyles}
                         contentLabel="Example Modal"
@@ -1385,7 +1406,7 @@ class AssemblingCo extends React.Component {
                                 </div>
                             </div>
                         </div>
-                    </Modal>
+                    </Modal>   */}
                     {this.state.infoModalData &&
                         <ModalInfo
                             data={this.state.infoModalData}
