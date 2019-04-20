@@ -18,21 +18,6 @@ import NewProductSubscription from '../graphQL/subscriptionProducts';
 import ModalInfo from "./ModalInfo";
 import { ModalOrders } from './ModalOrders';
 
-// style for modal
-// const customStyles = {
-//     content: {
-//         top: '40%',
-//         left: '50%',
-//         right: 'auto',
-//         bottom: 'auto',
-//         marginRight: '-50%',
-//         transform: 'translate(-50%, -50%)',
-//         width: '60%',
-//         padding: '1%',
-//         margin: '4%'
-//     }
-// };
-
 class AssemblingCo extends React.Component {
 
     orderUpdateSubscription;
@@ -94,9 +79,24 @@ class AssemblingCo extends React.Component {
         this.openModal = this.openModal.bind(this);
         this.handleModalClose = this.handleModalClose.bind(this);
         this.handleInfoModalClose = this.handleInfoModalClose.bind(this);
+        this.handleSaveNew = this.handleSaveNew.bind(this);
+        this.handleSaveUpdate = this.handleSaveUpdate.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.updateOrderType = this.updateOrderType.bind(this);
         this.updateSettlementType = this.updateSettlementType.bind(this);
-        this.handleChange = this.handleChange.bind(this);
+        this.updateProductOptions = this.updateProductOptions.bind(this);
+        this.handleSelectOptionChange = this.handleSelectOptionChange.bind(this);
+        this.handlePriceChange = this.handlePriceChange.bind(this);
+        this.handleRatingChange=this.handleRatingChange.bind(this);
+        this.handleQuantityChange=this.handleQuantityChange.bind(this);
+        this.handleReorderQntyChange=this.handleReorderQntyChange.bind(this);
+        this.handleReorderLevelChange=this.handleReorderLevelChange.bind(this);
+        this.handleSuspendResume=this.handleSuspendResume.bind(this);
+        this.handleSelectOptionChange=this.handleSelectOptionChange.bind(this);
+        this.handleBestOfferTypeChange = this.handleBestOfferTypeChange.bind(this);
+        this.handleSelectSecondBestOptionChange=this.handleSelectSecondBestOptionChange.bind(this);
+
     }
 
     componentWillMount() {
@@ -132,6 +132,8 @@ class AssemblingCo extends React.Component {
         this.setState({ infoModalData: '' });
     }
 
+    // the way I set orderID and reorderRuleID enables auto-sorting in DynamoDB in descending order i.e.
+    // latest added ones go to the top of DynamoDB table, hence read first
     newOrder() {
         return {
             companyID: this.props.companyID,
@@ -307,15 +309,29 @@ class AssemblingCo extends React.Component {
 
     // update modal UI when certain product is selected in drop-down
     handleSelectOptionChange(selected) {
-        if (selected > -1) {
-            this.updateModalState();
-        } else {
-            this.setState({
-                order: this.newOrder(),
-                isSubmitValid: false,
-                isUpdate: false
-            })
-        }
+        this.setState({ selectedOption: selected },
+            () => {
+                if (selected > -1) {
+                    this.updateModalState();
+                } else {
+                    this.setState({
+                        order: this.newOrder(),
+                        isSubmitValid: false,
+                        isUpdate: false
+                    })
+                }
+            }
+        );
+    }
+
+    // set state for 2nd best option - option that would be used if no offer on best option would be found
+    handleSelectSecondBestOptionChange(secondBestOfferType) {
+        this.setState(prevState => ({
+            order: {
+                ...prevState.order,
+                secondBestOfferType
+            }
+        }));
     }
 
     // handle user input change
@@ -1187,7 +1203,7 @@ class AssemblingCo extends React.Component {
                         isOpen={this.state.modalIsOpen}
                         isUpdateAtStart={this.state.isUpdateAtStart}
                         isUpdate={this.state.isUpdate}
-                        productsNoOffer={this.state.productsNoOffer}
+                        productsNoRule={this.state.productsNoRule}
                         productsAll={this.state.productsAll}
                         products={this.state.products}
                         selectedOption={this.state.selectedOption}
@@ -1195,218 +1211,25 @@ class AssemblingCo extends React.Component {
                         isSubmitValid={this.state.isSubmitValid}
                         oneOffOrRule={this.state.oneOffOrRule}
 
-                        // handleSelectOptionChange={this.handleSelectOptionChange}
-                        // handleChange={this.handleChange}
-                        // updateProductOptions={this.updateProductOptions}
-                        // handleSaveNew={this.handleSaveNew}
-                        // handleSaveUpdate={this.handleSaveUpdate}
-                        // handleDelete={this.handleDelete}
-                        // handleModalClose={this.handleModalClose}
+                        updateOrderType = {this.updateOrderType}
+                        updateSettlementType = {this.updateSettlementType}
+                        handlePriceChange = {this.handlePriceChange}
+                        handleRatingChange={this.handleRatingChange}
+                        handleQuantityChange={this.handleQuantityChange}
+                        handleReorderQntyChange={this.handleReorderQntyChange}
+                        handleReorderLevelChange={this.handleReorderLevelChange}
+                        handleSuspendResume={this.handleSuspendResume}
+                        handleSelectOptionChange={this.handleSelectOptionChange}
+                        handleBestOfferTypeChange={this.handleBestOfferTypeChange}
+                        handleSelectSecondBestOptionChange={this.handleSelectSecondBestOptionChange}
+                        handleChange={this.handleChange}
+                        updateProductOptions={this.updateProductOptions}
+                        handleSaveNew={this.handleSaveNew}
+                        handleSaveUpdate={this.handleSaveUpdate}
+                        handleDelete={this.handleDelete}
+                        handleModalClose={this.handleModalClose}
                     />
-                    {/* <Modal
-                        isOpen={this.state.modalIsOpen}
-                        style={customStyles}
-                        contentLabel="Example Modal"
-                    >
 
-                        <div className="card-4" >
-                            <div className="bggreen">
-                                <p>{this.state.isUpdateAtStart ? 'Update re-order rule' : (this.state.isUpdate ? 'Update re-order rule' : 'Add new order / re-order rule')}</p>
-                            </div>
-                            <div className="padding15 responsiveFSize">
-                                {!this.state.isUpdateAtStart &&
-                                    <div className="floatRight" onChange={this.updateProductOptions.bind(this)}>
-                                        <label htmlFor="noOrders">products with no re-order rule({this.state.productsNoRule.length})&nbsp;</label>
-                                        <input id="noOrders" type="radio" value="noOrders" name="prodtype" />
-                                        &nbsp;&nbsp;
-                                            <label htmlFor="all">&nbsp;all products({this.state.productsAll.length}) &nbsp;</label>
-                                        <input id="all" type="radio" value="all" name="prodtype" defaultChecked />
-                                    </div>
-                                }
-                                {this.state.isUpdateAtStart && <div>Update re-order rule for '{this.state.order.product.name} - {this.state.order.product.modelNo}' - works only for new orders not yet placed</div>}
-                                {!this.state.isUpdateAtStart &&
-                                    <div>
-                                        <span>Product to order </span>
-                                        <select
-                                            value={this.state.selectedOption}
-                                            onChange={(e) => {
-                                                this.setState({ selectedOption: e.target.value },
-                                                    () => this.handleSelectOptionChange(this.state.selectedOption));
-                                            }}
-                                        >
-                                            <option key="-1" value='null'>( please select a product )</option>
-                                            {this.state.products.map((aProduct) =>
-                                                <option key={aProduct.seqNumb} value={aProduct.seqNumb}>{aProduct.details.name + ' - ' + aProduct.details.modelNo}</option>
-                                            )}
-                                        </select>
-                                    </div>
-                                }
-
-                                <br />
-                                {(this.state.selectedOption > -1 || this.state.isUpdateAtStart) &&
-                                    <div>
-                                        {!this.state.isUpdateAtStart &&
-                                            <div className="">
-                                                <label htmlFor="oneoff">&nbsp;one-off order &nbsp;</label>
-                                                <input id="oneoff" type="radio" value="1" name="orderType"
-                                                    checked={this.state.oneOffOrRule === 1} onChange={this.updateOrderType.bind(this)} />
-                                                &nbsp;&nbsp;
-                                            <label htmlFor="ruleonly">&nbsp;re-order rule &nbsp;</label>
-                                                <input id="ruleonly" type="radio" value="2" name="orderType"
-                                                    checked={this.state.oneOffOrRule === 2} onChange={this.updateOrderType.bind(this)} />
-                                            </div>
-                                        }
-                                        <br />
-                                        {this.state.oneOffOrRule === 0 && !this.state.isUpdateAtStart &&
-                                            <div><div>( below settings apply to initial order and subsequent re-orders )</div><br /></div>}
-
-                                        Order product with following terms:
-                                        {(this.state.order.bestOfferType === 'OPTIMAL' || this.state.order.bestOfferType === 'CUSTOM') &&
-                                            <div className="floatRight">
-                                                <span>if no offer is found fallback to </span>
-                                                <select
-                                                    value={this.state.order.secondBestOfferType}
-                                                    onChange={(e) => {
-                                                        const secondBestOfferType = e.target.value;
-                                                        this.setState(prevState => ({
-                                                            order: {
-                                                                ...prevState.order,
-                                                                secondBestOfferType
-                                                            }
-                                                        }));
-                                                    }}
-                                                >
-                                                    <option key="0" value='CHEAPEST'>cheapest (default)</option>
-                                                    <option key="1" value='HIGHESTRATING'>highest rated</option>
-                                                </select>
-                                            </div>
-                                        }
-
-                                        <div className="">
-                                            &nbsp;&nbsp;<input id="optimal" type="radio" value="OPTIMAL" name="bestorder"
-                                                checked={this.state.order.bestOfferType === "OPTIMAL"}
-                                                onChange={(e) => this.handleBestOfferTypeChange(e)} />
-                                            <label htmlFor="optimal">&nbsp;cheapest price at min. rating</label>
-                                            <br />
-                                            &nbsp;&nbsp;<input id="cheapest" type="radio" value="CHEAPEST" name="bestorder"
-                                                checked={this.state.order.bestOfferType === "CHEAPEST"}
-                                                onChange={(e) => this.handleBestOfferTypeChange(e)} />
-                                            <label htmlFor="cheapest">&nbsp;cheapest price</label>
-                                            <br />
-                                            &nbsp;&nbsp;<input id="highestrating" type="radio" value="HIGHESTRATING" name="bestorder"
-                                                checked={this.state.order.bestOfferType === "HIGHESTRATING"}
-                                                onChange={(e) => this.handleBestOfferTypeChange(e)} />
-                                            <label htmlFor="highestrating">&nbsp;highest rating</label>
-                                            <br />
-                                            &nbsp;&nbsp;<input id="custom" type="radio" value="CUSTOM" name="bestorder"
-                                                checked={this.state.order.bestOfferType === "CUSTOM"}
-                                                onChange={(e) => this.handleBestOfferTypeChange(e)} />
-                                            <label htmlFor="custom">&nbsp;custom settings</label>
-
-                                        </div>
-
-                                        {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'HIGHESTRATING') &&
-                                            <div className="">
-                                                <label htmlFor="price">max. price</label>
-                                                <input type="text" id="price" value={this.state.order.maxPrice} onChange={this.handleChange.bind(this, 'maxPrice')} />
-                                                <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.99)}>- 1%</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.01)}>+ 1%</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handlePriceChange(0.96)}>- 4%</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handlePriceChange(1.04)}>+ 4%</button>&nbsp;
-                                            </div>
-                                        }
-                                        {(this.state.order.bestOfferType === 'CUSTOM' || this.state.order.bestOfferType === 'OPTIMAL') &&
-                                            <div className="">
-                                                <label htmlFor="minProductRating">min. rating</label>
-                                                <input type="text" id="minProductRating" value={this.state.order.minProductRating} onChange={this.handleChange.bind(this, 'minProductRating')} />
-                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(-0.1, 1)}>- 0.1</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(0.1, 1)}>+ 0.1</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4, 0)}>4.0</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.2, 0)}>4.2</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.4, 0)}>4.4</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleRatingChange(4.6, 0)}>4.6</button>&nbsp;
-                                            </div>
-                                        }
-                                        <br />
-
-                                        {!(this.state.oneOffOrRule === 2) &&
-                                            <div className="">
-                                                <label htmlFor="quantity">
-                                                    {this.state.oneOffOrRule === 0 && <span>initial </span>}
-                                                    order quantity&nbsp;&nbsp;</label>
-                                                <input type="text" id="quantity" value={this.state.order.quantity} onChange={this.handleChange.bind(this, 'quantity')} />
-                                                <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-10)}>- 10</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(10)}>+ 10</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(-100)}>- 100</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleQuantityChange(100)}>+ 100</button>&nbsp;
-                                            </div>
-                                        }
-
-                                        {!(this.state.oneOffOrRule === 1) &&
-                                            <div>
-                                                <div>reorder &nbsp;
-                                                <input type="text" id="reorderQnty" value={this.state.order.reorderQnty} onChange={this.handleChange.bind(this, 'reorderQnty')} />
-                                                    &nbsp; items&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleReorderQntyChange(-10)}>- 10</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleReorderQntyChange(10)}>+ 10</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleReorderQntyChange(-100)}>- 100</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleReorderQntyChange(100)}>+ 100</button>&nbsp;
-                                            </div>
-                                                <div>when stock is below&nbsp;
-                                                <input type="text" id="reorderLevel" value={this.state.order.reorderLevel} onChange={this.handleChange.bind(this, 'reorderLevel')} />
-                                                    <button className="buttonSm button2a" onClick={() => this.handleReorderLevelChange(-10)}>- 10</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleReorderLevelChange(10)}>+ 10</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleReorderLevelChange(-100)}>- 100</button>&nbsp;
-                                                <button className="buttonSm button2a" onClick={() => this.handleReorderLevelChange(100)}>+ 100</button>&nbsp;
-                                            </div>
-                                            </div>
-                                        }
-                                        <br />
-                                        <div className="" >
-                                            settlement type: &nbsp;&nbsp;
-                                            <label htmlFor="credit">&nbsp;credit&nbsp;</label>
-                                            <input id="credit" type="radio" value="false" name="paymenttype"
-                                                checked={!this.state.order.isCashPayment} onChange={this.updateSettlementType.bind(this)} />
-                                            &nbsp;&nbsp;
-                                            <label htmlFor="cash">&nbsp;cash&nbsp;</label>
-                                            <input id="cash" type="radio" value="true" name="paymenttype"
-                                                checked={this.state.order.isCashPayment} onChange={this.updateSettlementType.bind(this)} />
-                                        </div>
-
-                                    </div>
-                                }
-                                <br />
-                                <span className="responsiveFSize2a">Warning: best match to your order is a legally binding deal for you and offering co.</span>
-                                <br /><br />
-                                <div className="">
-
-                                    {(!this.state.isUpdateAtStart && !this.state.isUpdate) &&
-                                        <button className="button button1" onClick={this.handleSaveNew} disabled={!this.state.isSubmitValid}>
-                                            {this.state.oneOffOrRule === 1 ? 'Place new order' :
-                                                (this.state.oneOffOrRule === 2 ? 'Set re-order rule' : 'Place order and set rule')}
-                                        </button>
-                                    }
-
-                                    {(this.state.isUpdateAtStart || this.state.isUpdate) &&
-                                        <button className="button button1" onClick={this.handleSaveUpdate} disabled={!this.state.isSubmitValid &&
-                                            !this.state.isUpdateAtStart}>
-                                            Update rule
-                                            </button>
-                                    }
-
-                                    {(this.state.isUpdateAtStart || this.state.isUpdate) &&
-                                        <span>
-                                            <button className="button button1" onClick={this.handleSuspendResume.bind(this, this.state.order)}>
-                                                {this.state.order.isRuleEffective ? 'Suspend rule' : 'Resume rule'}  </button>
-                                            <button className="button button1 floatRight" onClick={this.handleDelete.bind(this, this.state.order)}>
-                                                Delete rule</button>
-                                        </span>
-                                    }
-                                    <button className="button button1" onClick={this.handleModalClose}>Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-                    </Modal>   */}
                     {this.state.infoModalData &&
                         <ModalInfo
                             data={this.state.infoModalData}
